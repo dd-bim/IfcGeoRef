@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Xbim.Ifc;
 
 namespace IfcGeoRefChecker
 {
@@ -20,9 +10,47 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Dictionary<string, IfcStore> ModelList;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            bt_Show.IsEnabled = false;
+        }
+
+        private void BtInfo_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Noch hinzufügen");
+        }
+
+        private void Bt_Import(object sender, RoutedEventArgs e)
+        {
+            this.ModelList = new IO.IfcImport().ImportModels;
+
+            foreach(string file in this.ModelList.Keys)
+            {
+                importFiles.Items.Add(file);
+            }
+
+            bt_Show.IsEnabled = true;
+        }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+        }
+
+        private void Bt_Show(object sender, RoutedEventArgs e)
+        {
+            if(importFiles.SelectedValue == null)
+            {
+                MessageBox.Show("Please select an imported IfcFile at first."); 
+            }
+            else
+            {
+                var showResults = new Results(this.ModelList[importFiles.SelectedValue.ToString()]);
+                showResults.Show();
+            }
         }
     }
 }
