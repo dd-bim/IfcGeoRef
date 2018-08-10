@@ -1,0 +1,309 @@
+﻿<Window x:Class="IfcGeoRefChecker.Results"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IfcGeoRefChecker"
+        mc:Ignorable="d"
+        Title="Results" Height="700" Width="800">
+
+    <Grid Name="Window1" Margin="0,0,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="600" />
+            <ColumnDefinition Width="200" />
+        </Grid.ColumnDefinitions>
+        <Button Content="UpdateGeoRef" HorizontalAlignment="Left" Margin="40,40,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_UpdateGeoRef_Click" Grid.Column="1" />
+        <Button Content="SaveChanges" Name="bt_SaveChanges" HorizontalAlignment="Left" Margin="40,150,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_SaveChanges_Click" Grid.Column="1" IsEnabled="False" />
+
+        <TabControl Name="prog" HorizontalAlignment="Left" Height="669" VerticalAlignment="Top" Width="600">
+            <TabItem Name="tab_10" Header="GeoRef10">
+                <Grid Name="Window" Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="106*" />
+                        <ColumnDefinition Width="191*" />
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Header="IFC reference" HorizontalAlignment="Left" Height="95" Margin="10,10,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
+                        <Grid HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Height="75" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="144" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Reference Entity:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <ComboBox x:Name="SpatialElements10" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280"  SelectionChanged="SpatialElements10_SelectionChanged" />
+                            <Label Name="lb_Instance10" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Name="group10" Header="Content" HorizontalAlignment="Left" Height="304" Margin="10,110,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
+                        <Grid Name="grid_ct10" HorizontalAlignment="Left" Height="234" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="44" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Address lines:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Postal Code:" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Town:" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Region:" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Country:" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <TextBox Name="tb_adr0" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_adr1" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_adr2" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_plz" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_town" Grid.Column="1" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_region" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_country" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Name="tab_20" Header="GeoRef20">
+                <Grid Background="White">
+                    <GroupBox Grid.ColumnSpan="2" Header="IFC reference" HorizontalAlignment="Left" Height="71" Margin="10,10,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Height="48" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="44" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Instance Entity:"  Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <ComboBox x:Name="SiteElements20" Grid.Column="1" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="SiteElements20_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="130" Margin="10,86,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid Name="grid_ct20" HorizontalAlignment="Left" Height="100" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="270" />
+                                <ColumnDefinition Width="74" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Latitude (WGS84) [°]:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Longitude (WGS84) [°]:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Elevation:" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <TextBox Name="tb_lat" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_lon" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_elev" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <ComboBox x:Name="cb_UnitGeographicCoord20" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_UnitGeographicCoord20_SelectionChanged" Margin="7,23,7,23" Grid.RowSpan="2" />
+                            <ComboBox x:Name="cb_UnitElevation20" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_UnitElevation20_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Name="tab_30" Header="GeoRef30">
+                <Grid Background="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="107*"/>
+                        <ColumnDefinition Width="190*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Header="IFC reference" HorizontalAlignment="Left" Height="95" Margin="10,10,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
+                        <Grid HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Height="75" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="44" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Reference Entity:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <ComboBox x:Name="PlacementElements30" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280"  SelectionChanged="PlacementElements30_SelectionChanged" />
+                            <Label Name="lb_Instance30" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="263" Margin="10,110,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
+                        <Grid HorizontalAlignment="Left" Height="233" Margin="10,0,-2,0" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="270" />
+                                <ColumnDefinition Width="74" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Origin:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="X =" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                            <Label Content="Y =" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                            <Label Content="Z=" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                            <Label Content="Rotation:" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="X-axis =" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                            <Label Content="Z-axis =" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                            <TextBox Name="tb_originX_30" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_originY_30" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_originZ_30" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotationX_30" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotationZ_30" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <ComboBox x:Name="cb_Origin30" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Origin30_SelectionChanged" />
+                            <ComboBox x:Name="cb_Rotation30" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation30_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Name="tab_40" Header="GeoRef40">
+                <Grid Background="White">
+                    <GroupBox Header="IFC reference" HorizontalAlignment="Left" Height="143" Margin="10,10,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Height="123" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="44" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Reference Entity:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity (WCS):" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity (True North):" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Name="lb_Reference40" Grid.Column="1" Grid.Row="0" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <Label Name="lb_Instance_WCS" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <Label Name="lb_Instance_TN" Grid.Column="1" Grid.Row="2" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="330" Margin="10,158,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Height="300" Margin="10,0,-2,-1" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="270" />
+                                <ColumnDefinition Width="74" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="WCS - Origin:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="X =" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" />
+                            <Label Content="Y =" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" />
+                            <Label Content="Z=" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" />
+                            <Label Content="WCS - Rotation:" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="X-axis =" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" />
+                            <Label Content="Z-axis =" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" />
+                            <Label Content="True North Rotation:" Grid.Column="0" Grid.Row="7" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="XY-plane =" Grid.Column="0" Grid.Row="8" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <TextBox Name="tb_originX_40" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_originY_40" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_originZ_40" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotationX_40" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotationZ_40" Grid.Column="1" Grid.Row="6"  HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotationTN_40" Grid.Column="1" Grid.Row="8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <ComboBox x:Name="cb_Rotation40" Grid.Column="2" Grid.Row="4" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation40_SelectionChanged" />
+                            <ComboBox x:Name="cb_TrueNorth40" Grid.Column="2" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_TrueNorth40_SelectionChanged" />
+                            <ComboBox x:Name="cb_Origin40" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Origin40_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Name="tab_50" Header="GeoRef50" IsEnabled="True">
+                <Grid Background="White">
+                    <GroupBox Header="IFC reference" HorizontalAlignment="Left" Height="143" Margin="10,10,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"  Height="123" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="44" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Reference Entity:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity (Project Context):" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Content="Instance Entity (CRS):" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
+                            <Label Name="lb_Reference50" Grid.Column="1" Grid.Row="0" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <Label Name="lb_InstanceProj50" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <Label Name="lb_InstanceCRS50" Grid.Column="1" Grid.Row="2" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="467" Margin="10,153,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Height="437" Margin="10,0,-2,-1" VerticalAlignment="Top" Width="544">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="270" />
+                                <ColumnDefinition Width="74" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+                            <Label Content="Translation [m]:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Eastings =" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Northings =" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Orthogonal Height =" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Rotation (XY-plane) =" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Scale =" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Coordinate Reference System (CRS):" Grid.Column="0" Grid.Row="6" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Name:" Grid.Column="0" Grid.Row="7" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Description:" Grid.Column="0" Grid.Row="8" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Geodetic Datum:" Grid.Column="0" Grid.Row="9" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Vertical Datum:" Grid.Column="0" Grid.Row="10" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Projection name:" Grid.Column="0" Grid.Row="11" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <Label Content="Projection zone:" Grid.Column="0" Grid.Row="12" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" />
+                            <TextBox Name="tb_eastings50" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_northings50" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_height50" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_rotation50" Grid.Column="1" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_scale50" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_CRSname50" Grid.Column="1" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_CRSdesc50" Grid.Column="1" Grid.Row="8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_CRSgeod50" Grid.Column="1" Grid.Row="9" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_CRSvert50" Grid.Column="1" Grid.Row="10" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_ProjName50" Grid.Column="1" Grid.Row="11" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <TextBox Name="tb_ProjZone50" Grid.Column="1" Grid.Row="12" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <ComboBox x:Name="cb_Rotation50" Grid.Column="2" Grid.Row="4" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation50_SelectionChanged" />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
