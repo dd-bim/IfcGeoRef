@@ -60,16 +60,16 @@ namespace IfcGeoRefChecker.Appl
 
 
 
-            for (var i = 0; i < compList.Count; i++)
-            {
-                foreach(var compModel in compList.Values)
-                {
-                    var abc = new Level10(compModel, "7220", "IfcSite");
-                    abc.GetLevel10();
+            //for (var i = 0; i < compList.Count; i++)
+            //{
+            //    foreach(var compModel in compList.Values)
+            //    {
+            //        var abc = new Level10(compModel, "7220", "IfcSite");
+            //        abc.GetLevel10();
 
 
-                }
-            }
+            //    }
+            //}
 
             var instA = compList.TryGetValue("comp1", out model);
             var instC = compList.TryGetValue("comp1equal", out modeleq);
