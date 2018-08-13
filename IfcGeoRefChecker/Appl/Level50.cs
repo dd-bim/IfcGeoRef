@@ -9,7 +9,7 @@ using Xbim.Ifc4.RepresentationResource;
 
 namespace IfcGeoRefChecker.Appl
 {
-    public class Level50
+    public class Level50 : IEquatable<Level50>
     {
         public bool GeoRef50 { get; set; }
 
@@ -40,6 +40,24 @@ namespace IfcGeoRefChecker.Appl
         public string CRS_Projection_Name { get; set; }
 
         public string CRS_Projection_Zone { get; set; }
+
+        public bool Equals(Level50 other)
+        {
+            if(other == null)
+                return false;
+            return Translation_Eastings == other.Translation_Eastings &&
+                Translation_Northings == other.Translation_Northings &&
+                Translation_Orth_Height == other.Translation_Orth_Height &&
+                RotationXY[0] == other.RotationXY[0] &&
+                RotationXY[1] == other.RotationXY[1] &&
+                Scale == other.Scale &&
+                string.Equals(CRS_Name, other.CRS_Name) &&
+                string.Equals(CRS_Description, other.CRS_Description) &&
+                string.Equals(CRS_Geodetic_Datum, other.CRS_Geodetic_Datum) &&
+                string.Equals(CRS_Vertical_Datum, other.CRS_Vertical_Datum) &&
+                string.Equals(CRS_Projection_Name, other.CRS_Projection_Name) &&
+                string.Equals(CRS_Projection_Zone, other.CRS_Projection_Zone);
+        }
 
         private IfcStore model;
 
@@ -90,9 +108,9 @@ namespace IfcGeoRefChecker.Appl
                 this.Reference_Object.Add("#" + mapCvs.GetHashCode());
                 this.Reference_Object.Add(mapCvs.GetType().Name);
 
-                this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : -999999;
-                this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : -999999;
-                this.Translation_Orth_Height = (mapCvs.OrthogonalHeight != null) ? mapCvs.OrthogonalHeight : -999999;
+                this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : 0;
+                this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : 0;
+                this.Translation_Orth_Height = (mapCvs.OrthogonalHeight != null) ? mapCvs.OrthogonalHeight : 0;
 
                 if(mapCvs.XAxisAbscissa != null && mapCvs.XAxisOrdinate != null)
                 {
@@ -141,14 +159,14 @@ namespace IfcGeoRefChecker.Appl
                 this.Instance_Object_CRS.Add("IfcProjectedCRS");
                 this.Instance_Object_CRS.Add("n/a");
 
-                this.Translation_Eastings = -999999;
-                this.Translation_Northings = -999999;
-                this.Translation_Orth_Height = -999999;
+                this.Translation_Eastings = 0;
+                this.Translation_Northings = 0;
+                this.Translation_Orth_Height = 0;
 
                 this.RotationXY.Add(0);
-                this.RotationXY.Add(0);
+                this.RotationXY.Add(1);
 
-                this.Scale = -999999;
+                this.Scale = 1;
 
                 this.CRS_Name = "n/a";
                 this.CRS_Description = "n/a";

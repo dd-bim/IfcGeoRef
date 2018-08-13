@@ -95,6 +95,7 @@
     </ApplicationDefinition>
     <Compile Include="Appl\Calc.cs" />
     <Compile Include="Appl\ContextReader.cs" />
+    <Compile Include="Appl\GeoRefComparer.cs" />
     <Compile Include="Appl\Level20.cs" />
     <Compile Include="Appl\Level30.cs" />
     <Compile Include="Appl\Level40.cs" />

@@ -6,7 +6,7 @@ using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
 {
-    public class Level40
+    public class Level40 : IEquatable<Level40>
     {
         public bool GeoRef40 { get; set; }
 
@@ -23,6 +23,24 @@ namespace IfcGeoRefChecker.Appl
         public IList<double> ProjectRotationZ { get; set; }
 
         public IList<double> TrueNorthXY { get; set; }
+
+
+        public bool Equals(Level40 other)
+        {
+            if(other == null)
+                return false;
+            return ProjectLocationXYZ[0] == other.ProjectLocationXYZ[0] &&
+                ProjectLocationXYZ[1] == other.ProjectLocationXYZ[1] &&
+                ProjectLocationXYZ[2] == other.ProjectLocationXYZ[2] &&
+                ProjectRotationX[0] == other.ProjectRotationX[0] &&
+                ProjectRotationX[1] == other.ProjectRotationX[1] &&
+                ProjectRotationX[2] == other.ProjectRotationX[2] &&
+                ProjectRotationZ[0] == other.ProjectRotationZ[0] &&
+                ProjectRotationZ[1] == other.ProjectRotationZ[1] &&
+                ProjectRotationZ[2] == other.ProjectRotationZ[2] &&
+                TrueNorthXY[0] == other.TrueNorthXY[0] &&
+                TrueNorthXY[1] == other.TrueNorthXY[1];
+        }
 
         private PlacementXYZ plcm = new PlacementXYZ();
 

@@ -32,7 +32,8 @@
                     <RowDefinition Height="80" />
                 </Grid.RowDefinitions>
                 <Label Content="Status:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,5,0,0" />
-                <Label Content="no file" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,5,0,0" />
+                <Label Name="lb_importMsg" Content="0 file(s) loaded" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,5,0,0" />
+                <Label Name="lb_checkMsg" Content="0 file(s) checked" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20,5,25,0" />
                 <Label Content="Loaded IFC-files:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,0,0,0" />
                 <ListBox Name="importFiles" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Top" Height="75"  Width="330" Margin="20,0,0,0" SelectionChanged="ListBox_SelectionChanged" />
             </Grid>

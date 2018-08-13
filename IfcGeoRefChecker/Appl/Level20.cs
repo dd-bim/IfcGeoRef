@@ -8,7 +8,7 @@ using Xbim.Ifc4.MeasureResource;
 
 namespace IfcGeoRefChecker.Appl
 {
-    public class Level20
+    public class Level20 : IEquatable<Level20>
     {
         public bool GeoRef20 { get; set; }
 
@@ -19,6 +19,15 @@ namespace IfcGeoRefChecker.Appl
         public double Longitude { get; set; }
 
         public double Elevation { get; set; }
+
+        public bool Equals(Level20 other)
+        {
+            if(other == null)
+                return false;
+            return Latitude == other.Latitude &&
+                Longitude == other.Longitude &&
+                Elevation == other.Elevation;
+        }
 
         private IIfcSite site;
 

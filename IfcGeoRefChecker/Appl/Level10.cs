@@ -7,7 +7,7 @@ using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
 {
-    public class Level10
+    public class Level10 : IEquatable<Level10>
     {
         public bool GeoRef10 { get; set; }
 
@@ -28,6 +28,19 @@ namespace IfcGeoRefChecker.Appl
         private IIfcPostalAddress address;
 
         private IfcStore model;
+
+        public bool Equals(Level10 other)
+        {
+            if(other == null)
+                return false;
+            return string.Equals(AddressLines[0], other.AddressLines[0]) &&
+                string.Equals(AddressLines[1], other.AddressLines[1]) &&
+                string.Equals(AddressLines[2], other.AddressLines[2]) &&
+                   string.Equals(Postalcode, other.Postalcode) &&
+                   string.Equals(Town, other.Town) &&
+                   string.Equals(Region, other.Region) &&
+                   string.Equals(Country, other.Country);
+        }
 
         //GeoRef 10: read all IfcPostalAddress-objects which are referenced by IfcSite or IfcBuilding
         //--------------------------------------------------------------------------------------------

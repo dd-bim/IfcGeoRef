@@ -39,9 +39,6 @@ namespace IfcGeoRefChecker.IO
                     this.TimeCreation = model.Header.TimeStamp;
                     this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
 
-                    this.LoGeoRef40 = new Level40(model);
-                    this.LoGeoRef50 = new Level50(model);
-
                     string jsonobj = JsonConvert.SerializeObject(this, Formatting.Indented);
 
                     writeJson.WriteLine(jsonobj);
@@ -70,6 +67,16 @@ namespace IfcGeoRefChecker.IO
         public void GetGeoRefElements30(Level30 georef30)
         {
             this.LoGeoRef30.Add(georef30);
+        }
+
+        public void GetGeoRef40(Level40 georef40)
+        {
+            this.LoGeoRef40 = georef40;
+        }
+
+        public void GetGeoRef50(Level50 georef50)
+        {
+            this.LoGeoRef50 = georef50;
         }
     }
 }
