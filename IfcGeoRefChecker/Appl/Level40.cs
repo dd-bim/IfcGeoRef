@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
@@ -16,7 +17,7 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<string> Instance_Object_North { get; set; }
 
-        public IList<double> ProjectLocationXYZ { get; set; }
+        public IList<double> ProjectLocation { get; set; }
 
         public IList<double> ProjectRotationX { get; set; }
 
@@ -24,14 +25,13 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<double> TrueNorthXY { get; set; }
 
-
         public bool Equals(Level40 other)
         {
             if(other == null)
                 return false;
-            return ProjectLocationXYZ[0] == other.ProjectLocationXYZ[0] &&
-                ProjectLocationXYZ[1] == other.ProjectLocationXYZ[1] &&
-                ProjectLocationXYZ[2] == other.ProjectLocationXYZ[2] &&
+            return ProjectLocation[0] == other.ProjectLocation[0] &&
+                ProjectLocation[1] == other.ProjectLocation[1] &&
+                ProjectLocation[2] == other.ProjectLocation[2] &&
                 ProjectRotationX[0] == other.ProjectRotationX[0] &&
                 ProjectRotationX[1] == other.ProjectRotationX[1] &&
                 ProjectRotationX[2] == other.ProjectRotationX[2] &&
@@ -42,9 +42,9 @@ namespace IfcGeoRefChecker.Appl
                 TrueNorthXY[1] == other.TrueNorthXY[1];
         }
 
-        private PlacementXYZ plcm = new PlacementXYZ();
+        private PlacementXYZ plcmXYZ = new PlacementXYZ();
 
-        private IIfcAxis2Placement3D plcm3D;
+        private IIfcAxis2Placement plcm;
 
         //private IIfcDirection dir;
 
@@ -55,13 +55,13 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 40: read the WorldCoordinateSystem and TrueNorth attribute of IfcGeometricRepresentationContext
         //-------------------------------------------------------------------------------------------------------
 
-        public Level40(IfcStore model)
+        public Level40(IfcStore model, string ifcInstance)
         {
             try
             {
                 this.model = model;
 
-                this.prjCtx = new ContextReader(model).ProjCtx;
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode().ToString() == ifcInstance).Single();
 
                 this.Reference_Object = new List<string>
                     {
@@ -70,18 +70,18 @@ namespace IfcGeoRefChecker.Appl
                     };
 
                 //variable for the WorldCoordinatesystem attribute
-                this.plcm3D = (IIfcAxis2Placement3D)prjCtx.WorldCoordinateSystem;
+                this.plcm = prjCtx.WorldCoordinateSystem;
 
                 this.Instance_Object_WCS = new List<string>();
 
-                if(this.plcm3D != null)
+                if(this.plcm != null)
                 {
-                    this.Instance_Object_WCS.Add("#" + this.plcm3D.GetHashCode());
-                    this.Instance_Object_WCS.Add(this.plcm3D.GetType().Name);
+                    this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
+                    this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
                 }
                 else
                 {
-                    this.Instance_Object_WCS.Add("IfcAxis2Placment3D");
+                    this.Instance_Object_WCS.Add("IfcAxis2Placement");
                     this.Instance_Object_WCS.Add("n/a");
                 }
             }
@@ -93,12 +93,15 @@ namespace IfcGeoRefChecker.Appl
 
         public void GetLevel40()
         {
-            this.plcm.GetPlacementXYZ(this.plcm3D);
+            if(plcm is IIfcAxis2Placement3D)
+            {
+                this.plcmXYZ.GetPlacementXYZ(this.plcm);
 
-            this.GeoRef40 = this.plcm.GeoRefPlcm;
-            this.ProjectLocationXYZ = this.plcm.LocationXYZ;
-            this.ProjectRotationX = this.plcm.RotationX;
-            this.ProjectRotationZ = this.plcm.RotationZ;
+                this.GeoRef40 = this.plcmXYZ.GeoRefPlcm;
+                this.ProjectLocation = this.plcmXYZ.LocationXYZ;
+                this.ProjectRotationX = this.plcmXYZ.RotationX;
+                this.ProjectRotationZ = this.plcmXYZ.RotationZ;
+            }
 
             //variable for the TrueNorth attribute
             var dir = prjCtx.TrueNorth;
@@ -130,11 +133,11 @@ namespace IfcGeoRefChecker.Appl
         {
             using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
             {
-                this.plcm.LocationXYZ = this.ProjectLocationXYZ;
-                this.plcm.RotationX = this.ProjectRotationX;
-                this.plcm.RotationZ = this.ProjectRotationZ;
+                this.plcmXYZ.LocationXYZ = this.ProjectLocation;
+                this.plcmXYZ.RotationX = this.ProjectRotationX;
+                this.plcmXYZ.RotationZ = this.ProjectRotationZ;
 
-                this.plcm.UpdatePlacementXYZ(model);
+                this.plcmXYZ.UpdatePlacementXYZ(model);
 
                 var schema = model.IfcSchemaVersion.ToString();
 
@@ -163,10 +166,9 @@ namespace IfcGeoRefChecker.Appl
             + dashline + "\r\n Project context element:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
             + "\r\n Placement referenced in " + this.Instance_Object_WCS[0] + "=" + this.Instance_Object_WCS[1];
 
-            logLevel40 += "\r\n  X = " + this.ProjectLocationXYZ[0] + "\r\n  Y = " + this.ProjectLocationXYZ[1] + "\r\n  Z = " + this.ProjectLocationXYZ[2];
+            logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1] + "\r\n  Z = " + this.ProjectLocation[2];
 
             logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]}/{this.ProjectRotationX[2]})";
-
             logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
 
             if(this.Instance_Object_North.Contains("n/a"))

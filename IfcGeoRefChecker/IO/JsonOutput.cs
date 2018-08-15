@@ -22,9 +22,9 @@ namespace IfcGeoRefChecker.IO
 
         public List<Level30> LoGeoRef30 { get; set; } = new List<Level30>();
 
-        public Level40 LoGeoRef40 { get; set; }
+        public List<Level40> LoGeoRef40 { get; set; } = new List<Level40>();
 
-        public Level50 LoGeoRef50 { get; set; }
+        public List<Level50> LoGeoRef50 { get; set; } = new List<Level50>();
 
         public void WriteJSONfile(IfcStore model, string file)
         {
@@ -45,6 +45,8 @@ namespace IfcGeoRefChecker.IO
                     this.LoGeoRef10.Clear();
                     this.LoGeoRef20.Clear();
                     this.LoGeoRef30.Clear();
+                    this.LoGeoRef40.Clear();
+                    this.LoGeoRef50.Clear();
                 }
 
                 catch(Exception ex)
@@ -56,27 +58,52 @@ namespace IfcGeoRefChecker.IO
 
         public void GetGeoRefElements10(Level10 georef10)
         {
+            if(georef10 == null)
+            {
+                georef10.GeoRef10 = false;
+            }
+
             this.LoGeoRef10.Add(georef10);
         }
 
         public void GetGeoRefElements20(Level20 georef20)
         {
+            if(georef20 == null)
+            {
+                georef20.GeoRef20 = false;
+            }
+
             this.LoGeoRef20.Add(georef20);
         }
 
         public void GetGeoRefElements30(Level30 georef30)
         {
+            if(georef30 == null)
+            {
+                georef30.GeoRef30 = false;
+            }
+
             this.LoGeoRef30.Add(georef30);
         }
 
-        public void GetGeoRef40(Level40 georef40)
+        public void GetGeoRefElements40(Level40 georef40)
         {
-            this.LoGeoRef40 = georef40;
+            if(georef40 == null)
+            {
+                georef40.GeoRef40 = false;
+            }
+
+            this.LoGeoRef40.Add(georef40);
         }
 
-        public void GetGeoRef50(Level50 georef50)
+        public void GetGeoRefElements50(Level50 georef50)
         {
-            this.LoGeoRef50 = georef50;
+            if (georef50 == null)
+            {
+                georef50.GeoRef50 = false;
+            }
+
+            this.LoGeoRef50.Add(georef50);
         }
     }
 }

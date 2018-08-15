@@ -100,6 +100,7 @@
     <Compile Include="Appl\Level30.cs" />
     <Compile Include="Appl\Level40.cs" />
     <Compile Include="Appl\Level50.cs" />
+    <Compile Include="Appl\MapConvReader.cs" />
     <Compile Include="Appl\PlacementXYZ.cs" />
     <Compile Include="Appl\UnitReader.cs" />
     <Compile Include="IO\JsonOutput.cs" />

@@ -185,9 +185,9 @@
                             <Label Content="Reference Entity:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
                             <Label Content="Instance Entity (WCS):" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
                             <Label Content="Instance Entity (True North):" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
-                            <Label Name="lb_Reference40" Grid.Column="1" Grid.Row="0" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
                             <Label Name="lb_Instance_WCS" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
                             <Label Name="lb_Instance_TN" Grid.Column="1" Grid.Row="2" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <ComboBox x:Name="PlacementElements40" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="PlacementElements40_SelectionChanged" />                        
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Content" HorizontalAlignment="Left" Height="330" Margin="10,158,0,0" VerticalAlignment="Top" Width="574">
@@ -248,8 +248,8 @@
                             <Label Content="Instance Entity (Project Context):" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
                             <Label Content="Instance Entity (CRS):" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
                             <Label Name="lb_Reference50" Grid.Column="1" Grid.Row="0" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
-                            <Label Name="lb_InstanceProj50" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
                             <Label Name="lb_InstanceCRS50" Grid.Column="1" Grid.Row="2" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
+                            <ComboBox x:Name="MapElements50" Grid.Column="1" Grid.Row="1" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="MapElements50_SelectionChanged"  />
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Content" HorizontalAlignment="Left" Height="467" Margin="10,153,0,0" VerticalAlignment="Top" Width="574">

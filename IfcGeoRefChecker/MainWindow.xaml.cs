@@ -73,6 +73,8 @@ namespace IfcGeoRefChecker
             var boolList10 = new List<bool>();
             var boolList20 = new List<bool>();
             var boolList30 = new List<bool>();
+            var boolList40 = new List<bool>();
+            var boolList50 = new List<bool>();
 
             var output = new IO.LogOutput();
             var jsonout = new IO.JsonOutput();
@@ -95,6 +97,8 @@ namespace IfcGeoRefChecker
                 var siteReading = new Appl.SiteReader(model);       //for Level 10 and 20
                 var bldgReading = new Appl.BldgReader(model);       //for Level 10
                 var prodReading = new Appl.UpperPlcmReader(model);  //for Level 30
+                var ctxReading = new Appl.ContextReader(model);     //for Level 40
+                var mapReading = new Appl.MapConvReader(model);     //for Level 50
 
                 for(var i = 0; i < bldgReading.BldgList.Count; i++)
                 {
@@ -122,7 +126,7 @@ namespace IfcGeoRefChecker
 
                     MessageBox.Show(sNo + "..." + sNa);
 
-                  var georef20 = new Appl.Level20(model, sNo);
+                    var georef20 = new Appl.Level20(model, sNo);
                     georef20.GetLevel20();
                     jsonout.GetGeoRefElements20(georef20);
                     boolList20.Add(georef20.GeoRef20);
@@ -141,15 +145,22 @@ namespace IfcGeoRefChecker
                     logOutput.Add(georef30.LogOutput());
                 }
 
-                var georef40 = new Appl.Level40(model);
-                georef40.GetLevel40();
-                jsonout.GetGeoRef40(georef40);
-                logOutput.Add(georef40.LogOutput());
+                for(var i = 0; i < ctxReading.CtxList.Count; i++)
+                {
+                    var ctxNo = ctxReading.CtxList[i].GetHashCode().ToString();
 
-                var georef50 = new Appl.Level50(model);
-                georef50.GetLevel50();
-                jsonout.GetGeoRef50(georef50);
-                logOutput.Add(georef50.LogOutput());
+                    var georef40 = new Appl.Level40(model, ctxNo);
+                    georef40.GetLevel40();
+                    jsonout.GetGeoRefElements40(georef40);
+                    boolList40.Add(georef40.GeoRef40);
+                    logOutput.Add(georef40.LogOutput());
+
+                    var georef50 = new Appl.Level50(model, ctxNo);
+                    georef50.GetLevel50();
+                    jsonout.GetGeoRefElements50(georef50);
+                    boolList50.Add(georef50.GeoRef50);
+                    logOutput.Add(georef50.LogOutput());
+                }
 
                 if(boolList10.Contains(true))
                 {
@@ -178,8 +189,23 @@ namespace IfcGeoRefChecker
                     dictBool.Add(file + "georef30", false);
                 }
 
-                dictBool.Add(file + "georef40", georef40.GeoRef40);
-                dictBool.Add(file + "georef50", georef50.GeoRef50);
+                if(boolList40.Contains(true))
+                {
+                    dictBool.Add(file + "georef40", true);
+                }
+                else
+                {
+                    dictBool.Add(file + "georef40", false);
+                }
+
+                if(boolList50.Contains(true))
+                {
+                    dictBool.Add(file + "georef50", true);
+                }
+                else
+                {
+                    dictBool.Add(file + "georef50", false);
+                }
 
                 this.Dict.Add(file, dictBool);
 
@@ -194,8 +220,6 @@ namespace IfcGeoRefChecker
             ReadBool();
 
             lb_checkMsg.Content = this.ModelList.Count + " file(s) checked.";
-
-          
         }
 
         private void ifcModels_SelectedIndexChanged(object sender, EventArgs e)
@@ -280,8 +304,6 @@ namespace IfcGeoRefChecker
             var comp = new Appl.GeoRefComparer();
             //comp.compareinstances();
             comp.comparetest(this.ModelList);
-            
-
         }
     }
 }

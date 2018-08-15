@@ -70,23 +70,55 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 50: read MapConversion, if referenced by IfcGeometricRepresentationContext (only in scope of IFC4 schema)
         //-----------------------------------------------------------------------------------------------------------------
 
-        public Level50(IfcStore model)
+        public Level50(IfcStore model, string ifcInstance)
 
         {
             try
             {
                 this.model = model;
 
-                this.prjCtx = new ContextReader(model).ProjCtx;
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode().ToString() == ifcInstance).Single();
+
+                this.Reference_Object = new List<string>
+                                        {
+                        {"IfcMapConversion"},
+                        {"n/a"}
+                    };
 
                 this.Instance_Object_Project = new List<string>
                     {
-                        { "#" + prjCtx.GetHashCode() },
-                        { prjCtx.GetType().Name }
+                        {"#" + prjCtx.GetHashCode()},
+                        {prjCtx.GetType().Name}
                     };
 
-                this.Reference_Object = new List<string>();
-                this.Instance_Object_CRS = new List<string>();
+                var maps = model.Instances.OfType<IIfcMapConversion>();
+
+                foreach(var map in maps)
+                {
+                    if(map.SourceCRS is IIfcCoordinateReferenceSystem)
+                    {
+                        MessageBox.Show("This instance of MapConversion references a conversion between two CRS. That case is not covered by the tool yet." +
+                            "For changing of the conversion between those CRS please refer to the IFC-file at instance number: #" + this.mapCvs.GetHashCode() +
+                            " and the corresponding attributes for SourceCRS and TargetCRS (attributes 1 and 2)");
+                    }
+
+                    if(map.SourceCRS is null)
+                    {
+                        MessageBox.Show("MapConversion does not contain a reference to the project context or to any other CRS. Thus the checked IFC-file is not valid.");
+                    }
+
+                    if(map.SourceCRS is IfcGeometricRepresentationContext)
+                    {
+                        this.mapCvs = map;
+                    }
+                }
+
+                this.Instance_Object_CRS = new List<string>
+                    {
+                        {"IfcProjectedCRS"},
+                        {"n/a"}
+                    };
+
                 this.RotationXY = new List<double>();
             }
             catch(Exception e)
@@ -100,13 +132,10 @@ namespace IfcGeoRefChecker.Appl
             //restriction on IfcMapConversion objects which references (or inverse referenced by) IfcGeometricRepresentationContext
             if(prjCtx.HasCoordinateOperation.Count() != 0)
             {
-                //restriction on IfcMapConversion with SourceCRS = project context and TargetCRS = CRS
-                //theoretically it is also possible to describe an conversion between two distinct CRS (not in scope of this application)
-                this.mapCvs = model.Instances
-                        .Where<IIfcMapConversion>(map => map.SourceCRS is IIfcGeometricRepresentationContext && map.TargetCRS is IIfcCoordinateReferenceSystem).First();
-
-                this.Reference_Object.Add("#" + mapCvs.GetHashCode());
-                this.Reference_Object.Add(mapCvs.GetType().Name);
+                //this.mapCvs = (IfcMapConversion)prjCtx.HasCoordinateOperation;
+                                
+                this.Reference_Object[0] = "#" + mapCvs.GetHashCode();
+                this.Reference_Object[1] = mapCvs.GetType().Name;
 
                 this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : 0;
                 this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : 0;
@@ -131,8 +160,8 @@ namespace IfcGeoRefChecker.Appl
 
                 if(mapCRS != null)
                 {
-                    this.Instance_Object_CRS.Add("#" + mapCRS.GetHashCode());
-                    this.Instance_Object_CRS.Add(mapCRS.GetType().Name);
+                    this.Instance_Object_CRS[0] = "#" + mapCRS.GetHashCode();
+                    this.Instance_Object_CRS[1] = mapCRS.GetType().Name;
 
                     this.CRS_Name = (mapCRS.Name != null) ? mapCRS.Name.ToString() : "n/a";
                     this.CRS_Description = (mapCRS.Description != null) ? mapCRS.Description.ToString() : "n/a";
@@ -140,11 +169,6 @@ namespace IfcGeoRefChecker.Appl
                     this.CRS_Vertical_Datum = (mapCRS.VerticalDatum != null) ? mapCRS.VerticalDatum.ToString() : "n/a";
                     this.CRS_Projection_Name = (mapCRS.MapProjection != null) ? mapCRS.MapProjection.ToString() : "n/a";
                     this.CRS_Projection_Zone = (mapCRS.MapZone != null) ? mapCRS.MapZone.ToString() : "n/a";
-                }
-                else
-                {
-                    this.Instance_Object_CRS.Add("IfcProjectedCRS");
-                    this.Instance_Object_CRS.Add("n/a");
                 }
 
                 this.GeoRef50 = true;

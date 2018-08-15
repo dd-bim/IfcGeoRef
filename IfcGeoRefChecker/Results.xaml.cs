@@ -80,13 +80,15 @@ namespace IfcGeoRefChecker
                 }
             }
 
-            var siteReading = new Appl.SiteReader(model);
-            var bldgReading = new Appl.BldgReader(model);
-            var prodReading = new Appl.UpperPlcmReader(model);
+            var siteReading = new Appl.SiteReader(model);       //for Level 10 and 20
+            var bldgReading = new Appl.BldgReader(model);       //for Level 10
+            var prodReading = new Appl.UpperPlcmReader(model);  //for Level 30
+            var ctxReading = new Appl.ContextReader(model);     //for Level 40
+            //var mapReading = new Appl.MapConvReader(model);     //for Level 50
 
             this.unit = new Appl.UnitReader().GetProjectLengthUnit(model);
 
-            //list for level10 and level20 (more than one possible)
+            //list for level10 and level20
 
             for(int i = 0; i < siteReading.SiteList.Count; i++)
             {
@@ -95,7 +97,7 @@ namespace IfcGeoRefChecker
                 SiteElements20.Items.Add(listbox);
             }
 
-            //list for level20 (more than one possible)
+            //list for level20
 
             for(int i = 0; i < bldgReading.BldgList.Count; i++)
             {
@@ -103,12 +105,21 @@ namespace IfcGeoRefChecker
                 SpatialElements10.Items.Add(listbox);
             }
 
-            //list for level30 (more than one possible)
+            //list for level30
 
             for(int i = 0; i < prodReading.ProdList.Count; i++)
             {
                 string listbox = "#" + prodReading.ProdList[i].GetHashCode() + "=" + prodReading.ProdList[i].GetType().Name;
                 PlacementElements30.Items.Add(listbox);
+            }
+
+            //list for level40 and 50
+
+            for(int i = 0; i < ctxReading.CtxList.Count; i++)
+            {
+                string listbox = "#" + ctxReading.CtxList[i].GetHashCode() + "=" + ctxReading.CtxList[i].GetType().Name;
+                PlacementElements40.Items.Add(listbox);
+                MapElements50.Items.Add(listbox);
             }
 
             cb_Origin30.Items.Add("m");
@@ -117,103 +128,6 @@ namespace IfcGeoRefChecker
             cb_Origin30.Items.Add("in");
 
             cb_Origin30.SelectedItem = this.unit;
-
-            // input for level40 (only one valid context per file)
-
-            this.geoRef40 = new Appl.Level40(model);
-
-            geoRef40.GetLevel40();
-
-            lb_Reference40.Content = geoRef40.Reference_Object[0] + "=" + geoRef40.Reference_Object[1];
-            lb_Instance_WCS.Content = geoRef40.Instance_Object_WCS[0] + "=" + geoRef40.Instance_Object_WCS[1];
-            lb_Instance_TN.Content = geoRef40.Instance_Object_North[0] + "=" + geoRef40.Instance_Object_North[1];
-
-            List<double> xyz30 = new List<double>();
-
-            this.xyz40.Add(geoRef40.ProjectLocationXYZ[0]);
-            this.xyz40.Add(geoRef40.ProjectLocationXYZ[1]);
-            this.xyz40.Add(geoRef40.ProjectLocationXYZ[2]);
-
-            tb_originX_40.Text = this.xyz40[0].ToString();
-            tb_originY_40.Text = this.xyz40[1].ToString();
-            tb_originZ_40.Text = this.xyz40[2].ToString();
-
-            cb_Rotation40.Items.Add("vect");
-            cb_Rotation40.Items.Add("deg");
-            cb_Rotation40.SelectedItem = "vect";
-
-            this.dirX.X = geoRef40.ProjectRotationX[0];
-            this.dirX.Y = geoRef40.ProjectRotationX[1];
-            this.dirX.Z = geoRef40.ProjectRotationX[2];
-
-            tb_rotationX_40.Text = this.dirX.X + ", " + this.dirX.Y + ", " + this.dirX.Z;
-
-            this.dirZ.X = geoRef40.ProjectRotationZ[0];
-            this.dirZ.Y = geoRef40.ProjectRotationZ[1];
-            this.dirZ.Z = geoRef40.ProjectRotationZ[2];
-
-            tb_rotationZ_40.Text = this.dirZ.X + ", " + this.dirZ.Y + ", " + this.dirZ.Z;
-
-            cb_TrueNorth40.Items.Add("vect");
-            cb_TrueNorth40.Items.Add("deg");
-            cb_TrueNorth40.SelectedItem = "vect";
-
-            this.dirTN.X = geoRef40.TrueNorthXY[0];
-            this.dirTN.Y = geoRef40.TrueNorthXY[1];
-
-            tb_rotationTN_40.Text = this.dirTN.X + ", " + this.dirTN.Y;
-
-            cb_Origin40.Items.Add("m");
-            cb_Origin40.Items.Add("mm");
-            cb_Origin40.Items.Add("ft");
-            cb_Origin40.Items.Add("in");
-
-            cb_Origin40.SelectedItem = this.unit;
-
-            // input for level50 (only one valid context per file)
-
-            if(model.IfcSchemaVersion.ToString().Equals("Ifc2X3"))
-            {
-                tab_50.IsEnabled = false;
-            }
-            else
-            {
-                this.geoRef50 = new Appl.Level50(model);
-
-                geoRef50.GetLevel50();
-
-                cb_Rotation50.Items.Add("vect");
-                cb_Rotation50.Items.Add("deg");
-
-                lb_Reference50.Content = geoRef50.Reference_Object[0] + "=" + geoRef50.Reference_Object[1];
-                lb_InstanceProj50.Content = geoRef50.Instance_Object_Project[0] + "=" + geoRef50.Instance_Object_Project[1];
-                lb_InstanceCRS50.Content = geoRef50.Instance_Object_CRS[0] + "=" + geoRef50.Instance_Object_CRS[1];
-
-                tb_eastings50.Text = (geoRef50.Translation_Eastings.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Eastings.ToString();
-                tb_northings50.Text = (geoRef50.Translation_Northings.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Northings.ToString();
-                tb_height50.Text = (geoRef50.Translation_Orth_Height.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Orth_Height.ToString();
-
-                this.dirMap.X = geoRef50.RotationXY[0];
-                this.dirMap.Y = geoRef50.RotationXY[1];
-
-                tb_rotation50.Text = this.dirMap.X + ", " + this.dirMap.Y;
-
-                tb_scale50.Text = (geoRef50.Scale.Equals(-999999) == true) ? "n/a" : geoRef50.Scale.ToString();
-
-                tb_CRSname50.Text = geoRef50.CRS_Name;
-                tb_CRSdesc50.Text = geoRef50.CRS_Description;
-                tb_CRSgeod50.Text = geoRef50.CRS_Geodetic_Datum;
-                tb_CRSvert50.Text = geoRef50.CRS_Vertical_Datum;
-                tb_ProjName50.Text = geoRef50.CRS_Projection_Name;
-                tb_ProjZone50.Text = geoRef50.CRS_Projection_Zone;
-            }
-
-            cb_UnitElevation20.Items.Add("m");
-            cb_UnitElevation20.Items.Add("mm");
-            cb_UnitElevation20.Items.Add("ft");
-            cb_UnitElevation20.Items.Add("in");
-
-            cb_UnitElevation20.SelectedItem = this.unit;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -242,8 +156,6 @@ namespace IfcGeoRefChecker
             tb_town.Text = geoRef10.Town;
             tb_region.Text = geoRef10.Region;
             tb_country.Text = geoRef10.Country;
-
-
         }
 
         private void SiteElements20_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -311,6 +223,112 @@ namespace IfcGeoRefChecker
             this.dirZ30.Z = geoRef30.ObjectRotationZ[2];
 
             tb_rotationZ_30.Text = this.dirZ30.X + ", " + this.dirZ30.Y + ", " + this.dirZ30.Z;
+        }
+
+        private void PlacementElements40_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //TabItem LoGeoRef40
+
+            string ref40 = PlacementElements40.SelectedItem.ToString();
+            int index40 = ref40.IndexOf("=");
+            string sub40 = ref40.Substring(1, index40 - 1);
+
+            this.geoRef40 = new Appl.Level40(model, sub40);
+            geoRef40.GetLevel40();
+
+            lb_Instance_WCS.Content = geoRef40.Instance_Object_WCS[0] + "=" + geoRef40.Instance_Object_WCS[1];
+            lb_Instance_TN.Content = geoRef40.Instance_Object_North[0] + "=" + geoRef40.Instance_Object_North[1];
+
+            List<double> xyz40 = new List<double>();
+
+            this.xyz40.Add(geoRef40.ProjectLocation[0]);
+            this.xyz40.Add(geoRef40.ProjectLocation[1]);
+            this.xyz40.Add(geoRef40.ProjectLocation[2]);
+
+            this.dirZ.X = geoRef40.ProjectRotationZ[0];
+            this.dirZ.Y = geoRef40.ProjectRotationZ[1];
+            this.dirZ.Z = geoRef40.ProjectRotationZ[2];
+
+            tb_rotationX_40.Text = this.dirX.X + ", " + this.dirX.Y + ", " + this.dirX.Z;
+            tb_rotationZ_40.Text = this.dirZ.X + ", " + this.dirZ.Y + ", " + this.dirZ.Z;
+
+            tb_originX_40.Text = this.xyz40[0].ToString();
+            tb_originY_40.Text = this.xyz40[1].ToString();
+            tb_originZ_40.Text = this.xyz40[2].ToString();
+
+            cb_Rotation40.Items.Add("vect");
+            cb_Rotation40.Items.Add("deg");
+            cb_Rotation40.SelectedItem = "vect";
+
+            this.dirX.X = geoRef40.ProjectRotationX[0];
+            this.dirX.Y = geoRef40.ProjectRotationX[1];
+            this.dirX.Z = geoRef40.ProjectRotationX[2];
+
+            cb_TrueNorth40.Items.Add("vect");
+            cb_TrueNorth40.Items.Add("deg");
+            cb_TrueNorth40.SelectedItem = "vect";
+
+            this.dirTN.X = geoRef40.TrueNorthXY[0];
+            this.dirTN.Y = geoRef40.TrueNorthXY[1];
+
+            tb_rotationTN_40.Text = this.dirTN.X + ", " + this.dirTN.Y;
+
+            cb_Origin40.Items.Add("m");
+            cb_Origin40.Items.Add("mm");
+            cb_Origin40.Items.Add("ft");
+            cb_Origin40.Items.Add("in");
+
+            cb_Origin40.SelectedItem = this.unit;
+        }
+
+        private void MapElements50_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // input for level50 (only one valid context per file)
+
+            if(model.IfcSchemaVersion.ToString().Equals("Ifc2X3"))
+            {
+                tab_50.IsEnabled = false;
+            }
+            else
+            {
+                string ref50 = MapElements50.SelectedItem.ToString();
+                int index50 = ref50.IndexOf("=");
+                string sub50 = ref50.Substring(1, index50 - 1);
+
+                this.geoRef50 = new Appl.Level50(model, sub50);
+                geoRef50.GetLevel50();
+
+                cb_Rotation50.Items.Add("vect");
+                cb_Rotation50.Items.Add("deg");
+
+                lb_Reference50.Content = geoRef50.Reference_Object[0] + "=" + geoRef50.Reference_Object[1];
+                lb_InstanceCRS50.Content = geoRef50.Instance_Object_CRS[0] + "=" + geoRef50.Instance_Object_CRS[1];
+
+                tb_eastings50.Text = (geoRef50.Translation_Eastings.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Eastings.ToString();
+                tb_northings50.Text = (geoRef50.Translation_Northings.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Northings.ToString();
+                tb_height50.Text = (geoRef50.Translation_Orth_Height.Equals(-999999) == true) ? "n/a" : geoRef50.Translation_Orth_Height.ToString();
+
+                this.dirMap.X = geoRef50.RotationXY[0];
+                this.dirMap.Y = geoRef50.RotationXY[1];
+
+                tb_rotation50.Text = this.dirMap.X + ", " + this.dirMap.Y;
+
+                tb_scale50.Text = (geoRef50.Scale.Equals(-999999) == true) ? "n/a" : geoRef50.Scale.ToString();
+
+                tb_CRSname50.Text = geoRef50.CRS_Name;
+                tb_CRSdesc50.Text = geoRef50.CRS_Description;
+                tb_CRSgeod50.Text = geoRef50.CRS_Geodetic_Datum;
+                tb_CRSvert50.Text = geoRef50.CRS_Vertical_Datum;
+                tb_ProjName50.Text = geoRef50.CRS_Projection_Name;
+                tb_ProjZone50.Text = geoRef50.CRS_Projection_Zone;
+            }
+
+            cb_UnitElevation20.Items.Add("m");
+            cb_UnitElevation20.Items.Add("mm");
+            cb_UnitElevation20.Items.Add("ft");
+            cb_UnitElevation20.Items.Add("in");
+
+            cb_UnitElevation20.SelectedItem = this.unit;
         }
 
         private void cb_TrueNorth40_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -498,7 +516,7 @@ namespace IfcGeoRefChecker
 
         private void bt_SaveChanges_Click(object sender, RoutedEventArgs e)
         {
-            if(tab_10.IsEnabled)
+            if(tab_10.IsSelected)
             {
                 geoRef10.AddressLines[0] = tb_adr0.Text;
                 geoRef10.AddressLines[1] = tb_adr1.Text;
@@ -584,10 +602,10 @@ namespace IfcGeoRefChecker
             if(tab_40.IsSelected)
 
             {
-                geoRef40.ProjectLocationXYZ.Clear();
-                geoRef40.ProjectLocationXYZ.Add(double.Parse(tb_originX_40.Text));
-                geoRef40.ProjectLocationXYZ.Add(double.Parse(tb_originY_40.Text));
-                geoRef40.ProjectLocationXYZ.Add(double.Parse(tb_originZ_40.Text));
+                geoRef40.ProjectLocation.Clear();
+                geoRef40.ProjectLocation.Add(double.Parse(tb_originX_40.Text));
+                geoRef40.ProjectLocation.Add(double.Parse(tb_originY_40.Text));
+                geoRef40.ProjectLocation.Add(double.Parse(tb_originZ_40.Text));
 
                 geoRef40.ProjectRotationX.Clear();
                 geoRef40.ProjectRotationZ.Clear();
@@ -692,8 +710,8 @@ namespace IfcGeoRefChecker
 
                 geoRef50.UpdateLevel50();
             }
-
-            
         }
+
+
     }
 }
