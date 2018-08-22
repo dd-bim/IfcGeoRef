@@ -31,7 +31,17 @@ namespace IfcGeoRefChecker.IO
                 {
 
                     var fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
-                    var model = IfcStore.Open(fd.FileNames[i]);
+
+                    var editor = new XbimEditorCredentials
+                    {
+                        ApplicationDevelopersName = "HTW Dresden",
+                        ApplicationFullName = "IfcGeoRefChecker",
+                        ApplicationIdentifier = "IfcGeoRef",
+                        ApplicationVersion = "1.0",
+                        EditorsFamilyName = Environment.UserName,
+                    };
+
+                    var model = IfcStore.Open(fd.FileNames[i], editor);
 
                     this.ImportModels.Add(fileName, model);
                 }

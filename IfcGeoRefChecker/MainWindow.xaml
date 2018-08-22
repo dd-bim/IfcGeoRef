@@ -53,7 +53,7 @@
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
-                <ComboBox Name="ifcModels" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="25,10,0,0"  Width="331" Height="22" SelectedIndex="0" SelectionChanged="ifcModels_SelectedIndexChanged" />
+                <ComboBox Name="ifcModels" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="25,10,0,0"  Width="331" Height="22" SelectedIndex="0" SelectionChanged="ifcModels_SelectionChanged" />
                 <Label Content="LoGeoRef10:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0" />
                 <Label Content="LoGeoRef20:" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0" />
                 <Label Content="LoGeoRef30:" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0" />

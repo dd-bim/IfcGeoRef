@@ -64,11 +64,7 @@ namespace IfcGeoRefChecker.Appl
                         {elem.GetType().Name }
                     };
 
-                this.Instance_Object = new List<string>
-                    {
-                        {"#" + plcm3D.GetHashCode() },
-                        {plcm3D.GetType().Name }
-                    };
+
             }
 
             catch(Exception e)
@@ -79,6 +75,13 @@ namespace IfcGeoRefChecker.Appl
 
         public void GetLevel30()
         {
+            this.Instance_Object = new List<string>
+                    {
+                        {"#" + plcm3D.GetHashCode() },
+                        {plcm3D.GetType().Name }
+                    };
+
+
             this.plcm.GetPlacementXYZ(this.plcm3D);
 
             this.GeoRef30 = this.plcm.GeoRefPlcm;

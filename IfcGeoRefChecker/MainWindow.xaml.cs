@@ -23,7 +23,7 @@ namespace IfcGeoRefChecker
             bt_update.IsEnabled = false;
         }
 
-        private void BtInfo_Click(object sender, RoutedEventArgs e)
+        private void BtInfo_Click(object sender, RoutedEventArgs e)                                 //zum Schluss noch adden
         {
             MessageBox.Show("Noch hinzufügen");
         }
@@ -70,12 +70,6 @@ namespace IfcGeoRefChecker
 
             var logOutput = new List<string>();
 
-            var boolList10 = new List<bool>();
-            var boolList20 = new List<bool>();
-            var boolList30 = new List<bool>();
-            var boolList40 = new List<bool>();
-            var boolList50 = new List<bool>();
-
             var output = new IO.LogOutput();
             var jsonout = new IO.JsonOutput();
 
@@ -100,6 +94,12 @@ namespace IfcGeoRefChecker
                 var ctxReading = new Appl.ContextReader(model);     //for Level 40
                 var mapReading = new Appl.MapConvReader(model);     //for Level 50
 
+                var boolList10 = new List<bool>();
+                var boolList20 = new List<bool>();
+                var boolList30 = new List<bool>();
+                var boolList40 = new List<bool>();
+                var boolList50 = new List<bool>();
+
                 for(var i = 0; i < bldgReading.BldgList.Count; i++)
                 {
                     var bNo = bldgReading.BldgList[i].GetHashCode().ToString();
@@ -107,7 +107,7 @@ namespace IfcGeoRefChecker
 
                     var georef10 = new Appl.Level10(model, bNo, bNa);
                     georef10.GetLevel10();
-
+                    
                     jsonout.GetGeoRefElements10(georef10);
                     boolList10.Add(georef10.GeoRef10);
                     logOutput.Add(georef10.LogOutput());
@@ -123,8 +123,6 @@ namespace IfcGeoRefChecker
                     jsonout.GetGeoRefElements10(georef10);
                     boolList10.Add(georef10.GeoRef10);
                     logOutput.Add(georef10.LogOutput());
-
-                    MessageBox.Show(sNo + "..." + sNa);
 
                     var georef20 = new Appl.Level20(model, sNo);
                     georef20.GetLevel20();
@@ -222,7 +220,7 @@ namespace IfcGeoRefChecker
             lb_checkMsg.Content = this.ModelList.Count + " file(s) checked.";
         }
 
-        private void ifcModels_SelectedIndexChanged(object sender, EventArgs e)
+        private void ifcModels_SelectionChanged(object sender, SelectionChangedEventArgs e)
 
         {
             ReadBool();
@@ -299,11 +297,11 @@ namespace IfcGeoRefChecker
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("Coming soon.");
+            MessageBox.Show("Coming soon.");
 
-            var comp = new Appl.GeoRefComparer();
-            //comp.compareinstances();
-            comp.comparetest(this.ModelList);
+            //var comp = new Appl.GeoRefComparer();
+            ////comp.compareinstances();
+            //comp.comparetest(this.ModelList);
         }
     }
 }

@@ -73,17 +73,6 @@ namespace IfcGeoRefChecker.Appl
                 this.plcm = prjCtx.WorldCoordinateSystem;
 
                 this.Instance_Object_WCS = new List<string>();
-
-                if(this.plcm != null)
-                {
-                    this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
-                    this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
-                }
-                else
-                {
-                    this.Instance_Object_WCS.Add("IfcAxis2Placement");
-                    this.Instance_Object_WCS.Add("n/a");
-                }
             }
             catch(Exception e)
             {
@@ -93,6 +82,17 @@ namespace IfcGeoRefChecker.Appl
 
         public void GetLevel40()
         {
+            if(this.plcm != null)
+            {
+                this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
+                this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
+            }
+            else
+            {
+                this.Instance_Object_WCS.Add("IfcAxis2Placement3D");
+                this.Instance_Object_WCS.Add("n/a");
+            }
+
             if(plcm is IIfcAxis2Placement3D)
             {
                 this.plcmXYZ.GetPlacementXYZ(this.plcm);

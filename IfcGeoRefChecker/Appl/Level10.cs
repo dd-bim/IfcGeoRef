@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Xbim.Ifc;
+using Xbim.Ifc4.ActorResource;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
@@ -15,7 +16,7 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<string> Instance_Object { get; set; }
 
-        public IList<string> AddressLines { get; set; }
+        public List<string> AddressLines { get; set; }
 
         public string Postalcode { get; set; }
 
@@ -24,6 +25,8 @@ namespace IfcGeoRefChecker.Appl
         public string Region { get; set; }
 
         public string Country { get; set; }
+
+        private IIfcSpatialStructureElement elem;
 
         private IIfcPostalAddress address;
 
@@ -75,15 +78,15 @@ namespace IfcGeoRefChecker.Appl
 
                 if(ifcType == "IfcSite")
                 {
-                    //get all IfcPostalAddress-objects, referenced by IfcSite:
-                    address = model.Instances.Where<IIfcSite>(s => s.GetHashCode().ToString() == ifcInstance).Select(s => s.SiteAddress).Single();
-                    //addr = elem.SiteAddress;
+                    elem = model.Instances.OfType<IIfcSite>().Where(s => s.GetHashCode().ToString() == ifcInstance).Single();
+
+                    address = (elem as IIfcSite).SiteAddress;
                 }
                 else if(ifcType == "IfcBuilding")
                 {
-                    //get all IfcPostalAddress-objects, referenced by IfcSite:
-                    address = model.Instances.Where<IIfcBuilding>(s => s.GetHashCode().ToString() == ifcInstance).Select(s => s.BuildingAddress).Single();
-                    //addr = elem.BuildingAddress;
+                    elem = model.Instances.OfType<IIfcBuilding>().Where(s => s.GetHashCode().ToString() == ifcInstance).Single();
+
+                    address = (elem as IIfcBuilding).BuildingAddress;
                 }
                 else
                 { address = null; }
@@ -135,7 +138,7 @@ namespace IfcGeoRefChecker.Appl
                     this.AddressLines.Add("n/a");
                 }
 
-                if(address.AddressLines.Count > 3)
+                if(address.AddressLines.Count >= 3)
                 {
                     this.AddressLines.Add(address.AddressLines[0]);
                     this.AddressLines.Add(address.AddressLines[1]);
@@ -151,14 +154,39 @@ namespace IfcGeoRefChecker.Appl
                 this.Town = (address.Town.HasValue == true) ? address.Town.ToString() : "n/a";
                 this.Region = (address.Region.HasValue == true) ? address.Region.ToString() : "n/a";
                 this.Country = (address.Country.HasValue == true) ? address.Country.ToString() : "n/a";
-                ;
-            };
+            }
+            else
+            {
+                this.AddressLines.Add("n/a");
+                this.AddressLines.Add("n/a");
+                this.AddressLines.Add("n/a");
+            }
         }
 
         public void UpdateLevel10()
         {
             using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
             {
+                if(this.address == null)
+                {
+                    this.address = this.model.Instances.New<IfcPostalAddress>();
+
+                    // timestamp for element before reference is added
+                    var create = this.elem.OwnerHistory.CreationDate;
+
+                    if(this.elem is IIfcSite)
+                    {
+                        (this.elem as IIfcSite).SiteAddress = this.address;
+                    }
+                    else
+                    {
+                        (this.elem as IIfcBuilding).BuildingAddress = this.address;
+                    }
+
+                    // set timestamp back (xBim creates a new OwnerHistory object)
+                    this.elem.OwnerHistory.CreationDate = create;
+                }
+
                 var p = this.address;
 
                 p.AddressLines.Clear();
@@ -170,6 +198,10 @@ namespace IfcGeoRefChecker.Appl
                 p.Town = this.Town;
                 p.Region = this.Region;
                 p.Country = this.Country;
+
+                // timestamp for last modifiedDate in OwnerHistory
+                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
 
                 txn.Commit();
             }
@@ -209,7 +241,7 @@ namespace IfcGeoRefChecker.Appl
                         }
                         else
                         {
-                            logLevel10 += "  " + this.AddressLines[i];
+                            logLevel10 += "  " + this.AddressLines[i] + "\r\n";
                         }
                     }
                 }

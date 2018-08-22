@@ -15,44 +15,71 @@ namespace IfcGeoRefChecker.Appl
         private Vector3D xyz_zAxis_def = new Vector3D(0, 0, 1);
 
         //convert length unit (Level 20, 30 and 40)
-
-        public List<double> ConvertLengthUnit(string unitA, string unitB, List<double> length)
+        public Dictionary<string, double> ConvertLengthUnits(string ifcUnit, double ifcLength)
         {
-            List<double> lengthConv = new List<double>();
+            var unitDict = new Dictionary<string, double>();
 
-            for(var i = 0; i < length.Count; i++)
+            if(ifcUnit.Equals("m"))
             {
-                if(unitA.Equals(unitB))
-                    lengthConv.Add(length[i]);
-                if(unitA == "m" && unitB == "mm")
-                    lengthConv.Add(length[i] * 1000);
-                if(unitA == "mm" && unitB == "m")
-                    lengthConv.Add(length[i] / 1000);
-                if(unitA == "ft" && unitB == "in")
-                    lengthConv.Add(length[i] * 12);
-                if(unitA == "in" && unitB == "ft")
-                    lengthConv.Add(length[i] / 12);
-                if(unitA == "m" && unitB == "ft")
-                    lengthConv.Add(length[i] * 3.280839895);
-                if(unitA == "ft" && unitB == "m")
-                    lengthConv.Add(length[i] * 0.3048);
-                if(unitA == "mm" && unitB == "in")
-                    lengthConv.Add(length[i] * 0.0393701);
-                if(unitA == "in" && unitB == "mm")
-                    lengthConv.Add(length[i] * 25.4);
-                if(unitA == "mm" && unitB == "ft")
-                    lengthConv.Add(length[i] * 0.00328084);
-                if(unitA == "ft" && unitB == "mm")
-                    lengthConv.Add(length[i] * 304.8);
-                if(unitA == "m" && unitB == "in")
-                    lengthConv.Add(length[i] * 39.37007874);
-                if(unitA == "in" && unitB == "m")
-                    lengthConv.Add(length[i] * 0.0254);
-
-                lengthConv[i] = Math.Round(lengthConv[i], 3);
+                unitDict.Add("m", ifcLength);
+                unitDict.Add("dm", ifcLength * 10);
+                unitDict.Add("cm", ifcLength * 100);
+                unitDict.Add("mm", ifcLength * 1000);
+                unitDict.Add("ft", ifcLength * 3.280839895);
+                unitDict.Add("in", ifcLength * 39.37007874);
             }
 
-            return lengthConv;
+            if(ifcUnit.Equals("dm"))
+            {
+                unitDict.Add("m", ifcLength / 10);
+                unitDict.Add("dm", ifcLength);
+                unitDict.Add("cm", ifcLength * 10);
+                unitDict.Add("mm", ifcLength * 100);
+                unitDict.Add("ft", ifcLength * 0.3280839895);
+                unitDict.Add("in", ifcLength * 3.937007874);
+            }
+
+            if(ifcUnit.Equals("cm"))
+            {
+                unitDict.Add("m", ifcLength / 100);
+                unitDict.Add("dm", ifcLength / 10);
+                unitDict.Add("cm", ifcLength);
+                unitDict.Add("mm", ifcLength * 10);
+                unitDict.Add("ft", ifcLength * 0.03280839895);
+                unitDict.Add("in", ifcLength * 0.3937007874);
+            }
+
+            if(ifcUnit.Equals("mm"))
+            {
+                unitDict.Add("m", ifcLength / 1000);
+                unitDict.Add("dm", ifcLength / 100);
+                unitDict.Add("cm", ifcLength / 10);
+                unitDict.Add("mm", ifcLength);
+                unitDict.Add("ft", ifcLength * 0.003280839895);
+                unitDict.Add("in", ifcLength * 0.03937007874);
+            }
+
+            if(ifcUnit.Equals("ft"))
+            {
+                unitDict.Add("m", ifcLength * 0.3048);
+                unitDict.Add("dm", ifcLength * 3.048);
+                unitDict.Add("cm", ifcLength * 30.48);
+                unitDict.Add("mm", ifcLength * 304.8);
+                unitDict.Add("ft", ifcLength);
+                unitDict.Add("in", ifcLength * 12);
+            }
+
+            if(ifcUnit.Equals("in"))
+            {
+                unitDict.Add("m", ifcLength * 0.0254);
+                unitDict.Add("dm", ifcLength * 0.254);
+                unitDict.Add("cm", ifcLength * 2.54);
+                unitDict.Add("mm", ifcLength * 25.4);
+                unitDict.Add("ft", ifcLength / 12);
+                unitDict.Add("in", ifcLength);
+            }
+
+            return unitDict;
         }
 
         //deg (dd) to deg (dms) for Level 20

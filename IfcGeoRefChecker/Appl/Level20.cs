@@ -77,6 +77,9 @@ namespace IfcGeoRefChecker.Appl
         {
             using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
             {
+                // timestamp for element before reference is added
+                var create = this.site.OwnerHistory.CreationDate;
+
                 var dms = new Calc().DDtoCompound(this.Latitude);
 
                 var list = new List<long>
@@ -103,6 +106,13 @@ namespace IfcGeoRefChecker.Appl
 
                 this.site.RefElevation = this.Elevation;
 
+                // set timestamp back (xBim creates a new OwnerHistory object)
+                this.site.OwnerHistory.CreationDate = create;
+
+                // timestamp for last modifiedDate in OwnerHistory
+                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                this.site.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+
                 txn.Commit();
             }
 
@@ -128,7 +138,7 @@ namespace IfcGeoRefChecker.Appl
 
             if(this.Elevation == -999999)
             {
-                logLevel20 += "\r\n Elevation: n/a";
+                logLevel20 += "\r\n " + this.Instance_Object[0] + "=" + this.Instance_Object[1] + " has no Elevation.";
             }
             else
             {
