@@ -12,9 +12,10 @@
             <ColumnDefinition Width="600" />
             <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
-        <Button Content="UpdateGeoRef" HorizontalAlignment="Left" Margin="40,40,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_UpdateGeoRef_Click" Grid.Column="1" />
-        <Button Content="SaveChanges" Name="bt_SaveChanges" HorizontalAlignment="Left" Margin="40,150,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_SaveChanges_Click" Grid.Column="1" IsEnabled="False" />
-
+        <Button Content="Enable Updating" HorizontalAlignment="Left" Margin="40,40,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_UpdateGeoRef_Click" Grid.Column="1" />
+        <Button Content="Write to IFC file" Name="bt_writeIFC" HorizontalAlignment="Left" Margin="40,150,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_WriteIFC_Click" Grid.Column="1" IsEnabled="False" />
+        <Button Content="Export new log file" Name="bt_newLog" Grid.Column="1" HorizontalAlignment="Left" Margin="40,200,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False" Click="NewLog_Click"/>
+        <Button Content="Export new JSON file" Name="bt_newJson" Grid.Column="1" HorizontalAlignment="Left" Margin="40,250,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False" Click="NewJson_Click"/>
         <TabControl Name="prog" HorizontalAlignment="Left" Height="669" VerticalAlignment="Top" Width="600">
             <TabItem Name="tab_10" Header="GeoRef10">
                 <Grid Name="Window" Background="White">
@@ -40,13 +41,14 @@
                         </Grid>
                     </GroupBox>
                     <GroupBox Name="group10" Header="Content" HorizontalAlignment="Left" Height="304" Margin="10,110,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
-                        <Grid Name="grid_ct10" HorizontalAlignment="Left" Height="234" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
+                        <Grid Name="grid_ct10" HorizontalAlignment="Left" Height="284" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="300" />
                                 <ColumnDefinition Width="44" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
@@ -67,6 +69,8 @@
                             <TextBox Name="tb_town" Grid.Column="1" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <TextBox Name="tb_region" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <TextBox Name="tb_country" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
+                            <Button  Name="bt_save10" Content="Save Changes" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,80,0" Grid.Row="7" VerticalAlignment="Center" Height="25" Width="100" Visibility="Visible" IsEnabled="False" Click="bt_save10_Click"/>
+                            <Button  Name="bt_equal10" Content="Set to all" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Row="7" VerticalAlignment="Center" Height="25" Width="100" Visibility="Visible" IsEnabled="False" Click="bt_equal10_Click"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -87,14 +91,15 @@
                             <ComboBox x:Name="SiteElements20" Grid.Column="1" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="SiteElements20_SelectionChanged" />
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="130" Margin="10,86,0,0" VerticalAlignment="Top" Width="574">
-                        <Grid Name="grid_ct20" HorizontalAlignment="Left" Height="100" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="180" Margin="10,86,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid Name="grid_ct20" HorizontalAlignment="Left" Height="150" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="270" />
                                 <ColumnDefinition Width="74" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
@@ -107,6 +112,8 @@
                             <TextBox Name="tb_elev" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <ComboBox x:Name="cb_UnitGeographicCoord20" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_UnitGeographicCoord20_SelectionChanged" Margin="7,23,7,23" Grid.RowSpan="2" />
                             <ComboBox x:Name="cb_UnitElevation20" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_UnitElevation20_SelectionChanged" />
+                            <Button  Name="bt_save20" Content="Save Changes" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,60,0" Grid.Row="7" VerticalAlignment="Bottom" Height="25" Width="100" Visibility="Visible" IsEnabled="False" Click="bt_save20_Click"/>
+                            <Button  Name="bt_equal20" Content="Add up to all" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Row="3" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_equal20_Click"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -134,14 +141,15 @@
                             <Label Name="lb_Instance30" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="263" Margin="10,110,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
-                        <Grid HorizontalAlignment="Left" Height="233" Margin="10,0,-2,0" VerticalAlignment="Top" Width="544">
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="310" Margin="10,110,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="2">
+                        <Grid HorizontalAlignment="Left" Height="280" Margin="10,0,-2,0" VerticalAlignment="Top" Width="544">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="270" />
                                 <ColumnDefinition Width="74" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
@@ -164,6 +172,8 @@
                             <TextBox Name="tb_rotationZ_30" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <ComboBox x:Name="cb_Origin30" Grid.Column="2" Grid.Row="0"  HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Origin30_SelectionChanged" />
                             <ComboBox x:Name="cb_Rotation30" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation30_SelectionChanged" />
+                            <Button  Name="bt_save30" Content="Save Changes" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,60,0" Grid.Row="7" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_save30_Click"/>
+                            <Button  Name="bt_equal30" Content="Add up to all" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Row="7" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_equal30_Click"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -190,14 +200,15 @@
                             <ComboBox x:Name="PlacementElements40" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="PlacementElements40_SelectionChanged" />                        
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="330" Margin="10,158,0,0" VerticalAlignment="Top" Width="574">
-                        <Grid HorizontalAlignment="Left" Height="300" Margin="10,0,-2,-1" VerticalAlignment="Top" Width="544">
+                    <GroupBox Header="Content" HorizontalAlignment="Left" Height="380" Margin="10,158,0,0" VerticalAlignment="Top" Width="574">
+                        <Grid HorizontalAlignment="Left" Height="350" Margin="10,0,-2,-1" VerticalAlignment="Top" Width="544">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="270" />
                                 <ColumnDefinition Width="74" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
                                 <RowDefinition Height="1*" />
@@ -226,6 +237,8 @@
                             <ComboBox x:Name="cb_Rotation40" Grid.Column="2" Grid.Row="4" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation40_SelectionChanged" />
                             <ComboBox x:Name="cb_TrueNorth40" Grid.Column="2" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_TrueNorth40_SelectionChanged" />
                             <ComboBox x:Name="cb_Origin40" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Origin40_SelectionChanged" />
+                            <Button  Name="bt_save40" Content="Save Changes" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,60,0" Grid.Row="9" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_save40_Click"/>
+                            <Button  Name="bt_equal40" Content="Add up to all" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Row="9" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_equal40_Click"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -300,6 +313,8 @@
                             <TextBox Name="tb_ProjName50" Grid.Column="1" Grid.Row="11" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <TextBox Name="tb_ProjZone50" Grid.Column="1" Grid.Row="12" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" />
                             <ComboBox x:Name="cb_Rotation50" Grid.Column="2" Grid.Row="4" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="60" SelectionChanged="cb_Rotation50_SelectionChanged" />
+                            <Button  Name="bt_save50" Content="Save Changes" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,60,0" Grid.Row="13" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_save50_Click"/>
+                            <Button  Name="bt_equal50" Content="Set/add up to all" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Row="13" VerticalAlignment="Bottom" Height="25" Width="100" IsEnabled="False" Click="bt_equal50_Click"/>
                         </Grid>
                     </GroupBox>
                 </Grid>

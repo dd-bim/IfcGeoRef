@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Xbim.Ifc;
@@ -16,6 +18,8 @@ namespace IfcGeoRefChecker
 
         public MainWindow()
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
             InitializeComponent();
 
             bt_log.IsEnabled = false;
@@ -78,11 +82,6 @@ namespace IfcGeoRefChecker
                 var file = kvpModel.Key;
                 var model = kvpModel.Value;
 
-                string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
-                logOutput.Add($"\r\nExamination of {file}.ifc regarding georeferencing content ({DateTime.Now.ToShortDateString()}, {DateTime.Now.ToLongTimeString()})" + dashline + dashline + "\r\n");
-
-                //ifcModels.Items.Add(file);
-
                 if(ifcModels.Items.Contains(file) == false)
                 {
                     ifcModels.Items.Add(file);
@@ -92,7 +91,9 @@ namespace IfcGeoRefChecker
                 var bldgReading = new Appl.BldgReader(model);       //for Level 10
                 var prodReading = new Appl.UpperPlcmReader(model);  //for Level 30
                 var ctxReading = new Appl.ContextReader(model);     //for Level 40
-                var mapReading = new Appl.MapConvReader(model);     //for Level 50
+                //var mapReading = new Appl.MapConvReader(model);     //for Level 50
+
+                
 
                 var boolList10 = new List<bool>();
                 var boolList20 = new List<bool>();
@@ -100,14 +101,14 @@ namespace IfcGeoRefChecker
                 var boolList40 = new List<bool>();
                 var boolList50 = new List<bool>();
 
-                for(var i = 0; i < bldgReading.BldgList.Count; i++)
+               for(var i = 0; i < bldgReading.BldgList.Count; i++)
                 {
                     var bNo = bldgReading.BldgList[i].GetHashCode().ToString();
                     var bNa = bldgReading.BldgList[i].GetType().Name;
 
                     var georef10 = new Appl.Level10(model, bNo, bNa);
                     georef10.GetLevel10();
-                    
+
                     jsonout.GetGeoRefElements10(georef10);
                     boolList10.Add(georef10.GeoRef10);
                     logOutput.Add(georef10.LogOutput());
@@ -119,6 +120,7 @@ namespace IfcGeoRefChecker
                     var sNa = siteReading.SiteList[i].GetType().Name;
 
                     var georef10 = new Appl.Level10(model, sNo, sNa);
+
                     georef10.GetLevel10();
                     jsonout.GetGeoRefElements10(georef10);
                     boolList10.Add(georef10.GeoRef10);
@@ -291,7 +293,7 @@ namespace IfcGeoRefChecker
 
         private void bt_update_Click(object sender, RoutedEventArgs e)
         {
-            var showResults = new Results(this.ModelList[ifcModels.Text]);
+            var showResults = new Results(this.ModelList[ifcModels.Text], ifcModels.Text);
             showResults.Show();
         }
 

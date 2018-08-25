@@ -90,16 +90,6 @@ namespace IfcGeoRefChecker.Appl
                 }
                 else
                 { address = null; }
-
-                //statement for LoGeoRef_10 decision
-                if(address == null)
-                {
-                    this.GeoRef10 = false;
-                }
-                else
-                {
-                    this.GeoRef10 = true;
-                }
             }
 
             catch(Exception e)
@@ -112,6 +102,8 @@ namespace IfcGeoRefChecker.Appl
         {
             if(address != null)
             {
+                this.GeoRef10 = true;
+
                 this.Instance_Object[0] = "#" + address.GetHashCode();
                 this.Instance_Object[1] = address.GetType().Name;
 
@@ -160,6 +152,8 @@ namespace IfcGeoRefChecker.Appl
                 this.AddressLines.Add("n/a");
                 this.AddressLines.Add("n/a");
                 this.AddressLines.Add("n/a");
+
+                this.GeoRef10 = false;
             }
         }
 
@@ -202,6 +196,7 @@ namespace IfcGeoRefChecker.Appl
                 // timestamp for last modifiedDate in OwnerHistory
                 long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
 
                 txn.Commit();
             }

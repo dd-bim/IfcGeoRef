@@ -12,10 +12,15 @@ namespace IfcGeoRefChecker.IO
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
+            string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
+            var headline = $"\r\nExamination of {file}.ifc regarding georeferencing content ({DateTime.Now.ToShortDateString()}, {DateTime.Now.ToLongTimeString()})" + dashline + dashline + "\r\n";
+
             using(var writeLog = File.CreateText((@".\results\GeoRef_" + file + ".txt")))
             {
                 try
                 {
+                    writeLog.WriteLine(headline);
+
                     foreach(var entry in log)
                     {
                         writeLog.WriteLine(entry);

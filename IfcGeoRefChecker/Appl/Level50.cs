@@ -29,17 +29,17 @@ namespace IfcGeoRefChecker.Appl
 
         public double Scale { get; set; }
 
-        public string CRS_Name { get; set; }
+        public string CRS_Name { get; set; } = "n/a";
 
-        public string CRS_Description { get; set; }
+        public string CRS_Description { get; set; } = "n/a";
 
-        public string CRS_Geodetic_Datum { get; set; }
+        public string CRS_Geodetic_Datum { get; set; } = "n/a";
 
-        public string CRS_Vertical_Datum { get; set; }
+        public string CRS_Vertical_Datum { get; set; } = "n/a";
 
-        public string CRS_Projection_Name { get; set; }
+        public string CRS_Projection_Name { get; set; } = "n/a";
 
-        public string CRS_Projection_Zone { get; set; }
+        public string CRS_Projection_Zone { get; set; } = "n/a";
 
         public bool Equals(Level50 other)
         {
@@ -133,7 +133,7 @@ namespace IfcGeoRefChecker.Appl
             if(prjCtx.HasCoordinateOperation.Count() != 0)
             {
                 //this.mapCvs = (IfcMapConversion)prjCtx.HasCoordinateOperation;
-                                
+
                 this.Reference_Object[0] = "#" + mapCvs.GetHashCode();
                 this.Reference_Object[1] = mapCvs.GetType().Name;
 
@@ -241,6 +241,13 @@ namespace IfcGeoRefChecker.Appl
                 this.mapCvs.XAxisOrdinate = this.RotationXY[0];
                 this.mapCvs.XAxisAbscissa = this.RotationXY[1];
                 this.mapCvs.Scale = this.Scale;
+
+                // timestamp for last modifiedDate in OwnerHistory
+                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                var proj = model.Instances.OfType<IIfcProject>().Single();
+
+                proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
 
                 txn.Commit();
             }

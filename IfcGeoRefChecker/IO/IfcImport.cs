@@ -9,7 +9,6 @@ namespace IfcGeoRefChecker.IO
 {
     public class IfcImport
     {
-
         public Dictionary<string, IfcStore> ImportModels { get; set; }
 
         public IfcImport()
@@ -23,13 +22,10 @@ namespace IfcGeoRefChecker.IO
 
                 fd.ShowDialog();
 
-
-
                 this.ImportModels = new Dictionary<string, IfcStore>();
 
                 for(int i = 0; i < fd.FileNames.Length; i++)
                 {
-
                     var fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
 
                     var editor = new XbimEditorCredentials

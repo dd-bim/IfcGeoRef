@@ -150,6 +150,13 @@ namespace IfcGeoRefChecker.Appl
                     this.prjCtx.TrueNorth = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(this.TrueNorthXY[0], this.TrueNorthXY[1]));
                 }
 
+                // timestamp for last modifiedDate in OwnerHistory
+                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                var proj = model.Instances.OfType<IIfcProject>().Single();
+
+                proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+
                 txn.Commit();
             }
 

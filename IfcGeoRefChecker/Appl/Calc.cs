@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Windows.Media.Media3D;
 
 namespace IfcGeoRefChecker.Appl
@@ -10,8 +9,9 @@ namespace IfcGeoRefChecker.Appl
     internal class Calc
     {
         private const double DegToRad = Math.PI / 180;
-        private Vector xy_TN_def = new Vector(0, 1);
+
         private Vector3D xyz_xAxis_def = new Vector3D(1, 0, 0);
+
         private Vector3D xyz_zAxis_def = new Vector3D(0, 0, 1);
 
         //convert length unit (Level 20, 30 and 40)
@@ -83,22 +83,6 @@ namespace IfcGeoRefChecker.Appl
         }
 
         //deg (dd) to deg (dms) for Level 20
-
-        public double[] DDtoDMS(double angleDD)
-        {
-            // set decimal_degrees value here
-
-            double[] dms = new double[3];
-
-            dms[0] = ((angleDD < 0) == true) ? -Math.Ceiling(angleDD) : Math.Floor(angleDD);
-            double minutes = (Math.Abs(angleDD) - dms[0]) * 60.0;
-            dms[1] = Math.Floor(minutes);
-            dms[2] = Math.Round(((Math.Abs(minutes) - dms[1]) * 60.0), 3);
-
-            return dms;
-        }
-
-        //deg (dd) to deg (dms) for Level 20 updating (IfcCompoundPlaneAngleMeasure)
 
         public double[] DDtoCompound(double angleDD)
         {
@@ -183,7 +167,7 @@ namespace IfcGeoRefChecker.Appl
             return matrix;
         }
 
-        //rotation calculation for Level 30 and 40
+        //rotation calculation for Level 30, 40 and 50
 
         public Vector3D GetVector3DForXAxis(double angleX)
         {
@@ -191,8 +175,35 @@ namespace IfcGeoRefChecker.Appl
 
             Vector3D xyz_xAxis = NewRotateAroundX(rad).Transform(xyz_xAxis_def);
 
+            if(angleX >= 0 && angleX <= 90)
+            {
+                xyz_xAxis.X = Math.Abs(xyz_xAxis.X);
+                xyz_xAxis.Y = -Math.Abs(xyz_xAxis.Y);
+            }
+
+
+            if(angleX > 90 && angleX < 180)
+            {
+                xyz_xAxis.X = -Math.Abs(xyz_xAxis.X);
+                xyz_xAxis.Y = -Math.Abs(xyz_xAxis.Y);
+            }
+
+            if(angleX >= 180 && angleX < 270)
+            {
+                xyz_xAxis.X = -Math.Abs(xyz_xAxis.X);
+                xyz_xAxis.Y = Math.Abs(xyz_xAxis.Y);
+            }
+
+            if(angleX >= 270 && angleX < 360)
+            {
+                xyz_xAxis.X = Math.Abs(xyz_xAxis.X);
+                xyz_xAxis.Y = Math.Abs(xyz_xAxis.Y);
+            }
+
             return xyz_xAxis;
         }
+
+        //rotation calculation for Level 30 and 40
 
         public Vector3D GetVector3DForZAxis(double angleZ)
         {
@@ -200,48 +211,55 @@ namespace IfcGeoRefChecker.Appl
 
             Vector3D xyz_zAxis = NewRotateAroundZ(rad).Transform(xyz_zAxis_def);
 
+            if(angleZ >= 0 && angleZ <= 90)
+            {
+                xyz_zAxis.X = Math.Abs(xyz_zAxis.X);
+                xyz_zAxis.Y = -Math.Abs(xyz_zAxis.Y);
+            }
+            if(angleZ >= 90 && angleZ <= 180)
+            {
+                xyz_zAxis.X = -Math.Abs(xyz_zAxis.X);
+                xyz_zAxis.Y = -Math.Abs(xyz_zAxis.Y);
+            }
+            if(angleZ >= 180 && angleZ <= 270)
+            {
+                xyz_zAxis.X = -Math.Abs(xyz_zAxis.X);
+                xyz_zAxis.Y = Math.Abs(xyz_zAxis.Y);
+            }
+            if(angleZ >= 270 && angleZ <= 360)
+            {
+                xyz_zAxis.X = Math.Abs(xyz_zAxis.X);
+                xyz_zAxis.Y = Math.Abs(xyz_zAxis.Y);
+            }
             return xyz_zAxis;
         }
 
-        //calc vector from given angle in 2D for Level 40 (True North) and 50 (Plane rotation)
-
-        public Vector GetVectorInXYplane(double angleTN)
-        {
-            double rad = angleTN * DegToRad;
-
-            Vector dir = new Vector();
-
-            dir.X = xy_TN_def.X * (Math.Cos(rad)) - xy_TN_def.Y * (Math.Sin(rad));
-            dir.Y = -(xy_TN_def.X * (Math.Sin(rad))) + xy_TN_def.Y * (Math.Cos(rad));
-
-            return dir;
-        }
-
-        //calc angle from given vector
-
-        //2D-True North(40), 2D-Rotation Plane(50)
-
-        public double GetAngleBetweenForXYplane(Vector xy_TN)
-        {
-            double angle = Vector.AngleBetween(xy_TN_def, xy_TN);
-
-            return angle;
-        }
-
-        //3D-X-Axis (30,40)
+        //X-Axis (30,40,50)
 
         public double GetAngleBetweenForXAxis(Vector3D xyz_xAxis)
         {
             double angle = Vector3D.AngleBetween(xyz_xAxis_def, xyz_xAxis);
 
+            if(xyz_xAxis.X < 0 && xyz_xAxis.Y > 0)
+                angle = (360 - angle);
+
+            if(xyz_xAxis.X >= 0 && xyz_xAxis.Y > 0)
+                angle = (360 - angle);
+
             return angle;
         }
 
-        //3D-Z-Axis (30,40)
+        //Z-Axis (30,40)
 
         public double GetAngleBetweenForZAxis(Vector3D xyz_zAxis)
         {
             double angle = Vector3D.AngleBetween(xyz_zAxis_def, xyz_zAxis);
+
+            if(xyz_zAxis.Y < 0 && xyz_zAxis.Z > 0)
+                angle = (360 - angle);
+
+            if(xyz_zAxis.Y > 0 && xyz_zAxis.Z > 0)
+                angle = (360 - angle);
 
             return angle;
         }

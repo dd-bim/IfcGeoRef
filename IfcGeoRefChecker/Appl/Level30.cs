@@ -36,11 +36,11 @@ namespace IfcGeoRefChecker.Appl
                 ObjectRotationZ[2] == other.ObjectRotationZ[2];
         }
 
-
-
         private PlacementXYZ plcm = new PlacementXYZ();
 
         private IIfcAxis2Placement3D plcm3D;
+
+        private IIfcProduct elem;
 
         private IfcStore model;
 
@@ -53,7 +53,7 @@ namespace IfcGeoRefChecker.Appl
             {
                 this.model = model;
 
-                var elem = model.Instances.Where<IIfcProduct>(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                this.elem = model.Instances.Where<IIfcProduct>(s => s.GetHashCode().ToString() == ifcInstance).Single();
 
                 var elemPlcm = (IIfcLocalPlacement)elem.ObjectPlacement;
                 this.plcm3D = (IIfcAxis2Placement3D)elemPlcm.RelativePlacement;
@@ -63,8 +63,6 @@ namespace IfcGeoRefChecker.Appl
                         {"#" + elem.GetHashCode() },
                         {elem.GetType().Name }
                     };
-
-
             }
 
             catch(Exception e)
@@ -80,7 +78,6 @@ namespace IfcGeoRefChecker.Appl
                         {"#" + plcm3D.GetHashCode() },
                         {plcm3D.GetType().Name }
                     };
-
 
             this.plcm.GetPlacementXYZ(this.plcm3D);
 
@@ -99,6 +96,11 @@ namespace IfcGeoRefChecker.Appl
                 this.plcm.RotationZ = this.ObjectRotationZ;
 
                 this.plcm.UpdatePlacementXYZ(model);
+
+                // timestamp for last modifiedDate in OwnerHistory
+                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
 
                 txn.Commit();
             }

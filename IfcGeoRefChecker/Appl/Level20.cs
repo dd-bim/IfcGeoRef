@@ -112,6 +112,7 @@ namespace IfcGeoRefChecker.Appl
                 // timestamp for last modifiedDate in OwnerHistory
                 long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 this.site.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                this.site.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
 
                 txn.Commit();
             }
