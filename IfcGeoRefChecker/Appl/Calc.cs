@@ -118,7 +118,7 @@ namespace IfcGeoRefChecker.Appl
 
         public double DMStoDD(string angleDMS)
         {
-            string[] separators = { "°", "'", "''", " " };
+            string[] separators = { "°", "'", "''", " ",",",";","/","|" };
             string[] values = angleDMS.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             double[] ddval = new double[3];

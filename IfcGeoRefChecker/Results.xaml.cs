@@ -519,6 +519,9 @@ namespace IfcGeoRefChecker
             {
                 tb_lat.Text = (this.lat.Equals(-999999) == true) ? "n/a" : this.lat.ToString();
                 tb_lon.Text = (this.lon.Equals(-999999) == true) ? "n/a" : this.lon.ToString();
+
+                //var lat_view = new Appl.Calc().DMStoDD(tb_lat.Text);
+                //var lon_view = new Appl.Calc().DMStoDD(tb_lon.Text);
             }
         }
 
@@ -682,257 +685,421 @@ namespace IfcGeoRefChecker
             }
         }
 
+        public string ReplaceTrim(string entry)
+        {
+            if(entry.Contains(" ") == true)
+                entry = entry.Replace(" ", "");
+
+            if(entry.Contains(",") == true)
+                entry = entry.Replace(",", ".");
+
+            return entry;
+        }
+
+        public string ReplaceTrimVector(string entry)
+        {
+            if(entry.Contains(" ") == true)
+                entry = entry.Replace(" ", "");
+
+            if(entry.Contains(";") == true)
+                entry = entry.Replace(";", ",");
+
+            if(entry.Contains("/") == true)
+                entry = entry.Replace("/", ",");
+
+            if(entry.Contains("|") == true)
+                entry = entry.Replace("|", ",");
+
+            return entry;
+        }
+
         private void bt_save10_Click(object sender, RoutedEventArgs e)
         {
-            Appl.Level10 geoRef10;
+            try
+            {
+                Appl.Level10 geoRef10;
+                Level10List.TryGetValue(SpatialElements10.SelectedItem.ToString(), out geoRef10);
 
-            Level10List.TryGetValue(SpatialElements10.SelectedItem.ToString(), out geoRef10);
+                geoRef10.AddressLines[0] = tb_adr0.Text;
+                geoRef10.AddressLines[1] = tb_adr1.Text;
+                geoRef10.AddressLines[2] = tb_adr2.Text;
 
-            geoRef10.AddressLines[0] = tb_adr0.Text;
-            geoRef10.AddressLines[1] = tb_adr1.Text;
-            geoRef10.AddressLines[2] = tb_adr2.Text;
+                geoRef10.Postalcode = tb_plz.Text;
+                geoRef10.Town = tb_town.Text;
+                geoRef10.Region = tb_region.Text;
+                geoRef10.Country = tb_country.Text;
 
-            geoRef10.Postalcode = tb_plz.Text;
-            geoRef10.Town = tb_town.Text;
-            geoRef10.Region = tb_region.Text;
-            geoRef10.Country = tb_country.Text;
-
-            if(SpatialElements10.Items.Count > 1)
-                bt_equal10.IsEnabled = true;
+                if(SpatialElements10.Items.Count > 1)
+                    bt_equal10.IsEnabled = true;
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Unknown error occured while set new values for Level of GeoRef 10." + "error message: " + ex.Message);
+            }
         }
 
         private void bt_save20_Click(object sender, RoutedEventArgs e)
         {
-            Appl.Level20 geoRef20;
-
-            Level20List.TryGetValue(SiteElements20.SelectedItem.ToString(), out geoRef20);
-
-            if(cb_UnitGeographicCoord20.SelectedItem.ToString() == "[dd]")
+            try
             {
-                geoRef20.Latitude = double.Parse(tb_lat.Text);
-                geoRef20.Longitude = double.Parse(tb_lon.Text);
+                Appl.Level20 geoRef20;
+                Level20List.TryGetValue(SiteElements20.SelectedItem.ToString(), out geoRef20);
+
+                try
+                {
+                    if(cb_UnitGeographicCoord20.SelectedItem.ToString() == "[dd]")
+                    {
+                        geoRef20.Latitude = double.Parse(ReplaceTrim(tb_lat.Text));
+                        geoRef20.Longitude = double.Parse(ReplaceTrim(tb_lon.Text));
+                    }
+                    else
+                    {
+                        geoRef20.Latitude = new Appl.Calc().DMStoDD(tb_lat.Text);
+                        geoRef20.Longitude = new Appl.Calc().DMStoDD(tb_lon.Text);
+                    }
+
+                    this.lat = geoRef20.Latitude;
+                    this.lon = geoRef20.Longitude;
+                }
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        if(cb_UnitGeographicCoord20.SelectedItem.ToString() == "[dd]")
+                            MessageBox.Show("Latitude und Longitude can only contain numbers with point as decimal separator, e.g. 51.3435");
+                        else
+                            MessageBox.Show("Latitude und Longitude can only contain numbers separeted like following exmaple -51°12'34.43422''");
+                    }
+                }
+
+                try
+                {
+                    var elevNew = double.Parse(tb_elev.Text);
+                    this.unitElev = new Appl.Calc().ConvertLengthUnits(cb_UnitElevation20.SelectedItem.ToString(), elevNew);
+
+                    double elevConv;
+                    this.unitElev.TryGetValue(this.unit, out elevConv);
+
+                    geoRef20.Elevation = elevConv;
+                }
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        MessageBox.Show("Elevation can only contain numbers with point as decimal separator");
+                    }
+                }
+
+                if(SiteElements20.Items.Count > 1)
+                    bt_equal20.IsEnabled = true;
             }
-            else
+            catch(Exception ex)
             {
-                geoRef20.Latitude = new Appl.Calc().DMStoDD(tb_lat.Text);
-                geoRef20.Longitude = new Appl.Calc().DMStoDD(tb_lon.Text);
+                MessageBox.Show("Unknown error occured while set new values for Level of GeoRef 20." + "error message: " + ex.Message);
             }
-
-            this.lat = geoRef20.Latitude;
-            this.lon = geoRef20.Longitude;
-
-            var elevNew = double.Parse(tb_elev.Text);
-            this.unitElev = new Appl.Calc().ConvertLengthUnits(cb_UnitElevation20.SelectedItem.ToString(), elevNew);
-
-            double elevConv;
-            this.unitElev.TryGetValue(this.unit, out elevConv);
-
-            geoRef20.Elevation = elevConv;
-
-            if(SiteElements20.Items.Count > 1)
-                bt_equal20.IsEnabled = true;
         }
 
         private void bt_save30_Click(object sender, RoutedEventArgs e)
         {
-            Appl.Level30 geoRef30;
-
-            Level30List.TryGetValue(PlacementElements30.SelectedItem.ToString(), out geoRef30);
-
-            geoRef30.ObjectLocationXYZ.Clear();
-
-            var x30New = double.Parse(tb_originX_30.Text);
-            var y30New = double.Parse(tb_originY_30.Text);
-            var z30New = double.Parse(tb_originZ_30.Text);
-
-            this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), x30New);
-            this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), y30New);
-            this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), z30New);
-
-            double x30Conv, y30Conv, z30Conv;
-            this.unitX30.TryGetValue(this.unit, out x30Conv);
-            this.unitY30.TryGetValue(this.unit, out y30Conv);
-            this.unitZ30.TryGetValue(this.unit, out z30Conv);
-
-            geoRef30.ObjectLocationXYZ.Add(x30Conv);
-            geoRef30.ObjectLocationXYZ.Add(y30Conv);
-            geoRef30.ObjectLocationXYZ.Add(z30Conv);
-
-            geoRef30.ObjectRotationX.Clear();
-            geoRef30.ObjectRotationZ.Clear();
-
-            if(cb_Rotation30.SelectedItem.ToString() == "vect")
+            try
             {
-                char delimiter = ',';
-                string[] vectorX = tb_rotationX_30.Text.Split(delimiter);
+                Appl.Level30 geoRef30;
 
-                foreach(var vect in vectorX)
+                Level30List.TryGetValue(PlacementElements30.SelectedItem.ToString(), out geoRef30);
+
+                try
                 {
-                    vect.Trim();
+                    geoRef30.ObjectLocationXYZ.Clear();
 
-                    geoRef30.ObjectRotationX.Add(double.Parse(vect));
+                    var x30New = double.Parse(ReplaceTrim(tb_originX_30.Text));
+                    var y30New = double.Parse(ReplaceTrim(tb_originY_30.Text));
+                    var z30New = double.Parse(ReplaceTrim(tb_originZ_30.Text));
+
+                    MessageBox.Show(x30New.ToString());
+
+                    this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), x30New);
+                    this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), y30New);
+                    this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), z30New);
+
+                    double x30Conv, y30Conv, z30Conv;
+                    this.unitX30.TryGetValue(this.unit, out x30Conv);
+                    this.unitY30.TryGetValue(this.unit, out y30Conv);
+                    this.unitZ30.TryGetValue(this.unit, out z30Conv);
+
+                    geoRef30.ObjectLocationXYZ.Add(x30Conv);
+                    geoRef30.ObjectLocationXYZ.Add(y30Conv);
+                    geoRef30.ObjectLocationXYZ.Add(z30Conv);
+                }
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        MessageBox.Show("Location (X,Y,Z) can only contain numbers with point as decimal separator.");
+                    }
+                }
+                try
+                {
+                    geoRef30.ObjectRotationX.Clear();
+                    geoRef30.ObjectRotationZ.Clear();
+
+                    if(cb_Rotation30.SelectedItem.ToString() == "vect")
+                    {
+                        char delimiter = ',';
+                        var entryX = ReplaceTrimVector(tb_rotationX_30.Text);
+                        string[] vectorX = entryX.Split(delimiter);
+
+                        foreach(var vect in vectorX)
+                        {
+                            geoRef30.ObjectRotationX.Add(double.Parse(vect));
+                        }
+
+                        var entryZ = ReplaceTrimVector(tb_rotationZ_30.Text);
+                        string[] vectorZ = entryZ.Split(delimiter);
+
+                        foreach(var vect in vectorZ)
+                        {
+                            geoRef30.ObjectRotationZ.Add(double.Parse(vect));
+                        }
+                    }
+                    else
+                    {
+                        var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotationX_30.Text)));
+
+                        geoRef30.ObjectRotationX.Add(vectorX.X);
+                        geoRef30.ObjectRotationX.Add(vectorX.Y);
+                        geoRef30.ObjectRotationX.Add(vectorX.Z);
+
+                        var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(ReplaceTrim(tb_rotationZ_30.Text)));
+
+                        geoRef30.ObjectRotationZ.Add(vectorZ.X);
+                        geoRef30.ObjectRotationZ.Add(vectorZ.Y);
+                        geoRef30.ObjectRotationZ.Add(vectorZ.Z);
+                    }
                 }
 
-                string[] vectorZ = tb_rotationZ_30.Text.Split(delimiter);
-
-                foreach(var vect in vectorZ)
+                catch(Exception ex)
                 {
-                    vect.Trim();
-
-                    geoRef30.ObjectRotationZ.Add(double.Parse(vect));
+                    if(ex is FormatException)
+                    {
+                        if(cb_Rotation30.SelectedItem.ToString() == "vect")
+                            MessageBox.Show("Rotation can only contain 3 comma-separated values for any 3DVector, e.g. 1,0,0");
+                        else
+                            MessageBox.Show("Rotation can only contain numbers for angle value, e.g. 180.5");
+                    }
                 }
+
+                if(PlacementElements30.Items.Count > 1)
+                    bt_equal30.IsEnabled = true;
             }
-            else
+            catch(Exception ex)
             {
-                var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(tb_rotationX_30.Text));
-
-                geoRef30.ObjectRotationX.Add(vectorX.X);
-                geoRef30.ObjectRotationX.Add(vectorX.Y);
-                geoRef30.ObjectRotationX.Add(vectorX.Z);
-
-                var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(tb_rotationZ_30.Text));
-
-                geoRef30.ObjectRotationZ.Add(vectorZ.X);
-                geoRef30.ObjectRotationZ.Add(vectorZ.Y);
-                geoRef30.ObjectRotationZ.Add(vectorZ.Z);
+                MessageBox.Show("Unknown error occured while set new values for Level of GeoRef 30. /r/n" + "error message: " + ex.Message);
             }
-
-            if(PlacementElements30.Items.Count > 1)
-                bt_equal30.IsEnabled = true;
         }
 
         private void bt_save40_Click(object sender, RoutedEventArgs e)
         {
-            Appl.Level40 geoRef40;
-
-            Level40List.TryGetValue(PlacementElements40.SelectedItem.ToString(), out geoRef40);
-
-            geoRef40.ProjectLocation.Clear();
-
-            var x40New = double.Parse(tb_originX_40.Text);
-            var y40New = double.Parse(tb_originY_40.Text);
-            var z40New = double.Parse(tb_originZ_40.Text);
-
-            this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), x40New);
-            this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), y40New);
-            this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), z40New);
-
-            double x40Conv, y40Conv, z40Conv;
-            this.unitX30.TryGetValue(this.unit, out x40Conv);
-            this.unitY30.TryGetValue(this.unit, out y40Conv);
-            this.unitZ30.TryGetValue(this.unit, out z40Conv);
-
-            geoRef40.ProjectLocation.Add(x40Conv);
-            geoRef40.ProjectLocation.Add(y40Conv);
-            geoRef40.ProjectLocation.Add(z40Conv);
-
-            geoRef40.ProjectRotationX.Clear();
-            geoRef40.ProjectRotationZ.Clear();
-
-            if(cb_Rotation40.SelectedItem.ToString() == "vect")
+            try
             {
-                char delimiter = ',';
-                string[] vectorX = tb_rotationX_40.Text.Split(delimiter);
+                Appl.Level40 geoRef40;
 
-                foreach(var vect in vectorX)
+                Level40List.TryGetValue(PlacementElements40.SelectedItem.ToString(), out geoRef40);
+
+                try
                 {
-                    vect.Trim();
+                    geoRef40.ProjectLocation.Clear();
 
-                    geoRef40.ProjectRotationX.Add(double.Parse(vect));
+                    var x40New = double.Parse(ReplaceTrim(tb_originX_40.Text));
+                    var y40New = double.Parse(ReplaceTrim(tb_originY_40.Text));
+                    var z40New = double.Parse(ReplaceTrim(tb_originZ_40.Text));
+
+                    this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), x40New);
+                    this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), y40New);
+                    this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), z40New);
+
+                    double x40Conv, y40Conv, z40Conv;
+                    this.unitX30.TryGetValue(this.unit, out x40Conv);
+                    this.unitY30.TryGetValue(this.unit, out y40Conv);
+                    this.unitZ30.TryGetValue(this.unit, out z40Conv);
+
+                    geoRef40.ProjectLocation.Add(x40Conv);
+                    geoRef40.ProjectLocation.Add(y40Conv);
+                    geoRef40.ProjectLocation.Add(z40Conv);
                 }
 
-                string[] vectorZ = tb_rotationZ_40.Text.Split(delimiter);
-
-                foreach(var vect in vectorZ)
+                catch(Exception ex)
                 {
-                    vect.Trim();
-
-                    geoRef40.ProjectRotationZ.Add(double.Parse(vect));
+                    if(ex is FormatException)
+                    {
+                        MessageBox.Show("Location (X,Y,Z) can only contain numbers with point as decimal separator.");
+                    }
                 }
-            }
-            else
-            {
-                var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(tb_rotationX_40.Text));
 
-                geoRef40.ProjectRotationX.Add(vectorX.X);
-                geoRef40.ProjectRotationX.Add(vectorX.Y);
-                geoRef40.ProjectRotationX.Add(vectorX.Z);
-
-                var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(tb_rotationZ_40.Text));
-
-                geoRef40.ProjectRotationZ.Add(vectorZ.X);
-                geoRef40.ProjectRotationZ.Add(vectorZ.Y);
-                geoRef40.ProjectRotationZ.Add(vectorZ.Z);
-            }
-
-            geoRef40.TrueNorthXY.Clear();
-
-            if(cb_TrueNorth40.SelectedItem.ToString() == "vect")
-            {
-                char delimiter = ',';
-                string[] vectorTN = tb_rotationTN_40.Text.Split(delimiter);
-
-                foreach(var vect in vectorTN)
+                try
                 {
-                    vect.Trim();
+                    geoRef40.ProjectRotationX.Clear();
+                    geoRef40.ProjectRotationZ.Clear();
 
-                    geoRef40.TrueNorthXY.Add(double.Parse(vect));
+                    if(cb_Rotation40.SelectedItem.ToString() == "vect")
+                    {
+                        char delimiter = ',';
+                        var entryX = ReplaceTrimVector(tb_rotationX_40.Text);
+                        string[] vectorX = entryX.Split(delimiter);
+
+                        foreach(var vect in vectorX)
+                        {
+                            geoRef40.ProjectRotationX.Add(double.Parse(vect));
+                        }
+
+                        var entryZ = ReplaceTrimVector(tb_rotationZ_40.Text);
+                        string[] vectorZ = entryZ.Split(delimiter);
+
+                        foreach(var vect in vectorZ)
+                        {
+                            geoRef40.ProjectRotationZ.Add(double.Parse(vect));
+                        }
+                    }
+                    else
+                    {
+                        var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotationX_40.Text)));
+
+                        geoRef40.ProjectRotationX.Add(vectorX.X);
+                        geoRef40.ProjectRotationX.Add(vectorX.Y);
+                        geoRef40.ProjectRotationX.Add(vectorX.Z);
+
+                        var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(ReplaceTrim(tb_rotationZ_40.Text)));
+
+                        geoRef40.ProjectRotationZ.Add(vectorZ.X);
+                        geoRef40.ProjectRotationZ.Add(vectorZ.Y);
+                        geoRef40.ProjectRotationZ.Add(vectorZ.Z);
+                    }
                 }
-            }
-            else
-            {
-                var vectorTN = new Appl.Calc().GetVector3DForXAxis(double.Parse(tb_rotationTN_40.Text));
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        if(cb_Rotation40.SelectedItem.ToString() == "vect")
+                            MessageBox.Show("Rotation can only contain 3 comma-separated values for any 3DVector, e.g. 1,0,0");
+                        else
+                            MessageBox.Show("Rotation can only contain numbers for angle value, e.g. 180.5");
+                    }
+                }
+                try
+                {
+                    geoRef40.TrueNorthXY.Clear();
 
-                geoRef40.TrueNorthXY.Add(vectorTN.X);
-                geoRef40.TrueNorthXY.Add(vectorTN.Y);
+                    if(cb_TrueNorth40.SelectedItem.ToString() == "vect")
+                    {
+                        char delimiter = ',';
+                        var entryTN = ReplaceTrimVector(tb_rotationTN_40.Text);
+                        string[] vectorTN = entryTN.Split(delimiter);
+
+                        foreach(var vect in vectorTN)
+                        {
+                            geoRef40.TrueNorthXY.Add(double.Parse(vect));
+                        }
+                    }
+                    else
+                    {
+                        var vectorTN = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotationTN_40.Text)));
+
+                        geoRef40.TrueNorthXY.Add(vectorTN.X);
+                        geoRef40.TrueNorthXY.Add(vectorTN.Y);
+                    }
+                }
+
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        if(cb_TrueNorth40.SelectedItem.ToString() == "vect")
+                            MessageBox.Show("True North can only contain 2 comma-separated values for any 2DVector, e.g. 1,0");
+                        else
+                            MessageBox.Show("True North can only contain numbers for angle value, e.g. 180.5");
+                    }
+                }
+
+                if(PlacementElements40.Items.Count > 1)
+                    bt_equal40.IsEnabled = true;
             }
-            if(PlacementElements40.Items.Count > 1)
-                bt_equal40.IsEnabled = true;
+            catch(Exception ex)
+            {
+                MessageBox.Show("Unknown error occured while set new values for Level of GeoRef 40. /r/n" + "error message: " + ex.Message);
+            }
         }
 
         private void bt_save50_Click(object sender, RoutedEventArgs e)
         {
-            Appl.Level50 geoRef50;
-
-            Level50List.TryGetValue(MapElements50.SelectedItem.ToString(), out geoRef50);
-
-            geoRef50.Translation_Eastings = double.Parse(tb_eastings50.Text);
-            geoRef50.Translation_Northings = double.Parse(tb_northings50.Text);
-            geoRef50.Translation_Orth_Height = double.Parse(tb_height50.Text);
-
-            geoRef50.RotationXY.Clear();
-
-            if(cb_Rotation50.SelectedItem.ToString() == "vect")
+            try
             {
-                char delimiter = ',';
-                string[] vectorMap = tb_rotation50.Text.Split(delimiter);
+                Appl.Level50 geoRef50;
 
-                foreach(var vect in vectorMap)
+                Level50List.TryGetValue(MapElements50.SelectedItem.ToString(), out geoRef50);
+
+                try
                 {
-                    vect.Trim();
-
-                    geoRef50.RotationXY.Add(double.Parse(vect));
+                    geoRef50.Translation_Eastings = double.Parse(ReplaceTrim(tb_eastings50.Text));
+                    geoRef50.Translation_Northings = double.Parse(ReplaceTrim(tb_northings50.Text));
+                    geoRef50.Translation_Orth_Height = double.Parse(ReplaceTrim(tb_height50.Text));
+                    geoRef50.Scale = double.Parse(ReplaceTrim(tb_scale50.Text));
                 }
+
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        MessageBox.Show("Translation and Scale can only contain numbers with point as decimal separator.");
+                    }
+                }
+
+                try
+                {
+                    geoRef50.RotationXY.Clear();
+
+                    if(cb_Rotation50.SelectedItem.ToString() == "vect")
+                    {
+                        char delimiter = ',';
+                        var entryMap = ReplaceTrimVector(tb_rotation50.Text);
+                        string[] vectorMap = entryMap.Split(delimiter);
+
+                        foreach(var vect in vectorMap)
+                        {
+                            geoRef50.RotationXY.Add(double.Parse(vect));
+                        }
+                    }
+                    else
+                    {
+                        var vectorMap = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotation50.Text)));
+
+                        geoRef50.RotationXY.Add(vectorMap.Y);
+                        geoRef50.RotationXY.Add(vectorMap.X);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    if(ex is FormatException)
+                    {
+                        if(cb_Rotation50.ToString() == "vect")
+                            MessageBox.Show("Rotation can only contain 2 comma-separated values for any 2DVector, e.g. 1,0");
+                        else
+                            MessageBox.Show("Rotation can only contain numbers for angle value, e.g. 180.5");
+                    }
+                }
+
+                geoRef50.CRS_Name = tb_CRSname50.Text;
+                geoRef50.CRS_Description = tb_CRSdesc50.Text;
+                geoRef50.CRS_Geodetic_Datum = tb_CRSgeod50.Text;
+                geoRef50.CRS_Vertical_Datum = tb_CRSvert50.Text;
+                geoRef50.CRS_Projection_Name = tb_ProjName50.Text;
+                geoRef50.CRS_Projection_Zone = tb_ProjZone50.Text;
+
+                if(MapElements50.Items.Count > 1)
+                    bt_equal50.IsEnabled = true;
             }
-            else
+            catch(Exception ex)
             {
-                var vectorMap = new Appl.Calc().GetVector3DForXAxis(double.Parse(tb_rotation50.Text));
-
-                geoRef50.RotationXY.Add(vectorMap.Y);
-                geoRef50.RotationXY.Add(vectorMap.X);
+                MessageBox.Show("Unknown error occured while set new values for Level of GeoRef 50. /r/n" + "error message: " + ex.Message);
             }
-
-            geoRef50.Scale = double.Parse(tb_scale50.Text);
-
-            geoRef50.CRS_Name = tb_CRSname50.Text;
-            geoRef50.CRS_Description = tb_CRSdesc50.Text;
-            geoRef50.CRS_Geodetic_Datum = tb_CRSgeod50.Text;
-            geoRef50.CRS_Vertical_Datum = tb_CRSvert50.Text;
-            geoRef50.CRS_Projection_Name = tb_ProjName50.Text;
-            geoRef50.CRS_Projection_Zone = tb_ProjZone50.Text;
-
-            if(MapElements50.Items.Count > 1)
-                bt_equal50.IsEnabled = true;
         }
 
         private void bt_equal10_Click(object sender, RoutedEventArgs e)
