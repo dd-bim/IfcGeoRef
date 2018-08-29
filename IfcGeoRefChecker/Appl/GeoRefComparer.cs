@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Windows;
 using Xbim.Ifc;
 
@@ -8,229 +6,122 @@ namespace IfcGeoRefChecker.Appl
 {
     internal class GeoRefComparer
     {
-        private List<Level10> addressList = new List<Level10>();
-        private List<Level20> latlonList = new List<Level20>();
-        private List<Level30> siteplcmList = new List<Level30>();
-        private List<Level40> projplcmList = new List<Level40>();
-        private List<Level50> projCRSList = new List<Level50>();
-       
+        private Level10 siteAddress;  //adresses for Site
+        private Level10 bldgAddress;    //adresses for Building
+        private Level20 latlon;       //latlon for Site
+        private Level30 siteplcm;       //placement for Site
+        private Level40 projplcm;        //WCS placement (model)
+        private Level50 projCRS;        //Map conversion (model)
 
-        public void comparetest(Dictionary<string, IfcStore> compList)
+        private IfcStore refModel;
+        private List<IfcStore> compList = new List<IfcStore>();
+
+        public GeoRefComparer(IfcStore refModel, List<IfcStore> compModels)
         {
-            IfcStore model, modeleq, modelch;
-
-
-
-            //for (var i = 0; i < compList.Count; i++)
-            //{
-            //    foreach(var compModel in compList.Values)
-            //    {
-            //        var abc = new Level10(compModel, "7220", "IfcSite");
-            //        abc.GetLevel10();
-
-
-            //    }
-            //}
-
-            var instA = compList.TryGetValue("comp1", out model);
-            var instC = compList.TryGetValue("comp1equal", out modeleq);
-            var instB = compList.TryGetValue("comp1change", out modelch);
-
-
-            var a = new Level10(model, "7220", "IfcSite");
-            a.GetLevel10();
-            var c = new Level10(modeleq, "7220", "IfcSite");
-            c.GetLevel10();
-            var b = new Level10(modelch, "7220", "IfcSite");
-            b.GetLevel10();
-
-            MessageBox.Show("Test a und b" + (a.Equals(b)).ToString());
-            MessageBox.Show("Test a und c" + (a.Equals(c)).ToString());
-            MessageBox.Show("Test c und b" + (c.Equals(b)).ToString());
-            MessageBox.Show("Test c und a" + (c.Equals(a)).ToString());
+            this.refModel = refModel;
+            this.compList = compModels;
         }
 
-        public void CompareIFCModels(List<IfcStore> compList, List<string> fileList)
+        public void CompareIFC()
         {
-            for(int i = 0; i < compList.Count; i++)
-            {
-                var a = "123";
-                var b = "ifcsite";
+            FillGeoref(refModel);
 
-                //Level-Listen für Speicherung der Ergebnisse aus dem IFC-Model auslesen
-                addressList.Add(new Level10(compList[i], a, b));
-                latlonList.Add(new Level20(compList[i], a));
-                siteplcmList.Add(new Level30(compList[i], a, b));
-                projplcmList.Add(new Level40(compList[i], a));
-                projCRSList.Add(new Level50(compList[i], a));
+            var refSiteAddress = siteAddress;
+            var refBldgAddress = bldgAddress;
+            var refLatlon = latlon;
+            var refSitePlcm = siteplcm;
+            var refProjPlcm = projplcm;
+            var refProjCRS = projCRS;
+
+            foreach(var compModel in compList)
+            {
+                FillGeoref(compModel);
+
+                Dictionary<string, bool> equality = new Dictionary<string, bool>
+                {
+                    { "site10", refSiteAddress.Equals(siteAddress) },
+                    { "bldg10", refBldgAddress.Equals(bldgAddress) },
+                    { "site20", refLatlon.Equals(latlon) },
+                    { "site30", refSitePlcm.Equals(siteplcm) },
+                    { "proj40", refProjPlcm.Equals(projplcm) },
+                    { "proj50", refProjCRS.Equals(projCRS) }
+                };
+                string a = "Vergleich " + refModel.FileName + " mit " + compModel.FileName + ":";
+
+                if(equality.ContainsValue(false))
+                {
+                    a += "\r\nThe georeferencing of the files is NOT equal.";
+
+                    a += "\r\nSite address =" + (refSiteAddress.Equals(siteAddress)).ToString();
+                    a += "\r\nBuilding address =" + (refBldgAddress.Equals(bldgAddress)).ToString();
+                    a += "\r\nSite latlon =" + (refLatlon.Equals(latlon)).ToString();
+                    a += "\r\nSite placement =" + (refSitePlcm.Equals(siteplcm)).ToString();
+                    a += "\r\nProject placement =" + (refProjPlcm.Equals(projplcm)).ToString();
+                    a += "\r\nProject conversion =" + (refProjCRS.Equals(projCRS)).ToString();
+                }
+                else
+                {
+                    a += "\r\nThe georeferencing of the files is exactly equal.";
+                }
+
+                MessageBox.Show(a);
             }
 
-            foreach (var elem in addressList)
-            {
-               
-            }
-
-            //for(int i = 0; i < compList.Count; i++)                                            // Listen auslesen fehlt bei List-Attributen
+            //using(var writeRep = File.CreateText((@".\results\Comparison.txt")))
             //{
-            //    for(int j = (i + 1); j < compList.Count; j++)
-            //    {
-            //        using(var writeRep = File.CreateText((@".\results\Comparison_" + fileList[i] + " with " + fileList[j] + ".txt")))
-            //        {
-            //            string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
-
-            //            bool cAddr = false;
-
-            //            if(addressList[i].AddressLines.Count == addressList[j].AddressLines.Count)
-            //            {
-            //                for(var k = 0; k < addressList[i].AddressLines.Count; k++)
-            //                {
-            //                    if(addressList[i].AddressLines[k] == addressList[j].AddressLines[k])
-            //                    {
-            //                        cAddr = true;
-            //                    }
-            //                }
-            //            }
-
-            //            bool cPost = addressList[i].Postalcode == addressList[j].Postalcode ? true : false;
-            //            bool cTown = addressList[i].Town == addressList[j].Town ? true : false;
-            //            bool cReg = addressList[i].Region == addressList[j].Region ? true : false;
-            //            bool cCtry = addressList[i].Country == addressList[j].Country ? true : false;
-
-            //            bool cLon = latlonList[i].Longitude == latlonList[j].Longitude ? true : false;
-            //            bool cLat = latlonList[i].Latitude == latlonList[j].Latitude ? true : false;
-            //            bool cElev = latlonList[i].Elevation == latlonList[j].Elevation ? true : false;
-
-            //            bool cXYZS = false;
-
-            //            for(var k = 0; k < siteplcmList[i].ObjectLocationXYZ.Count; k++)
-            //            {
-            //                cXYZS = siteplcmList[i].ObjectLocationXYZ[k] == siteplcmList[j].ObjectLocationXYZ[k] ? true : false;
-            //            }
-
-            //            bool cXRotS = false;
-
-            //            for(var k = 0; k < siteplcmList[i].ObjectRotationX.Count; k++)
-            //            {
-            //                cXRotS = siteplcmList[i].ObjectRotationX[k] == siteplcmList[i].ObjectRotationX[k] ? true : false;
-            //            }
-
-            //            bool cZRotS = false;
-
-            //            for(var k = 0; k < siteplcmList[i].ObjectRotationZ.Count; k++)
-            //            {
-            //                cZRotS = siteplcmList[i].ObjectRotationZ[k] == siteplcmList[i].ObjectRotationZ[k] ? true : false;
-            //            }
-
-            //            bool cXYZP = false;
-
-            //            for(var k = 0; k < projplcmList[i].ProjectLocationXYZ.Count; k++)
-            //            {
-            //                cXYZP = projplcmList[i].ProjectLocationXYZ[k] == projplcmList[j].ProjectLocationXYZ[k] ? true : false;
-            //            }
-
-            //            bool cXRotP = false;
-
-            //            if(projplcmList[i].ProjectRotationX != null)
-            //            {
-            //                for(var k = 0; k < projplcmList[i].ProjectRotationX.Count; k++)
-            //                {
-            //                    cXRotP = projplcmList[i].ProjectRotationX[k] == projplcmList[j].ProjectRotationX[k] ? true : false;
-            //                }
-            //            }
-
-            //            bool cZRotP = false;
-
-            //            if(projplcmList[i].ProjectRotationZ != null)
-            //            {
-            //                for(var k = 0; k < projplcmList[i].ProjectRotationZ.Count; k++)
-            //                {
-            //                    cZRotP = projplcmList[i].ProjectRotationZ[k] == projplcmList[j].ProjectRotationZ[k] ? true : false;
-            //                }
-            //            }
-
-            //            bool cTNo = false;
-
-            //            for(var k = 0; k < projplcmList[i].TrueNorthXY[k]; k++)
-            //            {
-            //                cTNo = projplcmList[i].TrueNorthXY[k] == projplcmList[j].TrueNorthXY[k] ? true : false;
-            //            }
-
-            //            bool cTrEa = projCRSList[i].Translation_Eastings == projCRSList[j].Translation_Eastings ? true : false;
-            //            bool cTrNo = projCRSList[i].Translation_Northings == projCRSList[j].Translation_Northings ? true : false;
-            //            bool cTrHe = projCRSList[i].Translation_Orth_Height == projCRSList[j].Translation_Orth_Height ? true : false;
-
-            //            bool cRotXY = false;
-
-            //            if(projCRSList[i].RotationXY != null)
-            //            {
-            //                for(var k = 0; k < projCRSList[i].RotationXY[k]; k++)
-            //                {
-            //                    cRotXY = projCRSList[i].RotationXY[k] == projCRSList[j].RotationXY[k] ? true : false;
-            //                }
-            //            }
-            //            bool cScl = projCRSList[i].Scale == projCRSList[j].Scale ? true : false;
-            //            bool cCRS = projCRSList[i].CRS_Name == projCRSList[j].CRS_Name ? true : false;
-
-            //            //-----------------------------------------------------------------------------------
-
-            //            writeRep.WriteLine(
-            //   $"\r\nComparison of {fileList[i]}.ifc and {fileList[j]}.ifc regarding their georeferencing content ({DateTime.Now.ToShortDateString()}, {DateTime.Now.ToLongTimeString()})" + dashline + dashline);
-
-            //            writeRep.WriteLine("LoGeoRef10" + dashline);
-
-            //            if(cAddr == true && cPost == true && cTown == true && cReg == true && cCtry == true)
-            //            {
-            //                writeRep.WriteLine("LoGeoRef10 is identical" + dashline);
-            //            }
-            //            else
-            //            {
-            //                writeRep.WriteLine("LoGeoRef10 is NOT identical" + cAddr + cPost + cTown + cReg + cCtry + dashline);
-            //            }
-
-            //            writeRep.WriteLine("LoGeoRef20" + dashline);
-            //            if(cLat == true && cLon == true && cElev == true)
-            //            {
-            //                writeRep.WriteLine("LoGeoRef20 is identical" + dashline);
-            //            }
-            //            else
-            //            {
-            //                writeRep.WriteLine("LoGeoRef20 is NOT identical" + cLat + cLon + cElev + dashline);
-            //            }
-
-            //            writeRep.WriteLine("LoGeoRef30" + dashline);
-
-            //            if(cXYZS == true && cXRotS == true && cZRotS == true)
-            //            {
-            //                writeRep.WriteLine("LoGeoRef30 is identical" + dashline);
-            //            }
-            //            else
-            //            {
-            //                writeRep.WriteLine("LoGeoRef30 is NOT identical" + cXYZS + cXRotS + cZRotS + dashline);
-            //            }
-            //            writeRep.WriteLine("LoGeoRef40" + dashline);
-
-            //            if(cXYZP == true && cXRotP == true && cZRotP == true && cTNo == true)
-            //            {
-            //                writeRep.WriteLine("LoGeoRef40 is identical" + dashline);
-            //            }
-            //            else
-            //            {
-            //                writeRep.WriteLine("LoGeoRef40 is NOT identical" + cXYZP + cXRotP + cZRotP + cTNo + dashline);
-            //            }
-
-            //            writeRep.WriteLine("LoGeoRef50" + dashline);
-
-            //            if(cTrEa == true && cTrNo == true && cTrHe == true && cRotXY == true && cScl == true && cCRS == true)
-            //            {
-            //                writeRep.WriteLine("LoGeoRef50 is identical" + dashline);
-            //            }
-            //            else
-            //            {
-            //                writeRep.WriteLine("LoGeoRef50 is NOT identical" + cTrEa + cTrNo + cTrHe + cRotXY + cScl + cCRS + dashline);
-            //            }
-            //        }
-            //    }
             //}
+        }
+
+        public void FillGeoref(IfcStore model)
+        {
+            var siteReading = new Appl.SiteReader(model).SiteList[0];
+            var bldgReading = new Appl.BldgReader(model).BldgList[0];
+            var prodReading = new Appl.UpperPlcmReader(model).ProdList;
+            var ctxReading = new Appl.ContextReader(model).CtxList;
+
+            var site10 = new Level10(model, siteReading.GetHashCode(), siteReading.GetType().ToString());
+            site10.GetLevel10();
+            //siteAddressList.Add(site10);
+            siteAddress = site10;
+
+            var bldg10 = new Level10(model, bldgReading.GetHashCode(), bldgReading.GetType().ToString());
+            bldg10.GetLevel10();
+            //bldgAddressList.Add(bldg10);
+            bldgAddress = bldg10;
+
+            var site20 = new Level20(model, siteReading.GetHashCode());
+            site20.GetLevel20();
+            //latlonList.Add(site20);
+            latlon = site20;
+
+            for(var i = 0; i < prodReading.Count; i++)
+            {
+                if(prodReading[i].GetType().Name == "IfcSite")
+                {
+                    var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].ToString());
+                    site30.GetLevel30();
+                    //siteplcmList.Add(site30);
+                    siteplcm = site30;
+                }
+            }
+            for(var i = 0; i < ctxReading.Count; i++)
+            {
+                if(ctxReading[i].ContextType == "Model")
+                {
+                    var cont40 = new Level40(model, ctxReading[i].GetHashCode());
+                    cont40.GetLevel40();
+                    //projplcmList.Add(cont40);
+                    projplcm = cont40;
+                }
+
+                if(ctxReading[i].ContextType == "Model" && ctxReading[i].HasCoordinateOperation != null)
+                {
+                    var map50 = new Level50(model, ctxReading[i].GetHashCode());
+                    map50.GetLevel50();
+                    //projCRSList.Add(map50);
+                    projCRS = map50;
+                }
+            }
         }
     }
 }

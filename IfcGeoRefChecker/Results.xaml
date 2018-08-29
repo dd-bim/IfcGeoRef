@@ -13,9 +13,11 @@
             <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
         <Button Content="Enable Updating" HorizontalAlignment="Left" Margin="40,40,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_UpdateGeoRef_Click" Grid.Column="1" />
-        <Button Content="Write to IFC file" Name="bt_writeIFC" HorizontalAlignment="Left" Margin="40,150,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_WriteIFC_Click" Grid.Column="1" IsEnabled="False" />
-        <Button Content="Export new log file" Name="bt_newLog" Grid.Column="1" HorizontalAlignment="Left" Margin="40,200,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False" Click="NewLog_Click"/>
-        <Button Content="Export new JSON file" Name="bt_newJson" Grid.Column="1" HorizontalAlignment="Left" Margin="40,250,0,0" VerticalAlignment="Top" Height="30" Width="120" IsEnabled="False" Click="NewJson_Click"/>
+        <Button Content="Write to IFC file" Name="bt_writeIFC" HorizontalAlignment="Left" Margin="40,120,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_WriteIFC_Click" Grid.Column="1" IsEnabled="False" />
+        <Border BorderBrush="Gray" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Center" Height="96" Margin="31,110,29,0" VerticalAlignment="Top" Width="140" Opacity="0.8" CornerRadius="3"/>
+        <CheckBox Name="check_log" IsEnabled="False" Grid.Column="1" Content="Export Log file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,160,40,0" Width="105" Height="15"/>
+        <CheckBox Name="check_json" IsEnabled="False" Grid.Column="1" Content="Export JSON file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,180,40,0" Width="105" Height="15"/>
+        <Button Content="Close" Name="bt_quit" Grid.Column="1" HorizontalAlignment="Left" Margin="40,260,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_quit_Click"/>
         <TabControl Name="prog" HorizontalAlignment="Left" Height="669" VerticalAlignment="Top" Width="600">
             <TabItem Name="tab_10" Header="GeoRef10">
                 <Grid Name="Window" Background="White">
@@ -197,7 +199,7 @@
                             <Label Content="Instance Entity (True North):" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" />
                             <Label Name="lb_Instance_WCS" Grid.Column="1" Grid.Row="1" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
                             <Label Name="lb_Instance_TN" Grid.Column="1" Grid.Row="2" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" />
-                            <ComboBox x:Name="PlacementElements40" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="PlacementElements40_SelectionChanged" />                        
+                            <ComboBox x:Name="PlacementElements40" Grid.Column="1" Grid.Row="0" SelectedIndex="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="280" SelectionChanged="PlacementElements40_SelectionChanged" />
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Content" HorizontalAlignment="Left" Height="380" Margin="10,158,0,0" VerticalAlignment="Top" Width="574">

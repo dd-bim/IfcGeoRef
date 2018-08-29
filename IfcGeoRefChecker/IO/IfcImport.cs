@@ -11,6 +11,10 @@ namespace IfcGeoRefChecker.IO
     {
         public Dictionary<string, IfcStore> ImportModels { get; set; }
 
+        public List<string> FilePath { get; set; }
+
+        private string fileName;
+
         public IfcImport()
         {
             try
@@ -26,25 +30,32 @@ namespace IfcGeoRefChecker.IO
 
                 for(int i = 0; i < fd.FileNames.Length; i++)
                 {
-                    var fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
+                    this.fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
 
                     var editor = new XbimEditorCredentials
                     {
                         ApplicationDevelopersName = "HTW Dresden",
                         ApplicationFullName = "IfcGeoRefChecker",
                         ApplicationIdentifier = "IfcGeoRef",
-                        ApplicationVersion = "1.0",
+                        ApplicationVersion = "0.2.0.0",
                         EditorsFamilyName = Environment.UserName,
                     };
 
-                    var model = IfcStore.Open(fd.FileNames[i], editor);
-
-                    this.ImportModels.Add(fileName, model);
+                    try
+                    {
+                        var model = IfcStore.Open(fd.FileNames[i], editor);
+                        this.ImportModels.Add(fileName, model);
+                    }
+                    catch(Exception e)
+                    {
+                        MessageBox.Show("Failed to import " + fileName + ".ifc \r\nError message: " + e.Message +
+    "\r\n \r\n Xbim is not able to import the selected IfcModel." +
+    "\r\n Please check your IfcFile for bad syntax errors.");
+                    }
                 }
             }
-            catch(Exception e)
+            catch
             {
-                MessageBox.Show("fail" + e.Message + e.StackTrace);
             }
         }
     }

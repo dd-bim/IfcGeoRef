@@ -26,9 +26,9 @@ namespace IfcGeoRefChecker.IO
 
         public List<Level50> LoGeoRef50 { get; set; } = new List<Level50>();
 
-        public void WriteJSONfile(IfcStore model, string file)
+        public void WriteJSONfile(IfcStore model, string file, string direc)
         {
-            using(var writeJson = File.CreateText((@".\results\GeoRef_" + file + ".json")))
+            using(var writeJson = File.CreateText((direc + "\\" + file + ".json")))
             {
                 try
                 {
@@ -51,7 +51,7 @@ namespace IfcGeoRefChecker.IO
 
                 catch(Exception ex)
                 {
-                    MessageBox.Show($"Error occured while writing JSON-file. \r\n Message: {ex.Message} + \r\n Stack: {ex.StackTrace}");
+                    MessageBox.Show($"Error occured while writing JSON-file. \r\n Message: {ex.Message}");
                 }
             }
         }

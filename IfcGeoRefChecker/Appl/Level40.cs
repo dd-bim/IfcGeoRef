@@ -55,13 +55,13 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 40: read the WorldCoordinateSystem and TrueNorth attribute of IfcGeometricRepresentationContext
         //-------------------------------------------------------------------------------------------------------
 
-        public Level40(IfcStore model, string ifcInstance)
+        public Level40(IfcStore model, int ifcInstance)
         {
             try
             {
                 this.model = model;
 
-                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
 
                 this.Reference_Object = new List<string>
                     {
@@ -76,60 +76,70 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while checking for LoGeoRef40: \r\n" + e.Message + e.StackTrace);
+                MessageBox.Show("Error occured while initializing LoGeoRef40 instance. \r\nError message: " + e.Message);
             }
         }
 
         public void GetLevel40()
         {
-            if(this.plcm != null)
+            try
             {
-                this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
-                this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
+                if(this.plcm != null)
+                {
+                    this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
+                    this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
+                }
+                else
+                {
+                    this.Instance_Object_WCS.Add("IfcAxis2Placement3D");
+                    this.Instance_Object_WCS.Add("n/a");
+                }
+
+                if(plcm is IIfcAxis2Placement3D)
+                {
+                    this.plcmXYZ.GetPlacementXYZ(this.plcm);
+
+                    this.GeoRef40 = this.plcmXYZ.GeoRefPlcm;
+                    this.ProjectLocation = this.plcmXYZ.LocationXYZ;
+                    this.ProjectRotationX = this.plcmXYZ.RotationX;
+                    this.ProjectRotationZ = this.plcmXYZ.RotationZ;
+                }
+
+                //variable for the TrueNorth attribute
+                var dir = prjCtx.TrueNorth;
+
+                this.Instance_Object_North = new List<string>();
+                this.TrueNorthXY = new List<double>();
+
+                if(dir != null)
+                {
+                    this.Instance_Object_North.Add("#" + dir.GetHashCode());
+                    this.Instance_Object_North.Add(dir.GetType().Name);
+
+                    this.TrueNorthXY.Add(dir.DirectionRatios[0]);
+                    this.TrueNorthXY.Add(dir.DirectionRatios[1]);
+                }
+                else
+                {
+                    this.Instance_Object_North.Add("IfcDirection");
+                    this.Instance_Object_North.Add("n/a");
+
+                    //if omitted, default values (see IFC schema for IfcGeometricRepresentationContext):
+
+                    this.TrueNorthXY.Add(0);
+                    this.TrueNorthXY.Add(1);
+                }
             }
-            else
+            catch(Exception e)
             {
-                this.Instance_Object_WCS.Add("IfcAxis2Placement3D");
-                this.Instance_Object_WCS.Add("n/a");
-            }
-
-            if(plcm is IIfcAxis2Placement3D)
-            {
-                this.plcmXYZ.GetPlacementXYZ(this.plcm);
-
-                this.GeoRef40 = this.plcmXYZ.GeoRefPlcm;
-                this.ProjectLocation = this.plcmXYZ.LocationXYZ;
-                this.ProjectRotationX = this.plcmXYZ.RotationX;
-                this.ProjectRotationZ = this.plcmXYZ.RotationZ;
-            }
-
-            //variable for the TrueNorth attribute
-            var dir = prjCtx.TrueNorth;
-
-            this.Instance_Object_North = new List<string>();
-            this.TrueNorthXY = new List<double>();
-
-            if(dir != null)
-            {
-                this.Instance_Object_North.Add("#" + dir.GetHashCode());
-                this.Instance_Object_North.Add(dir.GetType().Name);
-
-                this.TrueNorthXY.Add(dir.DirectionRatios[0]);
-                this.TrueNorthXY.Add(dir.DirectionRatios[1]);
-            }
-            else
-            {
-                this.Instance_Object_North.Add("IfcDirection");
-                this.Instance_Object_North.Add("n/a");
-
-                //if omitted, default values (see IFC schema for IfcGeometricRepresentationContext):
-
-                this.TrueNorthXY.Add(0);
-                this.TrueNorthXY.Add(1);
+                MessageBox.Show("Error occured while reading LoGeoRef40 attribute values. \r\nError message: " + e.Message);
             }
         }
+    
 
-        public void UpdateLevel40()
+    public void UpdateLevel40()
+    {
+        try
         {
             using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
             {
@@ -162,37 +172,42 @@ namespace IfcGeoRefChecker.Appl
 
             model.SaveAs(model.FileName + "_edit");
         }
-
-        public string LogOutput()
+        catch(Exception e)
         {
-            string logLevel40 = "";
-            string line = "\r\n________________________________________________________________________________________________________________________________________";
-            string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
-
-            logLevel40 += "\r\n \r\nProject context attributes for georeferencing (Location: WorldCoordinateSystem / Rotation: TrueNorth)"
-            + dashline + "\r\n Project context element:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
-            + "\r\n Placement referenced in " + this.Instance_Object_WCS[0] + "=" + this.Instance_Object_WCS[1];
-
-            logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1] + "\r\n  Z = " + this.ProjectLocation[2];
-
-            logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]}/{this.ProjectRotationX[2]})";
-            logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
-
-            if(this.Instance_Object_North.Contains("n/a"))
-
-            {
-                logLevel40 += "\r\n \r\n No rotation regarding True North mentioned.";
-            }
-            else
-            {
-                logLevel40 += "\r\n \r\n True North referenced in " + this.Instance_Object_North[0] + "=" + this.Instance_Object_North[1]
-                    + "\r\n  X-component =" + this.TrueNorthXY[0]
-                    + "\r\n  Y-component =" + this.TrueNorthXY[1];
-            }
-
-            logLevel40 += "\r\n \r\n LoGeoRef 40 = " + this.GeoRef40 + "\r\n" + line;
-
-            return logLevel40;
+            MessageBox.Show("Error occured while updating LoGeoRef40 attribute values to IfcFile. \r\nError message: " + e.Message);
         }
     }
+
+    public string LogOutput()
+    {
+        string logLevel40 = "";
+        string line = "\r\n________________________________________________________________________________________________________________________________________";
+        string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
+
+        logLevel40 += "\r\n \r\nProject context attributes for georeferencing (Location: WorldCoordinateSystem / Rotation: TrueNorth)"
+        + dashline + "\r\n Project context element:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
+        + "\r\n Placement referenced in " + this.Instance_Object_WCS[0] + "=" + this.Instance_Object_WCS[1];
+
+        logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1] + "\r\n  Z = " + this.ProjectLocation[2];
+
+        logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]}/{this.ProjectRotationX[2]})";
+        logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
+
+        if(this.Instance_Object_North.Contains("n/a"))
+
+        {
+            logLevel40 += "\r\n \r\n No rotation regarding True North mentioned.";
+        }
+        else
+        {
+            logLevel40 += "\r\n \r\n True North referenced in " + this.Instance_Object_North[0] + "=" + this.Instance_Object_North[1]
+                + "\r\n  X-component =" + this.TrueNorthXY[0]
+                + "\r\n  Y-component =" + this.TrueNorthXY[1];
+        }
+
+        logLevel40 += "\r\n \r\n LoGeoRef 40 = " + this.GeoRef40 + "\r\n" + line;
+
+        return logLevel40;
+    }
 }
+    }

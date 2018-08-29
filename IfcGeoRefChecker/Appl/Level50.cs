@@ -70,14 +70,14 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 50: read MapConversion, if referenced by IfcGeometricRepresentationContext (only in scope of IFC4 schema)
         //-----------------------------------------------------------------------------------------------------------------
 
-        public Level50(IfcStore model, string ifcInstance)
+        public Level50(IfcStore model, int ifcInstance)
 
         {
             try
             {
                 this.model = model;
 
-                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
 
                 this.Reference_Object = new List<string>
                                         {
@@ -123,136 +123,150 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while checking for LoGeoRef50: \r\n" + e.Message);
+                MessageBox.Show("Error occured while initializing LoGeoRef50 instance. \r\nError message: " + e.Message);
             }
         }
 
         public void GetLevel50()
         {
-            //restriction on IfcMapConversion objects which references (or inverse referenced by) IfcGeometricRepresentationContext
-            if(prjCtx.HasCoordinateOperation.Count() != 0)
+            try
             {
-                //this.mapCvs = (IfcMapConversion)prjCtx.HasCoordinateOperation;
-
-                this.Reference_Object[0] = "#" + mapCvs.GetHashCode();
-                this.Reference_Object[1] = mapCvs.GetType().Name;
-
-                this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : 0;
-                this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : 0;
-                this.Translation_Orth_Height = (mapCvs.OrthogonalHeight != null) ? mapCvs.OrthogonalHeight : 0;
-
-                if(mapCvs.XAxisAbscissa != null && mapCvs.XAxisOrdinate != null)
+                //restriction on IfcMapConversion objects which references (or inverse referenced by) IfcGeometricRepresentationContext
+                if(prjCtx.HasCoordinateOperation.Count() != 0)
                 {
-                    this.RotationXY.Add(mapCvs.XAxisOrdinate.Value);
-                    this.RotationXY.Add(mapCvs.XAxisAbscissa.Value);
+                    //this.mapCvs = (IfcMapConversion)prjCtx.HasCoordinateOperation;
+
+                    this.Reference_Object[0] = "#" + mapCvs.GetHashCode();
+                    this.Reference_Object[1] = mapCvs.GetType().Name;
+
+                    this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : 0;
+                    this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : 0;
+                    this.Translation_Orth_Height = (mapCvs.OrthogonalHeight != null) ? mapCvs.OrthogonalHeight : 0;
+
+                    if(mapCvs.XAxisAbscissa != null && mapCvs.XAxisOrdinate != null)
+                    {
+                        this.RotationXY.Add(mapCvs.XAxisOrdinate.Value);
+                        this.RotationXY.Add(mapCvs.XAxisAbscissa.Value);
+                    }
+                    else
+                    {
+                        //if omitted, values for no rotation (angle = 0) applied (consider difference to True North)
+
+                        this.RotationXY.Add(0);
+                        this.RotationXY.Add(1);
+                    }
+
+                    this.Scale = (mapCvs.Scale != null) ? mapCvs.Scale.Value : 1;
+
+                    this.mapCRS = (IIfcProjectedCRS)mapCvs.TargetCRS;
+
+                    if(mapCRS != null)
+                    {
+                        this.Instance_Object_CRS[0] = "#" + mapCRS.GetHashCode();
+                        this.Instance_Object_CRS[1] = mapCRS.GetType().Name;
+
+                        this.CRS_Name = (mapCRS.Name != null) ? mapCRS.Name.ToString() : "n/a";
+                        this.CRS_Description = (mapCRS.Description != null) ? mapCRS.Description.ToString() : "n/a";
+                        this.CRS_Geodetic_Datum = (mapCRS.GeodeticDatum != null) ? mapCRS.GeodeticDatum.ToString() : "n/a";
+                        this.CRS_Vertical_Datum = (mapCRS.VerticalDatum != null) ? mapCRS.VerticalDatum.ToString() : "n/a";
+                        this.CRS_Projection_Name = (mapCRS.MapProjection != null) ? mapCRS.MapProjection.ToString() : "n/a";
+                        this.CRS_Projection_Zone = (mapCRS.MapZone != null) ? mapCRS.MapZone.ToString() : "n/a";
+                    }
+
+                    this.GeoRef50 = true;
                 }
                 else
                 {
-                    //if omitted, values for no rotation (angle = 0) applied (consider difference to True North)
+                    this.GeoRef50 = false;
+
+                    this.Reference_Object.Add("IfcMapConversion");
+                    this.Reference_Object.Add("n/a");
+
+                    this.Instance_Object_CRS.Add("IfcProjectedCRS");
+                    this.Instance_Object_CRS.Add("n/a");
+
+                    this.Translation_Eastings = 0;
+                    this.Translation_Northings = 0;
+                    this.Translation_Orth_Height = 0;
 
                     this.RotationXY.Add(0);
                     this.RotationXY.Add(1);
+
+                    this.Scale = 1;
+
+                    this.CRS_Name = "n/a";
+                    this.CRS_Description = "n/a";
+                    this.CRS_Geodetic_Datum = "n/a";
+                    this.CRS_Vertical_Datum = "n/a";
+                    this.CRS_Projection_Name = "n/a";
+                    this.CRS_Projection_Zone = "n/a";
                 }
-
-                this.Scale = (mapCvs.Scale != null) ? mapCvs.Scale.Value : 1;
-
-                this.mapCRS = (IIfcProjectedCRS)mapCvs.TargetCRS;
-
-                if(mapCRS != null)
-                {
-                    this.Instance_Object_CRS[0] = "#" + mapCRS.GetHashCode();
-                    this.Instance_Object_CRS[1] = mapCRS.GetType().Name;
-
-                    this.CRS_Name = (mapCRS.Name != null) ? mapCRS.Name.ToString() : "n/a";
-                    this.CRS_Description = (mapCRS.Description != null) ? mapCRS.Description.ToString() : "n/a";
-                    this.CRS_Geodetic_Datum = (mapCRS.GeodeticDatum != null) ? mapCRS.GeodeticDatum.ToString() : "n/a";
-                    this.CRS_Vertical_Datum = (mapCRS.VerticalDatum != null) ? mapCRS.VerticalDatum.ToString() : "n/a";
-                    this.CRS_Projection_Name = (mapCRS.MapProjection != null) ? mapCRS.MapProjection.ToString() : "n/a";
-                    this.CRS_Projection_Zone = (mapCRS.MapZone != null) ? mapCRS.MapZone.ToString() : "n/a";
-                }
-
-                this.GeoRef50 = true;
             }
-            else
+            catch(Exception e)
             {
-                this.GeoRef50 = false;
-
-                this.Reference_Object.Add("IfcMapConversion");
-                this.Reference_Object.Add("n/a");
-
-                this.Instance_Object_CRS.Add("IfcProjectedCRS");
-                this.Instance_Object_CRS.Add("n/a");
-
-                this.Translation_Eastings = 0;
-                this.Translation_Northings = 0;
-                this.Translation_Orth_Height = 0;
-
-                this.RotationXY.Add(0);
-                this.RotationXY.Add(1);
-
-                this.Scale = 1;
-
-                this.CRS_Name = "n/a";
-                this.CRS_Description = "n/a";
-                this.CRS_Geodetic_Datum = "n/a";
-                this.CRS_Vertical_Datum = "n/a";
-                this.CRS_Projection_Name = "n/a";
-                this.CRS_Projection_Zone = "n/a";
+                MessageBox.Show("Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
             }
         }
 
         public void UpdateLevel50()
         {
-            using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
+            try
             {
-                if(mapCRS == null)
+                using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
                 {
-                    this.mapCRS = model.Instances.New<IfcProjectedCRS>();
-                }
-
-                this.mapCRS.Name = this.CRS_Name;
-                this.mapCRS.Description = this.CRS_Description;
-                this.mapCRS.GeodeticDatum = this.CRS_Geodetic_Datum;
-                this.mapCRS.VerticalDatum = this.CRS_Vertical_Datum;
-                this.mapCRS.MapProjection = this.CRS_Projection_Name;
-                this.mapCRS.MapZone = this.CRS_Projection_Zone;
-
-                var unit = model.Instances.New<IfcSIUnit>(u =>
-                {
-                    u.UnitType = IfcUnitEnum.LENGTHUNIT;
-                    u.Name = IfcSIUnitName.METRE;
-                });
-
-                this.mapCRS.MapUnit = unit;
-
-                if(mapCvs == null)
-                {
-                    this.mapCvs = model.Instances.New<IfcMapConversion>(m =>
+                    if(mapCRS == null)
                     {
-                        m.SourceCRS = prjCtx;
+                        this.mapCRS = model.Instances.New<IfcProjectedCRS>();
+                    }
+
+                    this.mapCRS.Name = this.CRS_Name;
+                    this.mapCRS.Description = this.CRS_Description;
+                    this.mapCRS.GeodeticDatum = this.CRS_Geodetic_Datum;
+                    this.mapCRS.VerticalDatum = this.CRS_Vertical_Datum;
+                    this.mapCRS.MapProjection = this.CRS_Projection_Name;
+                    this.mapCRS.MapZone = this.CRS_Projection_Zone;
+
+                    var unit = model.Instances.New<IfcSIUnit>(u =>
+                    {
+                        u.UnitType = IfcUnitEnum.LENGTHUNIT;
+                        u.Name = IfcSIUnitName.METRE;
                     });
+
+                    this.mapCRS.MapUnit = unit;
+
+                    if(mapCvs == null)
+                    {
+                        this.mapCvs = model.Instances.New<IfcMapConversion>(m =>
+                        {
+                            m.SourceCRS = prjCtx;
+                        });
+                    }
+
+                    this.mapCvs.TargetCRS = (IfcProjectedCRS)this.mapCRS;
+
+                    this.mapCvs.Eastings = this.Translation_Eastings;
+                    this.mapCvs.Northings = this.Translation_Northings;
+                    this.mapCvs.OrthogonalHeight = this.Translation_Orth_Height;
+                    this.mapCvs.XAxisOrdinate = this.RotationXY[0];
+                    this.mapCvs.XAxisAbscissa = this.RotationXY[1];
+                    this.mapCvs.Scale = this.Scale;
+
+                    // timestamp for last modifiedDate in OwnerHistory
+                    long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    var proj = model.Instances.OfType<IIfcProject>().Single();
+
+                    proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                    proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+
+                    txn.Commit();
                 }
 
-                this.mapCvs.TargetCRS = (IfcProjectedCRS)this.mapCRS;
-
-                this.mapCvs.Eastings = this.Translation_Eastings;
-                this.mapCvs.Northings = this.Translation_Northings;
-                this.mapCvs.OrthogonalHeight = this.Translation_Orth_Height;
-                this.mapCvs.XAxisOrdinate = this.RotationXY[0];
-                this.mapCvs.XAxisAbscissa = this.RotationXY[1];
-                this.mapCvs.Scale = this.Scale;
-
-                // timestamp for last modifiedDate in OwnerHistory
-                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                var proj = model.Instances.OfType<IIfcProject>().Single();
-
-                proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
-
-                txn.Commit();
+                model.SaveAs(model.FileName + "_edit");
             }
-
-            model.SaveAs(model.FileName + "_edit");
+            catch(Exception e)
+            {
+                MessageBox.Show("Error occured while updating LoGeoRef50 attribute values to IfcFile. \r\nError message: " + e.Message);
+            }
         }
 
         public string LogOutput()

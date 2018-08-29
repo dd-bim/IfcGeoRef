@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Xbim.Ifc;
-using Xbim.Ifc4.ActorResource;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
@@ -48,7 +47,7 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 10: read all IfcPostalAddress-objects which are referenced by IfcSite or IfcBuilding
         //--------------------------------------------------------------------------------------------
 
-        public Level10(IfcStore model, string ifcInstance, string ifcType)
+        public Level10(IfcStore model, int ifcInstance, string ifcType)
         {
             try
             {
@@ -78,13 +77,13 @@ namespace IfcGeoRefChecker.Appl
 
                 if(ifcType == "IfcSite")
                 {
-                    elem = model.Instances.OfType<IIfcSite>().Where(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                    elem = model.Instances.OfType<IIfcSite>().Where(s => s.GetHashCode() == ifcInstance).Single();
 
                     address = (elem as IIfcSite).SiteAddress;
                 }
                 else if(ifcType == "IfcBuilding")
                 {
-                    elem = model.Instances.OfType<IIfcBuilding>().Where(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                    elem = model.Instances.OfType<IIfcBuilding>().Where(s => s.GetHashCode() == ifcInstance).Single();
 
                     address = (elem as IIfcBuilding).BuildingAddress;
                 }
@@ -94,114 +93,140 @@ namespace IfcGeoRefChecker.Appl
 
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while checking for LoGeoRef10: \r\n" + e.Message + e.StackTrace);
+                MessageBox.Show("Error occured while initializing LoGeoRef10 instance. \r\nError message: " + e.Message);
             }
         }
 
         public void GetLevel10()
         {
-            if(address != null)
+            try
             {
-                this.GeoRef10 = true;
+                if(address != null)
+                {
+                    this.GeoRef10 = true;
 
-                this.Instance_Object[0] = "#" + address.GetHashCode();
-                this.Instance_Object[1] = address.GetType().Name;
+                    this.Instance_Object[0] = "#" + address.GetHashCode();
+                    this.Instance_Object[1] = address.GetType().Name;
 
-                this.AddressLines.Clear();
+                    this.AddressLines.Clear();
 
-                if(address.AddressLines.Count == 0)
+                    if(address.AddressLines.Count == 0)
+                    {
+                        this.AddressLines.Add("n/a");
+                        this.AddressLines.Add("n/a");
+                        this.AddressLines.Add("n/a");
+                    }
+
+                    if(address.AddressLines.Count == 1)
+                    {
+                        this.AddressLines.Add(address.AddressLines[0]);
+                        this.AddressLines.Add("n/a");
+                        this.AddressLines.Add("n/a");
+                    }
+
+                    if(address.AddressLines.Count == 2)
+                    {
+                        this.AddressLines.Add(address.AddressLines[0]);
+                        this.AddressLines.Add(address.AddressLines[1]);
+                        this.AddressLines.Add("n/a");
+                    }
+
+                    if(address.AddressLines.Count >= 3)
+                    {
+                        this.AddressLines.Add(address.AddressLines[0]);
+                        this.AddressLines.Add(address.AddressLines[1]);
+                        this.AddressLines.Add(address.AddressLines[2]);
+                    }
+
+                    if(address.AddressLines.Count > 3)
+                    {
+                        MessageBox.Show("There are more than 3 address lines. Program only reads up to 3 lines.");
+                    }
+
+                    this.Postalcode = (address.PostalCode.HasValue == true) ? address.PostalCode.ToString() : "n/a";
+                    this.Town = (address.Town.HasValue == true) ? address.Town.ToString() : "n/a";
+                    this.Region = (address.Region.HasValue == true) ? address.Region.ToString() : "n/a";
+                    this.Country = (address.Country.HasValue == true) ? address.Country.ToString() : "n/a";
+                }
+                else
                 {
                     this.AddressLines.Add("n/a");
                     this.AddressLines.Add("n/a");
                     this.AddressLines.Add("n/a");
-                }
 
-                if(address.AddressLines.Count == 1)
-                {
-                    this.AddressLines.Add(address.AddressLines[0]);
-                    this.AddressLines.Add("n/a");
-                    this.AddressLines.Add("n/a");
+                    this.GeoRef10 = false;
                 }
-
-                if(address.AddressLines.Count == 2)
-                {
-                    this.AddressLines.Add(address.AddressLines[0]);
-                    this.AddressLines.Add(address.AddressLines[1]);
-                    this.AddressLines.Add("n/a");
-                }
-
-                if(address.AddressLines.Count >= 3)
-                {
-                    this.AddressLines.Add(address.AddressLines[0]);
-                    this.AddressLines.Add(address.AddressLines[1]);
-                    this.AddressLines.Add(address.AddressLines[2]);
-                }
-
-                if(address.AddressLines.Count > 3)
-                {
-                    MessageBox.Show("There are more than 3 address lines. Program only reads up to 3 lines.");
-                }
-
-                this.Postalcode = (address.PostalCode.HasValue == true) ? address.PostalCode.ToString() : "n/a";
-                this.Town = (address.Town.HasValue == true) ? address.Town.ToString() : "n/a";
-                this.Region = (address.Region.HasValue == true) ? address.Region.ToString() : "n/a";
-                this.Country = (address.Country.HasValue == true) ? address.Country.ToString() : "n/a";
             }
-            else
-            {
-                this.AddressLines.Add("n/a");
-                this.AddressLines.Add("n/a");
-                this.AddressLines.Add("n/a");
 
-                this.GeoRef10 = false;
+            catch(Exception e)
+            {
+                MessageBox.Show("Error occured while reading LoGeoRef10 attribute values. \r\nError message: " + e.Message);
             }
         }
 
         public void UpdateLevel10()
         {
-            using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
+            try
             {
-                if(this.address == null)
+                using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
                 {
-                    this.address = this.model.Instances.New<IfcPostalAddress>();
+                    //if(this.address == null)
+                    //{
+                        var schema = model.IfcSchemaVersion.ToString();
 
-                    // timestamp for element before reference is added
-                    var create = this.elem.OwnerHistory.CreationDate;
+                        if(schema == "Ifc4")
+                        {
+                            this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
+                        }
+                        else if(schema == "Ifc2X3")
+                        {
+                            this.address = this.model.Instances.New<Xbim.Ifc2x3.ActorResource.IfcPostalAddress>();
+                        }
 
-                    if(this.elem is IIfcSite)
-                    {
-                        (this.elem as IIfcSite).SiteAddress = this.address;
-                    }
-                    else
-                    {
-                        (this.elem as IIfcBuilding).BuildingAddress = this.address;
-                    }
+                        // timestamp for element before reference is added
+                        var create = this.elem.OwnerHistory.CreationDate;
 
-                    // set timestamp back (xBim creates a new OwnerHistory object)
-                    this.elem.OwnerHistory.CreationDate = create;
+                        if(this.elem is IIfcSite)
+                        {
+                            (this.elem as IIfcSite).SiteAddress = this.address;
+                        }
+                        else
+                        {
+                            (this.elem as IIfcBuilding).BuildingAddress = this.address;
+                        }
+
+                        // set timestamp back (xBim creates a new OwnerHistory object)
+                        this.elem.OwnerHistory.CreationDate = create;
+                    //}
+
+                    
+
+                    var p = this.address;
+
+                    p.AddressLines.Clear();
+                    p.AddressLines.Add(this.AddressLines[0]);
+                    p.AddressLines.Add(this.AddressLines[1]);
+                    p.AddressLines.Add(this.AddressLines[2]);
+
+                    p.PostalCode = this.Postalcode;
+                    p.Town = this.Town;
+                    p.Region = this.Region;
+                    p.Country = this.Country;
+
+                    // timestamp for last modifiedDate in OwnerHistory
+                    long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                    this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+
+                    txn.Commit();
                 }
 
-                var p = this.address;
-
-                p.AddressLines.Clear();
-                p.AddressLines.Add(this.AddressLines[0]);
-                p.AddressLines.Add(this.AddressLines[1]);
-                p.AddressLines.Add(this.AddressLines[2]);
-
-                p.PostalCode = this.Postalcode;
-                p.Town = this.Town;
-                p.Region = this.Region;
-                p.Country = this.Country;
-
-                // timestamp for last modifiedDate in OwnerHistory
-                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
-
-                txn.Commit();
+                model.SaveAs(model.FileName + "_edit");
             }
-
-            model.SaveAs(model.FileName + "_edit");
+            catch(Exception e)
+            {
+                MessageBox.Show("Error occured while updating LoGeoRef10 attribute values to IfcFile. \r\nError message: " + e.Message);
+            }
         }
 
         public string LogOutput()

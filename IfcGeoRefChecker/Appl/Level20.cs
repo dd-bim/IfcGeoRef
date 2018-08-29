@@ -33,13 +33,13 @@ namespace IfcGeoRefChecker.Appl
 
         private IfcStore model;
 
-        public Level20(IfcStore model, string ifcInstance)
+        public Level20(IfcStore model, int ifcInstance)
         {
             try
             {
                 this.model = model;
 
-                this.site = model.Instances.Where<IIfcSite>(s => s.GetHashCode().ToString() == ifcInstance).Single();
+                this.site = model.Instances.Where<IIfcSite>(s => s.GetHashCode() == ifcInstance).Single();
 
                 this.Instance_Object = new List<string>
                     {
@@ -49,40 +49,49 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while checking for LoGeoRef20: \r\n" + e.Message);
+                MessageBox.Show("Error occured while initializing LoGeoRef20 instance. \r\nError message: " + e.Message);
             }
         }
 
         public void GetLevel20()
         {
-            if(site.RefLatitude.HasValue == false || site.RefLongitude.HasValue == false)
+            try
             {
-                this.Latitude = -999999;
-                this.Longitude = -999999;
+                if(site.RefLatitude.HasValue == false || site.RefLongitude.HasValue == false)
+                {
+                    this.Latitude = -999999;
+                    this.Longitude = -999999;
 
-                this.GeoRef20 = false;
+                    this.GeoRef20 = false;
+                }
+                else
+                {
+                    this.Latitude = site.RefLatitude.Value.AsDouble;
+                    this.Longitude = site.RefLongitude.Value.AsDouble;
+
+                    this.GeoRef20 = true;
+                }
+
+                this.Elevation = (site.RefElevation.HasValue == true) ? site.RefElevation.Value : -999999;
             }
-            else
+            catch(Exception e)
             {
-                this.Latitude = site.RefLatitude.Value.AsDouble;
-                this.Longitude = site.RefLongitude.Value.AsDouble;
-
-                this.GeoRef20 = true;
+                MessageBox.Show("Error occured while reading LoGeoRef20 attribute values. \r\nError message: " + e.Message);
             }
-
-            this.Elevation = (site.RefElevation.HasValue == true) ? site.RefElevation.Value : -999999;
         }
 
         public void UpdateLevel20()
         {
-            using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
+            try
             {
-                // timestamp for element before reference is added
-                var create = this.site.OwnerHistory.CreationDate;
+                using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
+                {
+                    // timestamp for element before reference is added
+                    var create = this.site.OwnerHistory.CreationDate;
 
-                var dms = new Calc().DDtoCompound(this.Latitude);
+                    var dms = new Calc().DDtoCompound(this.Latitude);
 
-                var list = new List<long>
+                    var list = new List<long>
                 {
                     { Convert.ToInt64(dms[0]) },
                     { Convert.ToInt64(dms[1]) },
@@ -90,11 +99,11 @@ namespace IfcGeoRefChecker.Appl
                     { Convert.ToInt64(dms[3]) }
                 };
 
-                this.site.RefLatitude = new IfcCompoundPlaneAngleMeasure(list);
+                    this.site.RefLatitude = new IfcCompoundPlaneAngleMeasure(list);
 
-                var dms1 = new Calc().DDtoCompound(this.Longitude);
+                    var dms1 = new Calc().DDtoCompound(this.Longitude);
 
-                var list1 = new List<long>
+                    var list1 = new List<long>
                 {
                     { Convert.ToInt64(dms1[0]) },
                     { Convert.ToInt64(dms1[1]) },
@@ -102,22 +111,27 @@ namespace IfcGeoRefChecker.Appl
                     { Convert.ToInt64(dms1[3]) }
                 };
 
-                this.site.RefLongitude = new IfcCompoundPlaneAngleMeasure(list1);
+                    this.site.RefLongitude = new IfcCompoundPlaneAngleMeasure(list1);
 
-                this.site.RefElevation = this.Elevation;
+                    this.site.RefElevation = this.Elevation;
 
-                // set timestamp back (xBim creates a new OwnerHistory object)
-                this.site.OwnerHistory.CreationDate = create;
+                    // set timestamp back (xBim creates a new OwnerHistory object)
+                    this.site.OwnerHistory.CreationDate = create;
 
-                // timestamp for last modifiedDate in OwnerHistory
-                long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                this.site.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                this.site.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+                    // timestamp for last modifiedDate in OwnerHistory
+                    long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    this.site.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                    this.site.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
 
-                txn.Commit();
+                    txn.Commit();
+                }
+
+                model.SaveAs(model.FileName + "_edit");
             }
-
-            model.SaveAs(model.FileName + "_edit");
+            catch(Exception e)
+            {
+                MessageBox.Show("Error occured while updating LoGeoRef20 attribute values to IfcFile. \r\nError message: " + e.Message);
+            }
         }
 
         public string LogOutput()
