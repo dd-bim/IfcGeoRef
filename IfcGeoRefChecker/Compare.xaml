@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker"
         mc:Ignorable="d"
-        Title="Compare" Height="400" Width="500">
+        Title="IfcGeoRefComparer" Height="400" Width="500">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350" />
@@ -15,7 +15,7 @@
             <RowDefinition Height="120" />
             <RowDefinition Height="280" />
         </Grid.RowDefinitions>
-        <GroupBox Header="Reference model" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Height="100" Margin="10,10,0,0" VerticalAlignment="Top" Width="472" Grid.ColumnSpan="2">
+        <GroupBox Header="Reference model" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Height="110" Margin="10,10,0,0" VerticalAlignment="Top" Width="472" Grid.ColumnSpan="2">
             <StackPanel HorizontalAlignment="Left" Height="71" Margin="10,10,-2,-3" VerticalAlignment="Top" Width="452">
                 <Label Content="Choose model as reference for comparison:" Margin="10,0" />
                 <ComboBox Name="cb_compRef" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="432" SelectionChanged="cb_compRef_SelectionChanged" />

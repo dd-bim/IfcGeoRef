@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using Xbim.Ifc;
 
@@ -35,9 +36,11 @@ namespace IfcGeoRefChecker.Appl
 
             foreach(var compModel in compList)
             {
-                FillGeoref(compModel);
+                try
+                {
+                    FillGeoref(compModel);
 
-                Dictionary<string, bool> equality = new Dictionary<string, bool>
+                    Dictionary<string, bool> equality = new Dictionary<string, bool>
                 {
                     { "site10", refSiteAddress.Equals(siteAddress) },
                     { "bldg10", refBldgAddress.Equals(bldgAddress) },
@@ -46,81 +49,89 @@ namespace IfcGeoRefChecker.Appl
                     { "proj40", refProjPlcm.Equals(projplcm) },
                     { "proj50", refProjCRS.Equals(projCRS) }
                 };
-                string a = "Vergleich " + refModel.FileName + " mit " + compModel.FileName + ":";
+                    string a = "Vergleich " + refModel.FileName + " mit " + compModel.FileName + ":";
 
-                if(equality.ContainsValue(false))
-                {
-                    a += "\r\nThe georeferencing of the files is NOT equal.";
+                    if(equality.ContainsValue(false))
+                    {
+                        a += "\r\nThe georeferencing of the files is NOT equal.";
 
-                    a += "\r\nSite address =" + (refSiteAddress.Equals(siteAddress)).ToString();
-                    a += "\r\nBuilding address =" + (refBldgAddress.Equals(bldgAddress)).ToString();
-                    a += "\r\nSite latlon =" + (refLatlon.Equals(latlon)).ToString();
-                    a += "\r\nSite placement =" + (refSitePlcm.Equals(siteplcm)).ToString();
-                    a += "\r\nProject placement =" + (refProjPlcm.Equals(projplcm)).ToString();
-                    a += "\r\nProject conversion =" + (refProjCRS.Equals(projCRS)).ToString();
+                        a += "\r\nSite address =" + (refSiteAddress.Equals(siteAddress)).ToString();
+                        a += "\r\nBuilding address =" + (refBldgAddress.Equals(bldgAddress)).ToString();
+                        a += "\r\nSite latlon =" + (refLatlon.Equals(latlon)).ToString();
+                        a += "\r\nSite placement =" + (refSitePlcm.Equals(siteplcm)).ToString();
+                        a += "\r\nProject placement =" + (refProjPlcm.Equals(projplcm)).ToString();
+                        a += "\r\nProject conversion =" + (refProjCRS.Equals(projCRS)).ToString();
+                    }
+                    else
+                    {
+                        a += "\r\nThe georeferencing of the files is exactly equal.";
+                    }
+
+                    MessageBox.Show(a);
                 }
-                else
+                catch(Exception ex)
                 {
-                    a += "\r\nThe georeferencing of the files is exactly equal.";
+                    MessageBox.Show("Error occured while comparing Ifc-files. \r\nError message: " + ex.Message);
                 }
-
-                MessageBox.Show(a);
             }
-
-            //using(var writeRep = File.CreateText((@".\results\Comparison.txt")))
-            //{
-            //}
         }
 
         public void FillGeoref(IfcStore model)
         {
-            var siteReading = new Appl.SiteReader(model).SiteList[0];
-            var bldgReading = new Appl.BldgReader(model).BldgList[0];
-            var prodReading = new Appl.UpperPlcmReader(model).ProdList;
-            var ctxReading = new Appl.ContextReader(model).CtxList;
-
-            var site10 = new Level10(model, siteReading.GetHashCode(), siteReading.GetType().ToString());
-            site10.GetLevel10();
-            //siteAddressList.Add(site10);
-            siteAddress = site10;
-
-            var bldg10 = new Level10(model, bldgReading.GetHashCode(), bldgReading.GetType().ToString());
-            bldg10.GetLevel10();
-            //bldgAddressList.Add(bldg10);
-            bldgAddress = bldg10;
-
-            var site20 = new Level20(model, siteReading.GetHashCode());
-            site20.GetLevel20();
-            //latlonList.Add(site20);
-            latlon = site20;
-
-            for(var i = 0; i < prodReading.Count; i++)
+            try
             {
-                if(prodReading[i].GetType().Name == "IfcSite")
+                var siteReading = new Appl.SiteReader(model).SiteList[0];
+                var bldgReading = new Appl.BldgReader(model).BldgList[0];
+                var prodReading = new Appl.UpperPlcmReader(model).ProdList;
+                var ctxReading = new Appl.ContextReader(model).CtxList;
+
+                var site10 = new Level10(model, siteReading.GetHashCode(), siteReading.GetType().ToString());
+                site10.GetLevel10();
+                //siteAddressList.Add(site10);
+                siteAddress = site10;
+
+                var bldg10 = new Level10(model, bldgReading.GetHashCode(), bldgReading.GetType().ToString());
+                bldg10.GetLevel10();
+                //bldgAddressList.Add(bldg10);
+                bldgAddress = bldg10;
+
+                var site20 = new Level20(model, siteReading.GetHashCode());
+                site20.GetLevel20();
+                //latlonList.Add(site20);
+                latlon = site20;
+
+                for(var i = 0; i < prodReading.Count; i++)
                 {
-                    var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].ToString());
-                    site30.GetLevel30();
-                    //siteplcmList.Add(site30);
-                    siteplcm = site30;
+                    if(prodReading[i].GetType().Name == "IfcSite")
+                    {
+                        var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].ToString());
+                        site30.GetLevel30();
+                        //siteplcmList.Add(site30);
+                        siteplcm = site30;
+                    }
+                }
+                for(var i = 0; i < ctxReading.Count; i++)
+                {
+                    if(ctxReading[i].ContextType == "Model")
+                    {
+                        var cont40 = new Level40(model, ctxReading[i].GetHashCode());
+                        cont40.GetLevel40();
+                        //projplcmList.Add(cont40);
+                        projplcm = cont40;
+                    }
+
+                    if(ctxReading[i].ContextType == "Model" && ctxReading[i].HasCoordinateOperation != null)
+                    {
+                        var map50 = new Level50(model, ctxReading[i].GetHashCode());
+                        map50.GetLevel50();
+                        //projCRSList.Add(map50);
+                        projCRS = map50;
+                    }
                 }
             }
-            for(var i = 0; i < ctxReading.Count; i++)
+            catch(Exception ex)
             {
-                if(ctxReading[i].ContextType == "Model")
-                {
-                    var cont40 = new Level40(model, ctxReading[i].GetHashCode());
-                    cont40.GetLevel40();
-                    //projplcmList.Add(cont40);
-                    projplcm = cont40;
-                }
-
-                if(ctxReading[i].ContextType == "Model" && ctxReading[i].HasCoordinateOperation != null)
-                {
-                    var map50 = new Level50(model, ctxReading[i].GetHashCode());
-                    map50.GetLevel50();
-                    //projCRSList.Add(map50);
-                    projCRS = map50;
-                }
+                MessageBox.Show("Error occured while comparing Ifc-files. \r\nError message: " + ex.Message);
             }
         }
     }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker"
         mc:Ignorable="d"
-        Title="Results" Height="700" Width="800">
+        Title="IfcGeoRefUpdater" Height="700" Width="800">
 
     <Grid Name="Window1" Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
