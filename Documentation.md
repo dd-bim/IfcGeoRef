@@ -271,16 +271,126 @@ Please consider that the validity of the written data is in the mission of the u
 
 ### Structure of the resulting JSON file
 
-lore ipsum
+As a possibility to store the GeoRef data in a machine readable way outside the specific IFC-file the application provides an export in JSON format. The style of an resulting JSON file is pretty much similar to the described log file above, but in a machine readable way.
+Every JSON GeoRef export contains one overall object with initial attributes for the assignment to the specific project in the IFC-file which was the source of the GeoRef data. So there are attributes with values for the GlobalID of the IfcProject instance and Date/Time values which shows the creation date of the assigned IFC-file and when the IFC-file was checked by this application. For better interpretation of the GeoRef data the JSON file also stores the IfcSchemaVersion.
+Below that part there are attributes for each Level of GeoRef. The data of the certain GeoRef-object is stored in an array. There can be more than one values for each level, e.g. if more than one referenced address was found. 
+
+```Json
+{
+  "GlobalID": "344O7vICcwH8qAEnwJDjSU",
+  "IFCSchema": "Ifc4",
+  "TimeCreation": "2018-02-12T12:36:08",
+  "TimeCheck": "2018-08-28T12:02:03",
+    "LoGeoRef10": [ {} ],
+    "LoGeoRef20": [
+    {
+      "GeoRef20": true,
+      "Instance_Object": [
+        "#101",
+        "IfcSite"
+      ],
+      "Latitude": 52.15,
+      "Longitude": 5.3833333333333337,
+      "Elevation": 20.0
+    }
+  ],
+```
+Each level value contains the data provided by the IfcGeoRefChecker. One can access the data while looping through the arrays of the certain level at first. Given the fact that there could be more than one value per level each level object also stores data for reference and instance object. Those values contain data for identification of the entities in the related IFC-file. They are the number of each IFC instance together with the hash symbol like it is stored in the IFC-file, e.g "#114". As a second value referece and instance object also contain the type of the IfcObject, e.g. "IfcSite". Reference objects are always objects with a own IfcGloballyID. Certain GeoRef values applies to this object. Instance objects are Ifc instances which either contain the stored data directly or reference them at a deeper level in the file. Please consider that an exported JSON file also contains GeoRef objects which has no data. In this case there exists an reference object but no instance object with IfC hashnumber. Often Georef data is not completely stored in an IFC file. The resulting JSON file contains for this elements either "n/a" for string objects or the phantastic value "-999999" for double values.
 
 ### GeoRefUpdater
 
+As an main extension to the IfcGeoRefChecker functionality this application offers the possibility to change GeoRef data in the IFC file. You can access the update functionality via click on the "--> IfcGeoRefUpdater" button. The new window looks like this:
+
+![GeoRefUpdater](pic\GeoRefUpdater_GUI1.PNG)
+
+The GUI contains tabs for each GeoRef. In case of an IFC-file with SchemaVersion 2X3 the tab for GeoRef50 will be disabled because for this schema version no data for GeoRef50 could apply. Each tab is built up in a similar way. There are always groupboxes for "IFC reference" and "Content". IFC reference contains the instances where the GeoRef is stored respectively referenced in the related IFC file. In fact that there can be more than one object per level it is possible to change the displayed object via changing the combobox entry for Reference or Instance entity.
+
+In the content groupbox there is an ability to change the view on the data by selecting an other unit. This applies for length data with different length units and also for angle date with the option to choose either the vector view (like in IFC file) or the degree view. At GeoRef20 it is possible to view the stored Lat/Lon data in decimal degree view (dd) or with degree, minutes, seconds (dms)s similar to the values in the IFC-file. Please note that the default unit for the length is the project unit stored in the IFC-file.
+
+To update the data it is necessary to click the button "Enable Updating" at first. Before that step it is only possbile to view the data. So to say it is at first a third way (besides Log and JSON file) to check the GeoRef data.
+
+**Proposed way to update georeferencing:**
+1. Click on "Enable Updating" --> textboxes are now ready for input
+2. Choose the level which should be updated via tab selection
+3. Input new values in the associated textbox(es)
+4. Click on "Save Changes" --> the GeoRef object will be updated internally
+5. (optional) if available (more than one object) you can set the new values to other objects of the same GeoRef-Level via Click on "Set to all" respectively "Add up to all"
+6. (optional) Repeat step 2 to 5 for other GeoRef-Levels via changing the tab
+7. (optional) when required select checkboxes for new logfile and /or JSON file export
+8. Write all internally changed values to IFC via Click on "Write to IFC file"
+
+Further remarks:
+- "Add up to all" means that the new value will be summed to the old values in the other objects. This is necessary for keeping the correct relative positioning to each other in IFC.
+- The resulting IFC-file will not replace the old one. Instead there will be a new file with the old file name plus suffix "_edit"
+- In the resulting IFC old instance entites will not be deleted but their reference will be set to the new instance. The reason for that is that it cannot be ruled out if, e.g. an CartesianPoint, is referenced by another entity with no georeferencing pupose, e.g. for geometry entities.
+- The project units will not be replaced in the new file. Instead of that new values will be converted to the project units.
+
 ### GeoRefComparer
 
-##### Error occuring results
+The compare tool is another extension to the IfcGeoRefChecker. It offers functionality to compare a bundle of IFC-files with one main/ reference IFC-file regarding their georeferencing content.
 
-IFCGeoRefChecker will check every Level of GeoRef separately. If there occured an error while checking of a certain level this will be displayed instead of "true" or "false" in the "results" groupbox. It also will be written in the results logfile as an error message and stack trace which may will help you to find out why this error occured.
-In most cases an error will occure when the IFC-file violates against IFC schema definitions which will either be checked by the underlying xBIM functionality for general IFC-file purposes or for purposes of georeferencing via this checking tool.
+![GeoRefComparer](pic\GeoRefComparer_GUI1.PNG)
+
+Please note that the comparer requires at least two imported Ifc-files in the listbox at the main window (IfcGeoRefChecker).
+
+**Proposed way to compare georeferencing:**
+1. (Import at least 2 IFC-files at Main Window
+2. Start IfcGeoRefComparer via Click on related button in IfcGeorefChecker Window
+3. Choose reference model in combobox
+4. Select the models which should be compared to the reference model
+5. Click on "StartComparison" 
+
+Further remarks:
+- The comparer does currently not support multidimensional data at Level of GeoRef tier. That means that only one IfcSite object will be examined at Level 10, 20 and 30. Buildings will only be compared regarding their address. At Level 40 and 50 only the IfcGeometricRepresentationContext of the model view (3D view) will be compared.
+- The named restrictions should not influence most IFC-files in a negative way.
+
+**Outcome**
+
+As the result of the comparison the application writes automatically an logfile to the directory of the reference model. This logfile contains short statements regarding the result of the comparison between the reference model and each selected other model. If the georeferencing is not equal, there will be a hint at which level a difference was detected.
+
+See example:
+
+```
+Results of Comparison regarding Georeferencing for reference model: Haus_1.ifc
+
+Comparison to SampleHouse.ifc_edit.ifc:
+ The georeferencing of the files is NOT equal.
+  A difference was detected at GeoRef20 (IfcSite Lat/Lon/Elevation) 
+  A difference was detected at GeoRef30 (IfcSite Placement) 
+  A difference was detected at GeoRef40 (IfcProject WCS/True North) 
+  
+Comparison to Haus_1_TGA.ifc:
+ The georeferencing of the files is exactly equal.
+```
+
+### Errors that may occur
+
+- While File Import (1):
+-- Possible reason: bad syntax errors in IFC-file 
+-- Proposed solution: check IFC-file for valid syntax with an appropriate tool (e.g. FZKViewer from KIT)
+
+- While File Import (2):
+-- Possible reason: IfcSchemaVersion neither IFC2X3 nor IFC4
+-- Proposed solution: not in scope, but maybe dirty hack in IFC-file helps: change FILE SCHEMA in Header Section to IFC2X3 or IFC4
+
+- While GeoRef Check:
+-- Description: no error, but fields in tab are empty
+-- Possible reason: IFC-file does not contain reference objects -> if it occurs syntax is not valid against IFC schema 
+-- Proposed solution: ignore or new export in originating software
+
+- While GeoRef Compare:
+-- Description: "Index out of range" exception occurs 
+-- Possible reason: IFC-file does not contain reference objects -> if it occurs syntax is not valid against IFC schema 
+-- Proposed solution: ignore or new export in originating software
+
+- While Wirting / Exporting files:
+-- Possible reason: no permission to write in the directory of the imported IFC-file 
+-- Proposed solution: copy IFC-file to a local directory and try again
+
+### FAQ
+
+- Which level or fields should I use to apply an appropriate georeferencing to my IFC model?
+-- That mainly depends on the BIM-software you use. Unfortunetely there is no uniform way which is used by the various software products. Some tests have shown that mainly georeferencing with site placement (Level 30) is applied in the files, e.g. by Autodesk Revit 2018.
 
 ##Built with
 
