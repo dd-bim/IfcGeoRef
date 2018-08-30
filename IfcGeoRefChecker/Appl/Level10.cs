@@ -35,13 +35,20 @@ namespace IfcGeoRefChecker.Appl
         {
             if(other == null)
                 return false;
-            return string.Equals(AddressLines[0], other.AddressLines[0]) &&
-                string.Equals(AddressLines[1], other.AddressLines[1]) &&
-                string.Equals(AddressLines[2], other.AddressLines[2]) &&
-                   string.Equals(Postalcode, other.Postalcode) &&
-                   string.Equals(Town, other.Town) &&
-                   string.Equals(Region, other.Region) &&
-                   string.Equals(Country, other.Country);
+            if(string.Equals(AddressLines[0], other.AddressLines[0]) == true &&
+                string.Equals(AddressLines[1], other.AddressLines[1]) == true &&
+                string.Equals(AddressLines[2], other.AddressLines[2]) == true &&
+                   string.Equals(Postalcode, other.Postalcode) == true &&
+                   string.Equals(Town, other.Town) == true &&
+                   string.Equals(Region, other.Region) == true &&
+                   string.Equals(Country, other.Country) == true)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         //GeoRef 10: read all IfcPostalAddress-objects which are referenced by IfcSite or IfcBuilding
@@ -172,34 +179,32 @@ namespace IfcGeoRefChecker.Appl
                 {
                     //if(this.address == null)
                     //{
-                        var schema = model.IfcSchemaVersion.ToString();
+                    var schema = model.IfcSchemaVersion.ToString();
 
-                        if(schema == "Ifc4")
-                        {
-                            this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
-                        }
-                        else if(schema == "Ifc2X3")
-                        {
-                            this.address = this.model.Instances.New<Xbim.Ifc2x3.ActorResource.IfcPostalAddress>();
-                        }
+                    if(schema == "Ifc4")
+                    {
+                        this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
+                    }
+                    else if(schema == "Ifc2X3")
+                    {
+                        this.address = this.model.Instances.New<Xbim.Ifc2x3.ActorResource.IfcPostalAddress>();
+                    }
 
-                        // timestamp for element before reference is added
-                        var create = this.elem.OwnerHistory.CreationDate;
+                    // timestamp for element before reference is added
+                    var create = this.elem.OwnerHistory.CreationDate;
 
-                        if(this.elem is IIfcSite)
-                        {
-                            (this.elem as IIfcSite).SiteAddress = this.address;
-                        }
-                        else
-                        {
-                            (this.elem as IIfcBuilding).BuildingAddress = this.address;
-                        }
+                    if(this.elem is IIfcSite)
+                    {
+                        (this.elem as IIfcSite).SiteAddress = this.address;
+                    }
+                    else
+                    {
+                        (this.elem as IIfcBuilding).BuildingAddress = this.address;
+                    }
 
-                        // set timestamp back (xBim creates a new OwnerHistory object)
-                        this.elem.OwnerHistory.CreationDate = create;
+                    // set timestamp back (xBim creates a new OwnerHistory object)
+                    this.elem.OwnerHistory.CreationDate = create;
                     //}
-
-                    
 
                     var p = this.address;
 
@@ -221,7 +226,10 @@ namespace IfcGeoRefChecker.Appl
                     txn.Commit();
                 }
 
-                model.SaveAs(model.FileName + "_edit");
+                var pos = model.FileName.LastIndexOf(".");
+                var file = model.FileName.Substring(0, pos);
+
+                model.SaveAs(file + "_edit");
             }
             catch(Exception e)
             {

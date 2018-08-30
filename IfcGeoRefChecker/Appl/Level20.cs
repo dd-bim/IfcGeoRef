@@ -24,9 +24,16 @@ namespace IfcGeoRefChecker.Appl
         {
             if(other == null)
                 return false;
-            return Latitude == other.Latitude &&
-                Longitude == other.Longitude &&
-                Elevation == other.Elevation;
+            if(Latitude == other.Latitude &&
+               Longitude == other.Longitude &&
+               Elevation == other.Elevation)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private IIfcSite site;
@@ -126,7 +133,10 @@ namespace IfcGeoRefChecker.Appl
                     txn.Commit();
                 }
 
-                model.SaveAs(model.FileName + "_edit");
+                var pos = model.FileName.LastIndexOf(".");
+                var file = model.FileName.Substring(0, pos);
+
+                model.SaveAs(file + "_edit");
             }
             catch(Exception e)
             {

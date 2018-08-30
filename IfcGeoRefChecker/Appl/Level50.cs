@@ -45,7 +45,7 @@ namespace IfcGeoRefChecker.Appl
         {
             if(other == null)
                 return false;
-            return Translation_Eastings == other.Translation_Eastings &&
+            if(Translation_Eastings == other.Translation_Eastings &&
                 Translation_Northings == other.Translation_Northings &&
                 Translation_Orth_Height == other.Translation_Orth_Height &&
                 RotationXY[0] == other.RotationXY[0] &&
@@ -56,7 +56,14 @@ namespace IfcGeoRefChecker.Appl
                 string.Equals(CRS_Geodetic_Datum, other.CRS_Geodetic_Datum) &&
                 string.Equals(CRS_Vertical_Datum, other.CRS_Vertical_Datum) &&
                 string.Equals(CRS_Projection_Name, other.CRS_Projection_Name) &&
-                string.Equals(CRS_Projection_Zone, other.CRS_Projection_Zone);
+                string.Equals(CRS_Projection_Zone, other.CRS_Projection_Zone))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private IfcStore model;
@@ -261,7 +268,10 @@ namespace IfcGeoRefChecker.Appl
                     txn.Commit();
                 }
 
-                model.SaveAs(model.FileName + "_edit");
+                var pos = model.FileName.LastIndexOf(".");
+                var file = model.FileName.Substring(0, pos);
+
+                model.SaveAs(file + "_edit");
             }
             catch(Exception e)
             {
