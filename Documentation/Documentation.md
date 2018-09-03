@@ -1,4 +1,4 @@
-# ![Icon LoGeoRef](pic\icon_img.png) IFCGeoRefChecker-Documentation 
+# ![Icon LoGeoRef](pic/icon_img.png) IFCGeoRefChecker-Documentation 
 
 
 
@@ -30,7 +30,7 @@ The following subsections contain an explanation for every level of georef and p
 
 
 
-### ![Icon LogGoRef10](pic\icon_georef10.png) LoGeoRef 10
+### ![Icon LogGoRef10](pic/icon_georef10.png) LoGeoRef 10
 
 
 
@@ -48,7 +48,7 @@ For better understanding, please refer to the following class diagram:
 
 
 
-![UML class diagramm LoGeoRef 10](pic\logeoref10.png)
+![UML class diagramm LoGeoRef 10](pic/logeoref10.png)
 
 
 
@@ -58,7 +58,7 @@ A corresponding IFC-file with fulfilment of the "LoGeoRef10" conditions would co
 
 
 
-![IFC file fulfilling LoGeoRef 10](pic\ifc_georef10.png)
+![IFC file fulfilling LoGeoRef 10](pic/ifc_georef10.png)
 
 
 
@@ -66,7 +66,7 @@ The file contains an instance of IfcPostalAddress with information for georefere
 
 
 
-### ![Icon LoGeoRef20](pic\icon_georef20.png) LoGeoRef 20
+### ![Icon LoGeoRef20](pic/icon_georef20.png) LoGeoRef 20
 
 
 
@@ -78,7 +78,7 @@ For better understanding, please refer to the following class diagram:
 
 
 
-![UML class diagramm LoGeoRef 20](pic\logeoref20.png)
+![UML class diagramm LoGeoRef 20](pic/logeoref20.png)
 
 
 
@@ -86,7 +86,7 @@ The corresponding IFC-file only needs to contain an instance of IfcSite with the
 
 
 
-![IFC file fulfilling LoGeoRef 20](pic\ifc_georef20.png)
+![IFC file fulfilling LoGeoRef 20](pic/ifc_georef20.png)
 
 
 
@@ -94,7 +94,7 @@ Latitude and longitude are stored as comma-separated integers fulfilling the con
 
  
 
-### ![Icon LoGeoRef30](pic\icon_georef30.png) LoGeoRef 30
+### ![Icon LoGeoRef30](pic/icon_georef30.png) LoGeoRef 30
 
 
 
@@ -114,7 +114,7 @@ For better understanding, please refer to the following class diagram:
 
 
 
-![UML class diagramm LoGeoRef 30](pic\logeoref30.png)
+![UML class diagramm LoGeoRef 30](pic/logeoref30.png)
 
 
 
@@ -122,7 +122,7 @@ A corresponding IFC-file contains the following instances for satisfying this le
 
 
 
-![IFC file fulfilling LoGeoRef 30](pic\ifc_georef30.png)
+![IFC file fulfilling LoGeoRef 30](pic/ifc_georef30.png)
 
 
 
@@ -130,7 +130,7 @@ The example above contains the definitions for an IfcSite-object which is georef
 
 
 
-### ![Icon LoGeoRef40](pic\icon_georef40.png) LoGeoRef 40
+### ![Icon LoGeoRef40](pic/icon_georef40.png) LoGeoRef 40
 
 
 
@@ -148,7 +148,7 @@ For better understanding, please refer to the following class diagram:
 
 
 
-![UML class diagramm LoGeoRef 40](pic\logeoref40.png)
+![UML class diagramm LoGeoRef 40](pic/logeoref40.png)
 
 
 
@@ -156,7 +156,7 @@ IFC-files with instances from above could look like the following:
 
 
 
-![IFC file fulfilling LoGeoRef 40](pic\ifc_georef40.png)
+![IFC file fulfilling LoGeoRef 40](pic/ifc_georef40.png)
 
 
 
@@ -170,7 +170,7 @@ However, those options could be confusing and redundant when direction attribute
 
 
 
-### ![Icon LoGeoRef50](pic\icon_georef50.png) LoGeoRef 50
+### ![Icon LoGeoRef50](pic/icon_georef50.png) LoGeoRef 50
 
 
 
@@ -188,7 +188,7 @@ For better understanding, please refer to the following class diagram:
 
 
 
-![UML class diagramm LoGeoRef 50](pic\logeoref50.png)
+![UML class diagramm LoGeoRef 50](pic/logeoref50.png)
 
 
 
@@ -196,7 +196,7 @@ A corresponding IFC-file of schema version 4 contains the following instances fo
 
 
 
-![IFC file fulfilling LoGeoRef 50](pic\ifc_georef50.png)
+![IFC file fulfilling LoGeoRef 50](pic/ifc_georef50.png)
 
 
 
@@ -212,7 +212,7 @@ This application serves as lightweight checking tool for the LoGeoRef concept ou
 
 
 
-![GUI before import an IFC-file](pic\GeoRefChecker_GUI1.png)
+![GUI before import an IFC-file](pic/GeoRefChecker_GUI1.png)
 
 
 
@@ -226,7 +226,7 @@ The next step is to check the file(s) for their georeferencing attributes via cl
 
 
 
-![GUI after checking an IFC-file](pic\GeoRefChecker_GUI2.png)
+![GUI after checking an IFC-file](pic/GeoRefChecker_GUI2.png)
 
 
 
@@ -604,7 +604,7 @@ As an main extension to the IfcGeoRefChecker functionality this application offe
 
 
 
-![GeoRefUpdater](pic\GeoRefUpdater_GUI1.PNG)
+![GeoRefUpdater](pic/GeoRefUpdater_GUI1.PNG)
 
 
 
@@ -688,7 +688,7 @@ The compare tool is another extension to the IfcGeoRefChecker. It offers functio
 
 
 
-![GeoRefComparer](pic\GeoRefComparer_GUI1.PNG)
+![GeoRefComparer](pic/GeoRefComparer_GUI1.PNG)
 
 
 
@@ -832,7 +832,7 @@ The concept together with the tool was developed within the scope of the followi
 
 |--------|--------|
 
-|   <img src="pic\BMWi_4C_Gef_en.jpg" align=center style="width: 200px;"/>    |   Supported by: <br> <img src="pic\DD-BIM-LOGO.png" style="width: 250px;"/> <br> Landeshauptstadt Dresden <br>Amt für Wirtschaftsförderung |
+|   <img src="pic/BMWi_4C_Gef_en.jpg" align=center style="width: 200px;"/>    |   Supported by: <br> <img src="pic/DD-BIM-LOGO.png" style="width: 250px;"/> <br> Landeshauptstadt Dresden <br>Amt für Wirtschaftsförderung |
 
 
 
@@ -840,7 +840,7 @@ The concept together with the tool was developed within the scope of the followi
 
 
 
- <img src="pic\logo_htwdd.jpg" align=center style="width: 300px;"/>  
+ <img src="pic/logo_htwdd.jpg" align=center style="width: 300px;"/>  
 
 
 
