@@ -17,10 +17,11 @@ namespace IfcGeoRefChecker
 
             InitializeComponent();
 
-            foreach(string file in modelList.Keys)
-            {
-                cb_compRef.Items.Add(file);
-            }
+                foreach(string file in modelList.Keys)
+                {
+                    cb_compRef.Items.Add(file);
+                }
+
         }
 
         private void bt_close_Click(object sender, RoutedEventArgs e)
@@ -64,6 +65,7 @@ namespace IfcGeoRefChecker
             list_compModels.SelectAll();
             uncheckAll.IsChecked = false;
         }
+
         private void uncheckAll_Checked(object sender, RoutedEventArgs e)
         {
             list_compModels.UnselectAll();

@@ -14,7 +14,10 @@
         </Grid.ColumnDefinitions>
         <Button Content="Enable Updating" HorizontalAlignment="Left" Margin="40,40,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_UpdateGeoRef_Click" Grid.Column="1" />
         <Button Content="Write to IFC file" Name="bt_writeIFC" HorizontalAlignment="Left" Margin="40,120,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_WriteIFC_Click" Grid.Column="1" IsEnabled="False" />
-        <Border BorderBrush="Gray" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Center" Height="96" Margin="31,110,29,0" VerticalAlignment="Top" Width="140" Opacity="0.8" CornerRadius="3"/>
+        <Border BorderBrush="Gray" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Center" Height="136" Margin="31,110,29,0" VerticalAlignment="Top" Width="140" Opacity="0.8" CornerRadius="3">
+        </Border>
+        <Label  Content="Status:" Grid.Column="1" Margin="40,210,116,423"  />
+        <Label Content="disabled" Name="lb_statusMsg" Grid.Column="1" Margin="102,210,29,423"  />
         <CheckBox Name="check_log" IsEnabled="False" Grid.Column="1" Content="Export Log file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,160,40,0" Width="105" Height="15"/>
         <CheckBox Name="check_json" IsEnabled="False" Grid.Column="1" Content="Export JSON file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,180,40,0" Width="105" Height="15"/>
         <Button Content="Close" Name="bt_quit" Grid.Column="1" HorizontalAlignment="Left" Margin="40,260,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_quit_Click"/>
@@ -77,7 +80,7 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Name="tab_20" Header="GeoRef20">
+            <TabItem Name="tab_20" Header="GeoRef20" Height="22" VerticalAlignment="Top">
                 <Grid Background="White">
                     <GroupBox Grid.ColumnSpan="2" Header="IFC reference" HorizontalAlignment="Left" Height="71" Margin="10,10,0,0" VerticalAlignment="Top" Width="574">
                         <Grid HorizontalAlignment="Left" Height="48" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">

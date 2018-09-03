@@ -320,11 +320,16 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                System.Diagnostics.Process.Start(@".\results\GeoRef_" + ifcModels.Text + ".txt");
+                var pos = this.ModelList[ifcModels.Text].FileName.LastIndexOf("\\");
+                var directory = this.ModelList[ifcModels.Text].FileName.Substring(0, pos + 1);
+
+                var path = directory + ifcModels.Text + ".txt";
+
+                System.Diagnostics.Process.Start(path);
             }
             catch
             {
-                MessageBox.Show("Error occured. Please check application directory for the folder \"results\" and the corresponding file.");
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file.");
             }
         }
 
@@ -332,11 +337,16 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                System.Diagnostics.Process.Start(@".\results\GeoRef_" + ifcModels.Text + ".json");
+                var pos = this.ModelList[ifcModels.Text].FileName.LastIndexOf("\\");
+                var directory = this.ModelList[ifcModels.Text].FileName.Substring(0, pos + 1);
+
+                var path = directory + ifcModels.Text + ".json";
+
+                System.Diagnostics.Process.Start(path);
             }
             catch
             {
-                MessageBox.Show("Error occured. Please check application directory for the folder \"results\" and the corresponding json file.");
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file");
             }
         }
 
@@ -354,18 +364,27 @@ namespace IfcGeoRefChecker
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void bt_comparer_Click(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("Coming soon.");
-
-            var comp = new Compare(this.ModelList);
-            comp.Show();
-                //comp.comparetest(this.ModelList);
+            if(this.ModelList != null && this.ModelList.Count > 1)
+            {
+                var comp = new Compare(this.ModelList);
+                comp.Show();
+            }
+            else
+            {
+                MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
+            }
         }
 
         private void bt_quit_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void bt_help_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(@"Documentation.md");
         }
     }
 }

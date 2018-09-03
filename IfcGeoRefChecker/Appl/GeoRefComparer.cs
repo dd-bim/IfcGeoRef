@@ -83,8 +83,6 @@ namespace IfcGeoRefChecker.Appl
                         foreach(var key in keys)
                         {
                             a += "\r\n  A difference was detected at " + key;
-
-                            MessageBox.Show(key);
                         }
                     }
                     else
@@ -97,7 +95,7 @@ namespace IfcGeoRefChecker.Appl
 
                 catch(Exception ex)
                 {
-                    MessageBox.Show("Error occured while comparing Ifc-files. \r\nError message: " + ex.Message);
+                    MessageBox.Show("Error occured while comparing Ifc-files at file: " + compFile + "\r\nError message: " + ex.Message);
                 }
             }
 

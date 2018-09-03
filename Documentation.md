@@ -309,7 +309,8 @@ In the content groupbox there is an ability to change the view on the data by se
 
 To update the data it is necessary to click the button "Enable Updating" at first. Before that step it is only possbile to view the data. So to say it is at first a third way (besides Log and JSON file) to check the GeoRef data.
 
-**Proposed way to update georeferencing:**
+#### Proposed way to update georeferencing
+
 1. Click on "Enable Updating" --> textboxes are now ready for input
 2. Choose the level which should be updated via tab selection
 3. Input new values in the associated textbox(es)
@@ -319,11 +320,24 @@ To update the data it is necessary to click the button "Enable Updating" at firs
 7. (optional) when required select checkboxes for new logfile and /or JSON file export
 8. Write all internally changed values to IFC via Click on "Write to IFC file"
 
-Further remarks:
+#### Further remarks
+
 - "Add up to all" means that the new value will be summed to the old values in the other objects. This is necessary for keeping the correct relative positioning to each other in IFC.
 - The resulting IFC-file will not replace the old one. Instead there will be a new file with the old file name plus suffix "_edit"
 - In the resulting IFC old instance entites will not be deleted but their reference will be set to the new instance. The reason for that is that it cannot be ruled out if, e.g. an CartesianPoint, is referenced by another entity with no georeferencing pupose, e.g. for geometry entities.
 - The project units will not be replaced in the new file. Instead of that new values will be converted to the project units.
+
+#### Best practice
+
+In practice there could be misunderstandings of the certain attributes which are possible for georeferencing. The Level of Georeferencing concept describes those possible ways. An correct use according to the IFC schema with Level 40 or Level 50 attributes does unfortunately not automatically mean that each BIM-software interpretes that data correctly.
+Consequently the IfcGeoRefUpdater can not guarantee correct interpretation in various software products. Some tests have shown that georeferencing of IFC-files is handled in different ways by software. In building construction software often the site placement according to Level 30 is used for the purpose of global metric coordinates. However it is not possible to derive an overall statement for that. Each user is responsible her/himself to use the update tool in a correct manner.
+Nevertheless, here are some hints:
+
+1. Export an IFC-file from your BIM-software, where you know, that the project is correctly georeferenced for your purpose (schema IFC2x3 or IFC4).
+2. Check georeferencing of the resulting IFC-file with IfcGeoRefChecker. Now you can see which GeoRef attributes will be used by your exporting software.
+3. For future projects you should fill or update only those attributes if you will use the certain IFC model in your BIM-software.
+
+This could be also helpful if you get an IFC-file which is exported by an other BIM-software which then again uses other georeferencing attributes. The IfcGeoRefUpdater helps you to change the attributes for your software. 
 
 ### GeoRefComparer
 
@@ -333,18 +347,20 @@ The compare tool is another extension to the IfcGeoRefChecker. It offers functio
 
 Please note that the comparer requires at least two imported Ifc-files in the listbox at the main window (IfcGeoRefChecker).
 
-**Proposed way to compare georeferencing:**
-1. (Import at least 2 IFC-files at Main Window
+#### Proposed way to compare georeferencing
+
+1. (Import at least 2 IFC-files at Main Window)
 2. Start IfcGeoRefComparer via Click on related button in IfcGeorefChecker Window
 3. Choose reference model in combobox
 4. Select the models which should be compared to the reference model
 5. Click on "StartComparison" 
 
-Further remarks:
+#### Current restrictions
+
 - The comparer does currently not support multidimensional data at Level of GeoRef tier. That means that only one IfcSite object will be examined at Level 10, 20 and 30. Buildings will only be compared regarding their address. At Level 40 and 50 only the IfcGeometricRepresentationContext of the model view (3D view) will be compared.
 - The named restrictions should not influence most IFC-files in a negative way.
 
-**Outcome**
+#### Outcome
 
 As the result of the comparison the application writes automatically an logfile to the directory of the reference model. This logfile contains short statements regarding the result of the comparison between the reference model and each selected other model. If the georeferencing is not equal, there will be a hint at which level a difference was detected.
 
@@ -381,16 +397,11 @@ Comparison to Haus_1_TGA.ifc:
 - While GeoRef Compare:
 -- Description: "Index out of range" exception occurs 
 -- Possible reason: IFC-file does not contain reference objects -> if it occurs syntax is not valid against IFC schema 
--- Proposed solution: ignore or new export in originating software
+-- Proposed solution: ignore or new export in originating software (nevertheless Comparison-file will be written)
 
 - While Wirting / Exporting files:
 -- Possible reason: no permission to write in the directory of the imported IFC-file 
 -- Proposed solution: copy IFC-file to a local directory and try again
-
-### FAQ
-
-- Which level or fields should I use to apply an appropriate georeferencing to my IFC model?
--- That mainly depends on the BIM-software you use. Unfortunetely there is no uniform way which is used by the various software products. Some tests have shown that mainly georeferencing with site placement (Level 30) is applied in the files, e.g. by Autodesk Revit 2018.
 
 ##Built with
 

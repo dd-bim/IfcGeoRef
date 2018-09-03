@@ -748,6 +748,8 @@ namespace IfcGeoRefChecker
             check_log.IsEnabled = true;
             check_json.IsEnabled = true;
 
+            lb_statusMsg.Content = "ready";
+
             foreach(TabItem ti in prog.Items)
             {
                 Grid gr1 = (Grid)ti.Content;
@@ -900,8 +902,6 @@ namespace IfcGeoRefChecker
                     var x30New = double.Parse(ReplaceTrim(tb_originX_30.Text));
                     var y30New = double.Parse(ReplaceTrim(tb_originY_30.Text));
                     var z30New = double.Parse(ReplaceTrim(tb_originZ_30.Text));
-
-                    MessageBox.Show(x30New.ToString());
 
                     this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), x30New);
                     this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin30.SelectedItem.ToString(), y30New);
@@ -1396,6 +1396,8 @@ namespace IfcGeoRefChecker
                     MessageBox.Show("Error occured. Unable to export new Logfile. \r\n + Error message: " + ex.Message);
                 }
             }
+
+            lb_statusMsg.Content = "complete";
         }
 
         private void bt_quit_Click(object sender, RoutedEventArgs e)

@@ -22,7 +22,8 @@
         <Button Content="Info/Terms of Use" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="-25,70,0,0" Width="120" Click="BtInfo_Click" Height="30" />
         <Button Content="Import IFC-file(s)..." Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="28,110,52,0" Width="120" Height="30" Click="Bt_Import" />
         <Button Content="Check GeoRef" Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="28,160,52,0" Width="120" Height="30" Click="CheckGeoRef_Click" />
-        <Button Content="--> GeoRefComparer" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" Margin="28,80,52,0" VerticalAlignment="Top" Width="120" Height="30" Click="Button_Click" />
+        <Button Content="--> GeoRefComparer" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" Margin="28,80,52,0" VerticalAlignment="Top" Width="120" Height="30" Click="bt_comparer_Click" />
+        <Button Content="Help" Grid.Column="1" HorizontalAlignment="Left" Margin="28,120,0,0" Grid.Row="1" VerticalAlignment="Top" Width="120" Height="30" Click="bt_help_Click"/>
         <Button Content="Quit" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" Margin="28,160,52,0" VerticalAlignment="Top" Width="120" Height="30" Click="bt_quit_Click" />
         <GroupBox Header="Status report" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"  Width="380" Height="160">
             <Grid>
@@ -73,8 +74,5 @@
                 <Button Name="bt_update" Content="--> GeoRefUpdater" Grid.Row="4" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Bottom"  Width="123" Height="30" Click="bt_update_Click" />
             </Grid>
         </GroupBox>
-
-
-
     </Grid>
 </Window>
