@@ -16,6 +16,8 @@ namespace IfcGeoRefChecker.IO
         public string TimeCreation { get; set; }
         public string TimeCheck { get; set; }
 
+        public string LengthUnit { get; set; }
+
         public List<Level10> LoGeoRef10 { get; set; } = new List<Level10>();
 
         public List<Level20> LoGeoRef20 { get; set; } = new List<Level20>();
@@ -38,6 +40,8 @@ namespace IfcGeoRefChecker.IO
                     this.IFCSchema = model.IfcSchemaVersion.ToString();
                     this.TimeCreation = model.Header.TimeStamp;
                     this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
+
+                    this.LengthUnit = new UnitReader().GetProjectLengthUnit(model);
 
                     string jsonobj = JsonConvert.SerializeObject(this, Formatting.Indented);
 
@@ -98,7 +102,7 @@ namespace IfcGeoRefChecker.IO
 
         public void GetGeoRefElements50(Level50 georef50)
         {
-            if (georef50 == null)
+            if(georef50 == null)
             {
                 georef50.GeoRef50 = false;
             }

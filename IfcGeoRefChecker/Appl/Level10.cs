@@ -145,11 +145,6 @@ namespace IfcGeoRefChecker.Appl
                         this.AddressLines.Add(address.AddressLines[2]);
                     }
 
-                    if(address.AddressLines.Count > 3)
-                    {
-                        MessageBox.Show("There are more than 3 address lines. Program only reads up to 3 lines.");
-                    }
-
                     this.Postalcode = (address.PostalCode.HasValue == true) ? address.PostalCode.ToString() : "n/a";
                     this.Town = (address.Town.HasValue == true) ? address.Town.ToString() : "n/a";
                     this.Region = (address.Region.HasValue == true) ? address.Region.ToString() : "n/a";

@@ -105,25 +105,28 @@ The sample file shows that this level does not need any Placement-entities but u
 
 This application serves as lightweight checking tool for the LoGeoRef concept outlined above. It is written in C# using the .NET Framework 4.6.
 
-![GUI before import an IFC-file](pic\GeoRefChecker_GUI1.png)
+![GUI before import an IFC-file](pic\GeoRefChecker_GUI_1.png)
 
 The tool is able to read and check all attributes with georeferencing content in the choosen IFC-file. At first, you need to select the file that should be checked against the LoGeoRef concept by clicking on the "Import IFC-file(s)..." button and choosing the IFC-file via file dialog. It is also possible to import more than one IFC-file in one go.  Depending on the size of the file(s), the import process could take some time. If the files are successfully loaded the names of the input files will appear in the listbox under the "Status report" group box. There is also a status label for import which will show the number of imported IfcModels.
 If the application is not able to import a certain file it will show a error message with the reason why it can not be imported. In this case you should check the syntax of the file with an appropriate IFC file checker. Please also note that this tool is only able to read IFC-files with schema version IFC2X3 or IFC4.
 The next step is to check the file(s) for their georeferencing attributes via click on the "Check GeoRef" button. You can decide if you want to export log and/or JSON files for all IFCModels at the same time. If so they will be saved in the folder of the actual IFC-file.  If this process is complete, the status label for checking shows the number files which have been checked. The program window after the check could look like this:
 
 
-![GUI after checking an IFC-file](pic\GeoRefChecker_GUI2.png)
+![GUI after checking an IFC-file](pic\GeoRefChecker_GUI_2.png)
 
 In the "Check overview" groupbox it is now possible to view short results for each IfcModel via selecting a particular checked model in the combobox. To view the specific checked attributes you have the options to open the exported log or json file (if Checkboxes were checked) or to view the results in a new window via "-> GeorefUpdater" Button.
 
 ### Structure of the resulting log file
 
 Every log file begins with a title with the naming of the checked IFC-file and date / time in brackets.
+There is also an important information for interpreting the (length) data of the examined IFC-file. The length project unit will be stored and is valid for all length measures in the file.
 
 ```
 Examination of "Projekt.ifc" regarding georeferencing content (04/16/2018, 14:19:40)
 --------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
+
+Project Length Unit:ft
 ```
 In the next sections, the results of each LoGeoRef check are presented sequentially.
 
@@ -271,8 +274,8 @@ Please consider that the validity of the written data is in the mission of the u
 
 ### Structure of the resulting JSON file
 
-As a possibility to store the GeoRef data in a machine readable way outside the specific IFC-file the application provides an export in JSON format. The style of an resulting JSON file is pretty much similar to the described log file above, but in a machine readable way.
-Every JSON GeoRef export contains one overall object with initial attributes for the assignment to the specific project in the IFC-file which was the source of the GeoRef data. So there are attributes with values for the GlobalID of the IfcProject instance and Date/Time values which shows the creation date of the assigned IFC-file and when the IFC-file was checked by this application. For better interpretation of the GeoRef data the JSON file also stores the IfcSchemaVersion.
+As a possibility to store the GeoRef data in a machine readable way outside the specific IFC-file the application provides an export in JSON format. The style of an resulting JSON file is pretty much similar to the described log file above.
+Every JSON GeoRef export contains one overall object with initial attributes for the assignment to the specific project in the IFC-file which was the source of the GeoRef data. So there are attributes with values for the GlobalID of the IfcProject instance and Date/Time values which shows the creation date of the assigned IFC-file and when the IFC-file was checked by this application. For better interpretation of the GeoRef data the JSON file also stores the IfcSchemaVersion. Another important information for interpreting the (length) data is the length unit of the examined IFC-file. This information will also stored and is valid for all length measures in the file.
 Below that part there are attributes for each Level of GeoRef. The data of the certain GeoRef-object is stored in an array. There can be more than one values for each level, e.g. if more than one referenced address was found. 
 
 ```Json
@@ -281,6 +284,7 @@ Below that part there are attributes for each Level of GeoRef. The data of the c
   "IFCSchema": "Ifc4",
   "TimeCreation": "2018-02-12T12:36:08",
   "TimeCheck": "2018-08-28T12:02:03",
+  "LengthUnit": "ft",
     "LoGeoRef10": [ {} ],
     "LoGeoRef20": [
     {
@@ -295,7 +299,7 @@ Below that part there are attributes for each Level of GeoRef. The data of the c
     }
   ],
 ```
-Each level value contains the data provided by the IfcGeoRefChecker. One can access the data while looping through the arrays of the certain level at first. Given the fact that there could be more than one value per level each level object also stores data for reference and instance object. Those values contain data for identification of the entities in the related IFC-file. They are the number of each IFC instance together with the hash symbol like it is stored in the IFC-file, e.g "#114". As a second value referece and instance object also contain the type of the IfcObject, e.g. "IfcSite". Reference objects are always objects with a own IfcGloballyID. Certain GeoRef values applies to this object. Instance objects are Ifc instances which either contain the stored data directly or reference them at a deeper level in the file. Please consider that an exported JSON file also contains GeoRef objects which has no data. In this case there exists an reference object but no instance object with IfC hashnumber. Often Georef data is not completely stored in an IFC file. The resulting JSON file contains for this elements either "n/a" for string objects or the phantastic value "-999999" for double values.
+Each level value contains the data provided by the IfcGeoRefChecker. One can access the data while looping through the arrays of the certain level at first. Given the fact that there could be more than one value per level each level object also stores data for reference and instance object. Those values contain data for identification of the entities in the related IFC-file. They are the number of each IFC instance together with the hash symbol like it is stored in the IFC-file, e.g "#114". As a second value reference and instance object also contain the type of the IfcObject, e.g. "IfcSite". Reference objects are always objects with a own IfcGloballyID. Certain GeoRef values applies to this object. Instance objects are Ifc instances which either contain the stored data directly or reference them at a deeper level in the file. Please consider that an exported JSON file also contains GeoRef objects which has no data. In this case there exists an reference object but no instance object with IFC hashnumber. Often Georef data is not completely stored in an IFC file. The resulting JSON file contains for this elements either "n/a" for string objects or the phantastic value "-999999" for double values.
 
 ### GeoRefUpdater
 
@@ -305,7 +309,7 @@ As an main extension to the IfcGeoRefChecker functionality this application offe
 
 The GUI contains tabs for each GeoRef. In case of an IFC-file with SchemaVersion 2X3 the tab for GeoRef50 will be disabled because for this schema version no data for GeoRef50 could apply. Each tab is built up in a similar way. There are always groupboxes for "IFC reference" and "Content". IFC reference contains the instances where the GeoRef is stored respectively referenced in the related IFC file. In fact that there can be more than one object per level it is possible to change the displayed object via changing the combobox entry for Reference or Instance entity.
 
-In the content groupbox there is an ability to change the view on the data by selecting an other unit. This applies for length data with different length units and also for angle date with the option to choose either the vector view (like in IFC file) or the degree view. At GeoRef20 it is possible to view the stored Lat/Lon data in decimal degree view (dd) or with degree, minutes, seconds (dms)s similar to the values in the IFC-file. Please note that the default unit for the length is the project unit stored in the IFC-file.
+In the content groupbox there is an ability to change the view on the data by selecting an other unit. This applies for length data with different length units and also for angle data with the option to choose either the vector view (like in IFC file) or the degree view. At GeoRef20 it is possible to view the stored Lat/Lon data in decimal degree view (dd) or with degree, minutes, seconds (dms) similar to the values in the IFC-file. Please note that the default unit for the length is the project unit stored in the IFC-file.
 
 To update the data it is necessary to click the button "Enable Updating" at first. Before that step it is only possbile to view the data. So to say it is at first a third way (besides Log and JSON file) to check the GeoRef data.
 
@@ -399,13 +403,14 @@ Comparison to Haus_1_TGA.ifc:
 -- Possible reason: IFC-file does not contain reference objects -> if it occurs syntax is not valid against IFC schema 
 -- Proposed solution: ignore or new export in originating software (nevertheless Comparison-file will be written)
 
-- While Wirting / Exporting files:
+- While Writing / Exporting files:
 -- Possible reason: no permission to write in the directory of the imported IFC-file 
 -- Proposed solution: copy IFC-file to a local directory and try again
 
 ##Built with
 
 - [xBIM Toolkit](http://docs.xbim.net/) - Main functionality used to read IFC-files
+- [Json.NET](https://www.newtonsoft.com/json) - Functionality for exporting JSON-files
 - [Pixabay](https://pixabay.com/) - Graphics used to design LoGeoRef-Icons
 
 ##Contributors

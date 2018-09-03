@@ -42,7 +42,7 @@ namespace IfcGeoRefChecker.Appl
             var refProjCRS = projCRS;
 
             var pos = refModel.FileName.LastIndexOf("\\");
-            refFile = refModel.FileName.Substring(pos+1);
+            refFile = refModel.FileName.Substring(pos + 1);
             refDirec = refModel.FileName.Substring(0, pos);
 
             foreach(var compModel in compList)
@@ -52,7 +52,7 @@ namespace IfcGeoRefChecker.Appl
                     FillGeoref(compModel);
 
                     var pos2 = compModel.FileName.LastIndexOf("\\");
-                    compFile = compModel.FileName.Substring(pos+1);
+                    compFile = compModel.FileName.Substring(pos2 + 1);
 
                     var eq10site = refSiteAddress.Equals(siteAddress);
                     var eq10bldg = refBldgAddress.Equals(bldgAddress);
@@ -70,7 +70,7 @@ namespace IfcGeoRefChecker.Appl
                     { "GeoRef40 (IfcProject WCS/True North) ", eq40proj },
                     { "GeoRef50 (IfcProject Map Conversion) ", eq50proj }
                 };
-                    string a = "\r\nComparison to "+ compFile + ":";
+                    string a = "\r\nComparison to " + compFile + ":";
 
                     if(equality.ContainsValue(false))
                     {
@@ -185,7 +185,7 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while comparing Ifc-files at file: " +  compFile + "\r\nError message: " + ex.Message);
+                MessageBox.Show("Error occured while comparing Ifc-files at file: " + compFile + "\r\nError message: " + ex.Message);
             }
         }
     }

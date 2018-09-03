@@ -117,6 +117,8 @@ namespace IfcGeoRefChecker
                         ifcModels.Items.Add(file);
                     }
 
+                    logOutput.Add("Project Length Unit:" + new Appl.UnitReader().GetProjectLengthUnit(model) + "\r\n");
+
                     var siteReading = new Appl.SiteReader(model);       //for Level 10 and 20
                     var bldgReading = new Appl.BldgReader(model);       //for Level 10
                     var prodReading = new Appl.UpperPlcmReader(model);  //for Level 30
@@ -384,7 +386,7 @@ namespace IfcGeoRefChecker
 
         private void bt_help_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start(@"Documentation.md");
+            System.Diagnostics.Process.Start(@"Documentation.html");
         }
     }
 }
