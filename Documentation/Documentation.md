@@ -10,7 +10,7 @@ This document introduces a new concept for the evaluation of stored georeferenci
 
 
 
-##The -Level of Georeferencing- concept
+## The -Level of Georeferencing- concept
 
 
 
@@ -604,7 +604,7 @@ As an main extension to the IfcGeoRefChecker functionality this application offe
 
 
 
-![GeoRefUpdater](pic/GeoRefUpdater_GUI1.PNG)
+![GeoRefUpdater](pic/GeoRefUpdater_GUI1.png)
 
 
 
@@ -688,7 +688,7 @@ The compare tool is another extension to the IfcGeoRefChecker. It offers functio
 
 
 
-![GeoRefComparer](pic/GeoRefComparer_GUI1.PNG)
+![GeoRefComparer](pic/GeoRefComparer_GUI1.png)
 
 
 
