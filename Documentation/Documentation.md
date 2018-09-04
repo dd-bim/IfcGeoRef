@@ -4,7 +4,7 @@ This document introduces a new concept for the evaluation of stored georeferenci
 
 [TOC]
 
-##The -Level of Georeferencing- concept
+## The -Level of Georeferencing- concept
 
 Making geodata available in a BIM project is an important task for all kind of personnel involved in BIM processes. Attributes for location and rotation towards the north direction should be stored in a correct manner for further project steps. The common open data exchange format in the field of BIM are the Industry Foundation Classes (IFC). There are some ways described by the official IFC documentation to store georeferencing attributes in an IFC-file. The official IFC documentation and standard allow multiple ways to store georeferencing attributes in an IFC-File.
 
