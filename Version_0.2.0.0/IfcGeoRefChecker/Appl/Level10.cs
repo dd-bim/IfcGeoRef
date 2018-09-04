@@ -176,15 +176,14 @@ namespace IfcGeoRefChecker.Appl
                     //{
                     var schema = model.IfcSchemaVersion.ToString();
 
-                    if(schema == "Ifc4")
-                    {
-                        this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
-                    }
-                    else if(schema == "Ifc2X3")
+                    if(schema == "Ifc2X3")
                     {
                         this.address = this.model.Instances.New<Xbim.Ifc2x3.ActorResource.IfcPostalAddress>();
                     }
-
+                    else
+                    {
+                        this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
+                    }
                     // timestamp for element before reference is added
                     var create = this.elem.OwnerHistory.CreationDate;
 

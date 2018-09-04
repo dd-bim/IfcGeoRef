@@ -158,13 +158,13 @@ namespace IfcGeoRefChecker.Appl
 
                     var schema = model.IfcSchemaVersion.ToString();
 
-                    if(schema == "Ifc4")
-                    {
-                        this.prjCtx.TrueNorth = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcDirection>(d => d.SetXY(this.TrueNorthXY[0], this.TrueNorthXY[1]));
-                    }
-                    else if(schema == "Ifc2X3")
+                    if(schema == "Ifc2X3")
                     {
                         this.prjCtx.TrueNorth = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(this.TrueNorthXY[0], this.TrueNorthXY[1]));
+                    }
+                    else
+                    {
+                        this.prjCtx.TrueNorth = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcDirection>(d => d.SetXY(this.TrueNorthXY[0], this.TrueNorthXY[1]));
                     }
 
                     // timestamp for last modifiedDate in OwnerHistory

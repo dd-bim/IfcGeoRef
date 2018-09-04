@@ -1352,7 +1352,7 @@ namespace IfcGeoRefChecker
                     this.jsonout.GetGeoRefElements40(geoRef);
                 }
 
-                if(model.IfcSchemaVersion.ToString() == "Ifc4")
+                if(model.IfcSchemaVersion.ToString() != "Ifc2X3")
                 {
                     foreach(var geoRef in Level50List.Values)
                     {
