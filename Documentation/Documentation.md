@@ -4,7 +4,13 @@ This document introduces a new concept for the evaluation of stored georeferenci
 
 [TOC]
 
+<<<<<<< HEAD
 ##The -Level of Georeferencing- concept
+=======
+
+
+## The -Level of Georeferencing- concept
+>>>>>>> 180b069bec486998a0c5a86a3c5f03f8932b8a20
 
 Making geodata available in a BIM project is an important task for all kind of personnel involved in BIM processes. Attributes for location and rotation towards the north direction should be stored in a correct manner for further project steps. The common open data exchange format in the field of BIM are the Industry Foundation Classes (IFC). There are some ways described by the official IFC documentation to store georeferencing attributes in an IFC-file. The official IFC documentation and standard allow multiple ways to store georeferencing attributes in an IFC-File.
 
@@ -320,7 +326,15 @@ Each level value contains the data provided by the IfcGeoRefChecker. One can acc
 
 As an main extension to the IfcGeoRefChecker functionality this application offers the possibility to change GeoRef data in the IFC file. You can access the update functionality via click on the "--> IfcGeoRefUpdater" button. The new window looks like this:
 
+<<<<<<< HEAD
 ![GeoRefUpdater](pic/GeoRefUpdater_GUI1.png)
+=======
+
+
+![GeoRefUpdater](pic/GeoRefUpdater_GUI1.png)
+
+
+>>>>>>> 180b069bec486998a0c5a86a3c5f03f8932b8a20
 
 The GUI contains tabs for each GeoRef. In case of an IFC-file with SchemaVersion 2X3 the tab for GeoRef50 will be disabled because for this schema version no data for GeoRef50 could apply. Each tab is built up in a similar way. There are always groupboxes for "IFC reference" and "Content". IFC reference contains the instances where the GeoRef is stored respectively referenced in the related IFC file. In fact that there can be more than one object per level it is possible to change the displayed object via changing the combobox entry for Reference or Instance entity.
 
@@ -366,7 +380,15 @@ This could be also helpful if you get an IFC-file which is exported by an other 
 
 The compare tool is another extension to the IfcGeoRefChecker. It offers functionality to compare a bundle of IFC-files with one main/ reference IFC-file regarding their georeferencing content.
 
+<<<<<<< HEAD
 ![GeoRefComparer](pic/GeoRefComparer_GUI1.png)
+=======
+
+
+![GeoRefComparer](pic/GeoRefComparer_GUI1.png)
+
+
+>>>>>>> 180b069bec486998a0c5a86a3c5f03f8932b8a20
 
 Please note that the comparer requires at least two imported Ifc-files in the listbox at the main window (IfcGeoRefChecker).
 
