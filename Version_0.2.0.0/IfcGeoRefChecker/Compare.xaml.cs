@@ -10,6 +10,7 @@ namespace IfcGeoRefChecker
     public partial class Compare : Window
     {
         private Dictionary<string, IfcStore> modelList;
+        private Appl.GeoRefComparer comparison;
 
         public Compare(Dictionary<string, IfcStore> modelList)
         {
@@ -56,8 +57,10 @@ namespace IfcGeoRefChecker
                 compList.Add(compModel);
             }
 
-            var comparison = new Appl.GeoRefComparer(refModel, compList);
+            this.comparison = new Appl.GeoRefComparer(refModel, compList);
             comparison.CompareIFC();
+
+            bt_compLog.IsEnabled = true;
         }
 
         private void checkAll_Checked(object sender, RoutedEventArgs e)
@@ -71,5 +74,18 @@ namespace IfcGeoRefChecker
             list_compModels.UnselectAll();
             checkAll.IsChecked = false;
         }
+
+        private void bt_compLog_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                this.comparison.ShowCompareLog();
+            }
+            catch
+            {
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding Comparison log file.");
+            }
+        }
     }
+
 }

@@ -121,6 +121,14 @@ namespace IfcGeoRefChecker.Appl
                     writeCompareLog.WriteLine($"Error occured while writing Compare-Logfile. \r\n Message: {ex.Message}");
                 }
             };
+
+        }
+
+        public void ShowCompareLog()
+        {
+            var path = refDirec + "\\Comparison_" + refFile + ".txt";
+
+            System.Diagnostics.Process.Start(path);
         }
 
         public void FillGeoref(IfcStore model)

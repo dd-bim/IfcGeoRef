@@ -386,7 +386,16 @@ namespace IfcGeoRefChecker
 
         private void bt_help_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start(@"Documentation.html");
+            try
+            {
+                System.Diagnostics.Process.Start(@"Documentation.html");
+            }
+
+            catch
+            {
+                MessageBox.Show("No help file available. Please check application directory for file Documentation.html");
+            }
+            
         }
     }
 }

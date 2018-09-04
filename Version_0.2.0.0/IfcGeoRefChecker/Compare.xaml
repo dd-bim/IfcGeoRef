@@ -43,5 +43,6 @@
         </GroupBox>
         <Button Content="Start Comparison" Width="117" Height="30" Grid.Column="1" HorizontalAlignment="Center" Margin="10,72,23,0" Grid.Row="1" VerticalAlignment="Top" Click="bt_compare_Click" />
         <Button Content="Close" Width="117" Height="30" Grid.Column="1" HorizontalAlignment="Center" Margin="10,196,23,0" Grid.Row="1" VerticalAlignment="Top" Click="bt_close_Click" />
+        <Button Name="bt_compLog" Content="See Compare file" IsEnabled="False" Grid.Column="1" HorizontalAlignment="Left" Margin="26,122,0,0" Grid.Row="1" VerticalAlignment="Top" Width="101" Height="25" Click="bt_compLog_Click"/>
     </Grid>
 </Window>
