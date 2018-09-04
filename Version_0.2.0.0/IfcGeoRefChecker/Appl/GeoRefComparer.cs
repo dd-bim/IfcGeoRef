@@ -55,7 +55,18 @@ namespace IfcGeoRefChecker.Appl
                     compFile = compModel.FileName.Substring(pos2 + 1);
 
                     var eq10site = refSiteAddress.Equals(siteAddress);
-                    var eq10bldg = refBldgAddress.Equals(bldgAddress);
+
+                    bool eq10bldg;
+
+                    if(refBldgAddress != null)
+                    {
+                        eq10bldg = refBldgAddress.Equals(bldgAddress);
+                    }
+                    else
+                    {
+                        eq10bldg = false;
+                    }
+
                     var eq20site = refLatlon.Equals(latlon);
                     var eq30site = refSitePlcm.Equals(siteplcm);
                     var eq40proj = refProjPlcm.Equals(projplcm);
@@ -121,7 +132,6 @@ namespace IfcGeoRefChecker.Appl
                     writeCompareLog.WriteLine($"Error occured while writing Compare-Logfile. \r\n Message: {ex.Message}");
                 }
             };
-
         }
 
         public void ShowCompareLog()
@@ -137,7 +147,7 @@ namespace IfcGeoRefChecker.Appl
             {
                 var siteReading = new Appl.SiteReader(model).SiteList;
 
-                if(siteReading != null)
+                if(siteReading.Count != 0)
                 {
                     var site10 = new Level10(model, siteReading[0].GetHashCode(), siteReading[0].GetType().Name);
                     site10.GetLevel10();
@@ -150,7 +160,7 @@ namespace IfcGeoRefChecker.Appl
 
                 var bldgReading = new Appl.BldgReader(model).BldgList;
 
-                if(bldgReading != null)
+                if(bldgReading.Count != 0)
                 {
                     var bldg10 = new Level10(model, bldgReading[0].GetHashCode(), bldgReading[0].GetType().Name);
                     bldg10.GetLevel10();

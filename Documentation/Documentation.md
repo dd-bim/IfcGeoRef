@@ -114,7 +114,7 @@ This application serves as lightweight checking tool for the LoGeoRef concept ou
 
 The tool is able to read and check all attributes with georeferencing content in the choosen IFC-file. At first, you need to select the file that should be checked against the LoGeoRef concept by clicking on the "Import IFC-file(s)..." button and choosing the IFC-file via file dialog. It is also possible to import more than one IFC-file in one go.  Depending on the size of the file(s), the import process could take some time. If the files are successfully loaded the names of the input files will appear in the listbox under the "Status report" group box. There is also a status label for import which will show the number of imported IfcModels.
 
-If the application is not able to import a certain file it will show a error message with the reason why it can not be imported. In this case you should check the syntax of the file with an appropriate IFC file checker. Please also note that this tool is only able to read IFC-files with schema version IFC2X3 or IFC4.
+If the application is not able to import a certain file it will show a error message with the reason why it can not be imported. In this case you should check the syntax of the file with an appropriate IFC file checker.
 
 The next step is to check the file(s) for their georeferencing attributes via click on the "Check GeoRef" button. You can decide if you want to export log and/or JSON files for all IFCModels at the same time. If so they will be saved in the folder of the actual IFC-file.  If this process is complete, the status label for checking shows the number files which have been checked. The program window after the check could look like this:
 
@@ -279,7 +279,7 @@ Specific entities for georeferencing (only in scope of IFC4; IfcMapConversion re
 LoGeoRef 50 = True
 
 ```
-The example shows the output if an IfcMapConversion applied to the examined IFC-file. Please consider that this level could only be true if you check an IFC-file written in respect to IFC schema version 4. The checking tool will look for an element of IfcMapConversion in the file. As a second constraint for a true result its source and target attributes must forfill the conditions of LoGeoref 50 (see the UML diagram in the concept section).
+The example shows the output if an IfcMapConversion applied to the examined IFC-file. Please consider that this level could only be true if you check an IFC-file written in respect to IFC schema version 4 or later. The checking tool will look for an element of IfcMapConversion in the file. As a second constraint for a true result its source and target attributes must forfill the conditions of LoGeoref 50 (see the UML diagram in the concept section).
 
 Please consider that the validity of the written data is in the mission of the user or rather of the exporting BIM software that is used for exporting IFC-files.
 
@@ -356,7 +356,7 @@ Consequently the IfcGeoRefUpdater can not guarantee correct interpretation in va
 
 Nevertheless, here are some hints:
 
-1. Export an IFC-file from your BIM-software, where you know, that the project is correctly georeferenced for your purpose (schema IFC2x3 or IFC4).
+1. Export an IFC-file from your BIM-software, where you know, that the project is correctly georeferenced for your purpose.
 2. Check georeferencing of the resulting IFC-file with IfcGeoRefChecker. Now you can see which GeoRef attributes will be used by your exporting software.
 3. For future projects you should fill or update only those attributes if you will use the certain IFC model in your BIM-software.
 
@@ -418,8 +418,8 @@ Comparison to Haus_1_TGA.ifc:
 
 **While File Import (2):**
 
-- Possible reason: IfcSchemaVersion neither IFC2X3 nor IFC4
-- Proposed solution: not in scope, but maybe dirty hack in IFC-file helps: change FILE SCHEMA in Header Section to IFC2X3 or IFC4
+- Possible reason: IfcSchemaVersion outside XBIM functionality (not IFC2X3, IFC4 or IFC4x1)
+- Proposed solution: not in scope, but maybe dirty hack in IFC-file helps: change FILE SCHEMA in Header Section to IFC2X3, IFC4 or IFC4X1
 
 **While GeoRef Check:**
 

@@ -262,8 +262,11 @@ namespace IfcGeoRefChecker.Appl
                     long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                     var proj = model.Instances.OfType<IIfcProject>().Single();
 
-                    proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                    proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+                    if(proj.OwnerHistory != null)
+                    {
+                        proj.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                        proj.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+                    }
 
                     txn.Commit();
                 }

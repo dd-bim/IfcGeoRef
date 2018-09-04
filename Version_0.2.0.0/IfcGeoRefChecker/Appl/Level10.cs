@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Xbim.Ifc;
+using Xbim.Ifc4.DateTimeResource;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
@@ -184,8 +185,18 @@ namespace IfcGeoRefChecker.Appl
                     {
                         this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
                     }
-                    // timestamp for element before reference is added
-                    var create = this.elem.OwnerHistory.CreationDate;
+
+                    IfcTimeStamp create;
+
+                    if(this.elem.OwnerHistory != null)
+                    {
+                        // timestamp for element before reference is added
+                        create = this.elem.OwnerHistory.CreationDate;
+                    }
+                    else
+                    {
+                        create = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                    }
 
                     if(this.elem is IIfcSite)
                     {
@@ -196,9 +207,11 @@ namespace IfcGeoRefChecker.Appl
                         (this.elem as IIfcBuilding).BuildingAddress = this.address;
                     }
 
-                    // set timestamp back (xBim creates a new OwnerHistory object)
-                    this.elem.OwnerHistory.CreationDate = create;
-                    //}
+                    if(this.elem.OwnerHistory != null)
+                    {
+                        // set timestamp back (xBim creates a new OwnerHistory object)
+                        this.elem.OwnerHistory.CreationDate = create;
+                    }
 
                     var p = this.address;
 
@@ -212,11 +225,13 @@ namespace IfcGeoRefChecker.Appl
                     p.Region = this.Region;
                     p.Country = this.Country;
 
-                    // timestamp for last modifiedDate in OwnerHistory
-                    long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                    this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                    this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
-
+                    if(this.elem.OwnerHistory != null)
+                    {
+                        // timestamp for last modifiedDate in OwnerHistory
+                        long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                        this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                        this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+                    }
                     txn.Commit();
                 }
 

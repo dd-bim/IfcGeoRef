@@ -116,8 +116,13 @@ namespace IfcGeoRefChecker.Appl
 
                     // timestamp for last modifiedDate in OwnerHistory
                     long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                    this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                    this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+
+                    if(this.elem.OwnerHistory != null)
+                    {
+                        // timestamp for element before reference is added
+                        this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
+                        this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
+                    }
 
                     txn.Commit();
                 }
