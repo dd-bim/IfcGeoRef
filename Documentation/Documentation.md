@@ -438,6 +438,11 @@ Comparison to Haus_1_TGA.ifc:
 - Possible reason: no permission to write in the directory of the imported IFC-file 
 - Proposed solution: copy IFC-file to a local directory and try again
 
+**While Opening Log and/or JSON files:**
+
+- Possible reason: no standard program for .txt and/or .json files is set in your system
+- Proposed solution: set a standard program for opening of .txt and/or .json files, e. g. editor
+
 ##Built with
 
 - [xBIM Toolkit](http://docs.xbim.net/) - Main functionality used to read IFC-files
