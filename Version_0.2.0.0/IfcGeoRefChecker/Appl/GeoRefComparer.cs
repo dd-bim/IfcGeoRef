@@ -54,23 +54,73 @@ namespace IfcGeoRefChecker.Appl
                     var pos2 = compModel.FileName.LastIndexOf("\\");
                     compFile = compModel.FileName.Substring(pos2 + 1);
 
-                    var eq10site = refSiteAddress.Equals(siteAddress);
+                    bool eq10site, eq10bldg, eq20site, eq30site, eq40proj, eq50proj;
 
-                    bool eq10bldg;
-
-                    if(refBldgAddress != null)
+                    if(refSiteAddress == null || siteAddress == null)
                     {
-                        eq10bldg = refBldgAddress.Equals(bldgAddress);
+                        eq10site = false;
+                        if(refSiteAddress == null && siteAddress == null)
+                            eq10site = true;
                     }
                     else
                     {
-                        eq10bldg = false;
+                        eq10site = refSiteAddress.Equals(siteAddress);
                     }
 
-                    var eq20site = refLatlon.Equals(latlon);
-                    var eq30site = refSitePlcm.Equals(siteplcm);
-                    var eq40proj = refProjPlcm.Equals(projplcm);
-                    var eq50proj = refProjCRS.Equals(projCRS);
+                    if(refBldgAddress == null || bldgAddress == null)
+                    {
+                        eq10bldg = false;
+                        if(refBldgAddress == null && bldgAddress == null)
+                            eq10bldg = true;
+                    }
+                    else
+                    {
+                        eq10bldg = refBldgAddress.Equals(bldgAddress);
+                    }
+
+                    if(refLatlon == null || latlon == null)
+                    {
+                        eq20site = false;
+                        if(refLatlon == null && latlon == null)
+                            eq20site = true;
+                    }
+                    else
+                    {
+                        eq20site = refLatlon.Equals(latlon);
+                    }
+
+                    if(refSitePlcm == null || siteplcm == null)
+                    {
+                        eq30site = false;
+                        if(refSitePlcm == null && siteplcm == null)
+                            eq30site = true;
+                    }
+                    else
+                    {
+                        eq30site = refSitePlcm.Equals(siteplcm);
+                    }
+
+                    if(refProjPlcm == null || projplcm == null)
+                    {
+                        eq40proj = false;
+                        if(refProjPlcm == null && projplcm == null)
+                            eq40proj = true;
+                    }
+                    else
+                    {
+                        eq40proj = refProjPlcm.Equals(projplcm);
+                    }
+
+                    if(refProjCRS == null || projCRS == null)
+                    {
+                        eq50proj = false;
+                        if(refProjCRS == null && projCRS == null)
+                            eq50proj = true;
+                    }
+                    else
+                    {
+                        eq50proj = refProjCRS.Equals(projCRS);
+                    }
 
                     Dictionary<string, bool> equality = new Dictionary<string, bool>
                 {
