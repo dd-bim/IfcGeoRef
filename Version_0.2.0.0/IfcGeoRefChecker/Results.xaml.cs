@@ -1404,5 +1404,12 @@ namespace IfcGeoRefChecker
         {
             this.Close();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var bldg = new Appl.BldgReader();
+
+            bldg.ReadSlab(model);
+        }
     }
 }
