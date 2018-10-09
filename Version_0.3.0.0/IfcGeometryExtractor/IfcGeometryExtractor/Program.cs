@@ -35,6 +35,8 @@ namespace IfcGeometryExtractor
         private static BboxIFC bbox;
         private static IList<RayBundle> bundleList = new List<RayBundle>();
 
+        private static IfcStore model;
+
         private static void Main(string[] args)
         {
             Console.WriteLine("Building geometry extractor");
@@ -42,7 +44,7 @@ namespace IfcGeometryExtractor
             Console.WriteLine("...Schependomlaan --> 1");
             Console.WriteLine("...Haus_CG_ifc2x3_coordination_view --> 2");
             Console.WriteLine("...FZK-Haus --> 3 or default");
-            Console.WriteLine("...schultz_residence --> 4");
+            Console.WriteLine("...Buerogebaeude --> 4");
             Console.WriteLine("...Haus-Constr --> 5");
             nr = Console.ReadLine();
 
@@ -66,11 +68,11 @@ namespace IfcGeometryExtractor
                     break;
 
                 case "4":
-                    path = source + "schultz_residence.ifc";
+                    path = source + "Buerogebauede.ifc";
                     break;
 
                 case "5":
-                    path = source + "Haus-Constr.ifc";
+                    path = source + "Haus-Constrerw.ifc";
                     break;
 
                 default:
@@ -81,7 +83,7 @@ namespace IfcGeometryExtractor
 
             //Lade Modell
 
-            var model = IfcStore.Open(path);
+            model = IfcStore.Open(path);
 
             if(model != null)
             {
@@ -93,9 +95,11 @@ namespace IfcGeometryExtractor
             }
             Console.WriteLine();
 
-            //Extrahiere alle Walls
+            //Extrahiere alle Walls, die im (vermutlich) Erdgeschoss liegen
 
-            var walls = model.Instances.OfType<IIfcWall>();
+            var walls = GetWallsOnGround();
+
+            //var walls = model.Instances.OfType<IIfcWall>(); //--> alle Wände zu Testzwecken
 
             Console.WriteLine("There are {0} walls in the choosen model.", walls.Count());
 
@@ -103,7 +107,7 @@ namespace IfcGeometryExtractor
 
             foreach(var singleWall in walls)
             {
-                Console.WriteLine(singleWall.Name + " , " + singleWall.PredefinedType);
+                //Console.WriteLine(singleWall.Name + " , " + singleWall.PredefinedType);
 
                 //Ermitteln der Werte für Local Placement
 
@@ -119,16 +123,43 @@ namespace IfcGeometryExtractor
 
                 //Ermitteln der Geometrie
 
-                var reps = singleWall.Representation.Representations.Where(x => x.RepresentationIdentifier == "Axis");// .Select(x => x.Representation);
+                //Welche Typen hat Wandgeometrie in Datei? zum testen..
+                foreach(var repName in singleWall.Representation.Representations)
+                {
+                    Console.WriteLine("Type: " + repName.RepresentationType + "Identifier: " + repName.RepresentationIdentifier);
+                }
+                Console.WriteLine();
 
-                GetAxisGeometry(reps); //theoretisch mehrere Repräsentationen einer Wand als Achse möglich
+                var repTypes = singleWall.Representation.Representations;
+
+                foreach(var repType in repTypes)
+                {
+                    switch(repType.RepresentationIdentifier)
+                    {
+                        case "Axis":
+                            GetAxisGeometry(repType);
+                            break;
+
+                        case "Body":
+                            GetBodyGeometry(repType);
+                            break;
+
+                        case "Footprint":
+                            GetFootprintGeometry(repType);
+                            break;
+                    }
+                }
+
+                //var reps = singleWall.Representation.Representations.Where(x => x.RepresentationIdentifier == "Axis");// .Select(x => x.Representation);
+
+                //GetAxisGeometry(reps); //theoretisch mehrere Repräsentationen einer Wand als Achse möglich
             }
-            WriteDXF(absIFCPts, "wallAxisPoints", 1);
+
+            Console.WriteLine("Pt nach Trafo: " + absIFCPts.Count + " , Lines: " + wallLined.Count);
 
             var wallCentroid = CalcCentroidIFCPts(absIFCPts);
             WriteCoords(Point2.ToCSVString(wallCentroid), "centroid");
-            IList<Point2> centr = new List<Point2>() { wallCentroid };
-            WriteDXF(centr, "centroid", 3);
+            PointsToDXF(wallCentroid, "centroid", DXFcolor.magenta);
 
             CalcBbox(absIFCPts);
 
@@ -148,11 +179,11 @@ namespace IfcGeometryExtractor
 
             //WriteDXF(extPts, "wallIntersectonsPtsExt", 5);
 
-            WriteDXF(bundleList.Select(o => o.rayOrigin).ToList(), "bundlePts", 6);
+            //WriteDXF(bundleList.Select(o => o.rayOrigin).ToList(), "bundlePts", 6);
 
-            WriteDXF(extPts, "wallIntersectonsPtsExt", 5);
+            //WriteDXF(extPts, "wallIntersectonsPtsExt", 5);
 
-            WriteDXF(doubleList, "doubleIntersecs", 4);
+            //WriteDXF(doubleList, "doubleIntersecs", 4);
 
             //WriteDXF(realPts, "realPoints", 6);
 
@@ -172,14 +203,14 @@ namespace IfcGeometryExtractor
 
                 // (relative) Platzierung der Wand
 
-                //Semantische Zuordnung zum IfcProduct:
+                //Semantische Zuordnung zum IfcProduct / nur zum Testen:
 
-                var prods = plcmRelObj.PlacesObject;
+                //var prods = plcmRelObj.PlacesObject;
 
-                foreach(var prod in prods)  //ein ObjectPlacement kann theoretisch mehrere Produkte plazieren
-                {
-                    Console.WriteLine(prod.GetHashCode() + "=" + prod.GetType().Name);
-                }
+                //foreach(var prod in prods)  //ein ObjectPlacement kann theoretisch mehrere Produkte plazieren
+                //{
+                //    Console.WriteLine(prod.GetHashCode() + "=" + prod.GetType().Name);
+                //}
 
                 //Geometrische Platzierung:
 
@@ -219,7 +250,7 @@ namespace IfcGeometryExtractor
                 }
                 else
                 {
-                    Console.WriteLine("No more relative Placements existent. Please refer now to the World Coordinate System.");
+                    //Console.WriteLine("No more relative Placements existent. Please refer now to the World Coordinate System.");
                 }
             }
             else
@@ -228,66 +259,206 @@ namespace IfcGeometryExtractor
             }
         }
 
-        public static void GetAxisGeometry(IEnumerable<IIfcRepresentation> axisRep)
+        public static IEnumerable<IIfcBuildingElement> GetWallsOnGround()
         {
-            foreach(var rep in axisRep)
+            var bldg = model.Instances.OfType<IIfcBuilding>().FirstOrDefault();
+            var bldgRefHeight = (bldg.ElevationOfRefHeight != null) ? (double)bldg.ElevationOfRefHeight : 0.0;
+
+            var storeys = bldg.BuildingStoreys;
+
+            var dictStorey = new Dictionary<IIfcBuildingStorey, double>();
+
+            foreach(var storey in storeys)
             {
-                if(rep is IIfcShapeRepresentation) //nur für Geometrie (!= TopologyRep or StyledRep)
+                dictStorey.Add(storey, Math.Abs(bldgRefHeight - (double)storey.Elevation));
+            }
+
+            var minVal = dictStorey.Values.Min();
+            var groundStorey = dictStorey.Where(s => s.Value == minVal).Select(s => s.Key).FirstOrDefault();
+
+            //IList<IIfcBuildingElement> wallList;
+
+            //var walls = model.Instances.OfType<IIfcWall>().Where(b => b.IsContainedIn == groundStorey);
+
+            var walls = model.Instances.OfType<IIfcBuildingElement>()
+                .Where(s => s is IIfcWall /*|| s is IIfcCurtainWall*/)          //CurtainWall besteht im Bsp Burogebäude aus IfcPlate....
+                .Where(b => b.IsContainedIn == groundStorey);
+
+            Console.WriteLine(walls.Count());
+
+            return walls;
+        }
+
+        public static void GetAxisGeometry(IIfcRepresentation rep)
+        {
+            if(rep is IIfcShapeRepresentation) //nur für Geometrie (!= TopologyRep or StyledRep)
+            {
+                var lines = (rep as IIfcShapeRepresentation).Items.OfType<IIfcPolyline>().Single(); //zunächst nur Polylines mit CartesianPoints
+
+                var coords = lines.Points;
+
+                List<Point2> ptPair = new List<Point2>();
+
+                for(var i = 0; i < coords.Count; i++)
                 {
-                    var lines = (rep as IIfcShapeRepresentation).Items.OfType<IIfcPolyline>().Single(); //zunächst nur Polylines mit CartesianPoints
+                    //Console.WriteLine("  -> Coords-Axis: " + coords[i].X + " , " + coords[i].Y);
 
-                    var coords = lines.Points;
+                    //transformiere lokale Achskoordinaten in globales System:
+                    Axis2Placement3D.ToGlobal(plcmCombined, Point2.Create(coords[i].X, coords[i].Y), out var globPt);
 
-                    List<Point2> ptPair = new List<Point2>();
+                    Console.WriteLine(globPt.X + " / " + globPt.Y + " / " + globPt.Z);
 
-                    for(var i = 0; i < coords.Count; i++)
-                    {
-                        //Console.WriteLine("  -> Coords-Axis: " + coords[i].X + " , " + coords[i].Y);
+                    //erzeuge 2D-Punkt und füge diesen einer 2D-Punktliste hinzu
+                    var pt2D = Point2.Create(globPt.X, globPt.Y);
+                    absIFCPts.Add(pt2D);
 
-                        //transformiere lokale Achskoordinaten in globales System:
-                        Axis2Placement3D.ToGlobal(plcmCombined, Point2.Create(coords[i].X, coords[i].Y), out var globPt);
+                    //Console.WriteLine("  -> Coords-Axis (global): " + globPt.X + " , " + globPt.Y);
 
-                        //erzeuge 2D-Punkt und füge diesen einer 2D-Punktliste hinzu
-                        var pt2D = Point2.Create(globPt.X, globPt.Y);
-                        absIFCPts.Add(pt2D);
+                    //schreibe Koordinaten in Textdatei (Kommata-getrennt):
+                    WriteCoords(Point2.ToCSVString(Point2.Create(globPt.X, globPt.Y)), "wallAxisCoords"); //verebnet
 
-                        //Console.WriteLine("  -> Coords-Axis (global): " + globPt.X + " , " + globPt.Y);
+                    //WriteCoords(Point3.ToCSVString(globPt)); // mit Höhen
 
-                        //schreibe Koordinaten in Textdatei (Kommata-getrennt):
-                        WriteCoords(Point2.ToCSVString(Point2.Create(globPt.X, globPt.Y)), "wallAxisCoords"); //verebnet
+                    //Rekonstruktion der Wandachsen:
+                    ptPair.Add(pt2D);
 
-                        //WriteCoords(Point3.ToCSVString(globPt)); // mit Höhen
-
-                        //Rekonstruktion der Wandachsen:
-                        ptPair.Add(pt2D);
-                    }
-
-                    //für Darstellung in DXF-Datei:
-                    netDxf.Vector2 vec1 = new netDxf.Vector2(ptPair[0].X, ptPair[0].Y);
-                    netDxf.Vector2 vec2 = new netDxf.Vector2(ptPair[1].X, ptPair[1].Y);
-
-                    netDxf.Entities.Line wallLineDXF = new netDxf.Entities.Line(vec1, vec2);
-
-                    wallLineDXF.Layer = new netDxf.Tables.Layer("IFCwallLines");
-
-                    dxf.AddEntity(wallLineDXF);
-                    //--------------------------------
-
-                    var wallLine = new LinePoints();
-
-                    wallLine.segmentA = ptPair[0];
-                    wallLine.segmentB = ptPair[1];
-
-                    //für Weiterverarbeitung im Programm:
-                    Line2.Create(ptPair[0], ptPair[1], out var wallAxis);
-                    wallLine.wallLine = wallAxis;
-
-                    wallLined.Add(wallLine);
-
-                    //pairList.Add(ptPair);
+                    PointsToDXF(pt2D, "AxisPoints", DXFcolor.red);
                 }
+
+                var wallLine = new LinePoints();
+
+                wallLine.segmentA = ptPair[0];
+                wallLine.segmentB = ptPair[1];
+
+                //für Weiterverarbeitung im Programm:
+                Line2.Create(ptPair[0], ptPair[1], out var wallAxis);
+                wallLine.wallLine = wallAxis;
+
+                wallLined.Add(wallLine);
+
+                WallToDXF(wallLine, "WallsAxis", DXFcolor.green);
             }
         }
+
+        public static void GetBodyGeometry(IIfcRepresentation rep)
+        {
+            switch(rep.RepresentationType)
+            {
+                case "SweptSolid":
+
+                    var extrSld = rep.Items.Single() as IIfcSweptAreaSolid;
+
+                    //für Trafo (3D-Position + opt. Rotation):
+
+                    var extrPlcm = extrSld.Position;
+                    var extrPos = extrPlcm.Location;
+                    var ptExtr = BimGisCad.Representation.Geometry.Elementary.Vector3.Create(extrPos.X, extrPos.Y, extrPos.Z);
+
+                    Axis2Placement3D plcmExtr;
+
+                    if(extrPlcm.RefDirection != null && extrPlcm.Axis != null)
+                    {
+                        Direction3.Create(BimGisCad.Representation.Geometry.Elementary.Vector3.Create(extrPlcm.RefDirection.X, extrPlcm.RefDirection.Y, extrPlcm.RefDirection.Z), out var refDirXLocal);
+                        Direction3.Create(BimGisCad.Representation.Geometry.Elementary.Vector3.Create(extrPlcm.Axis.X, extrPlcm.Axis.Y, extrPlcm.Axis.Z), out var refDirZLocal);
+
+                        plcmExtr = Axis2Placement3D.Create(ptExtr, refDirZLocal, refDirXLocal);
+                    }
+                    else
+                    {
+                        plcmExtr = Axis2Placement3D.Create(ptExtr);
+                    }
+
+                    var globalPlcm = Axis2Placement3D.Combine(plcmCombined, plcmExtr);
+
+                    //für Geometrie:
+                    var extrArea = extrSld.SweptArea;
+
+                    var localPts = new List<Point3>();
+
+                    //Geometrie in IfcProfileDef sehr vielschichtig
+                    if(extrArea is IIfcRectangleProfileDef)
+                    {
+                        //für Trafo! (2D-Postion + opt. Rotation): optional
+                        var profilePlcm = (extrArea as IIfcRectangleProfileDef).Position;
+
+                        //für Geometrie (Breite und Länge des rechteckigen Profiles): mandatory
+                        var width = (extrArea as IIfcRectangleProfileDef).XDim;
+                        var height = (extrArea as IIfcRectangleProfileDef).YDim;
+
+                        //IFC-Def: Position liegt bei halber Länge und halber Breite der Profilgeometrie
+
+                        var profilePos = profilePlcm.Location;
+                        var profileRot = BimGisCad.Representation.Geometry.Elementary.Vector2.Create(profilePlcm.RefDirection.X, profilePlcm.RefDirection.Y);
+                        BimGisCad.Representation.Geometry.Elementary.Vector2.Normalized(profileRot, out var profRotNorm);
+
+                        var a = BimGisCad.Representation.Geometry.Elementary.Vector2.Create(width, height);
+                        BimGisCad.Representation.Geometry.Elementary.Vector2.Normalized(a, out var normRect);
+
+                        var transX = 0.5 * width * normRect.X + 0.5 * height * normRect.X;
+                        var transY = 0.5 * width * normRect.Y + 0.5 * height * normRect.Y;
+
+                        localPts.Add(Point3.Create(profilePos.X + transX, profilePos.Y + transY, 0)); // rechts oben
+                        localPts.Add(Point3.Create(profilePos.X + transX, profilePos.Y - transY, 0)); // rechts unten
+                        localPts.Add(Point3.Create(profilePos.X - transX, profilePos.Y - transY, 0)); // links unten
+                        localPts.Add(Point3.Create(profilePos.X - transX, profilePos.Y + transY, 0)); // links oben
+                        localPts.Add(Point3.Create(profilePos.X + transX, profilePos.Y + transY, 0)); // rechts oben
+                    }
+
+                    if(extrArea is IIfcArbitraryClosedProfileDef)
+                    {
+                        var polyline = (extrArea as IIfcArbitraryClosedProfileDef).OuterCurve;
+
+                        var ifcPoints = (polyline as IIfcPolyline).Points;
+
+                        foreach(var cartPt in ifcPoints)
+                        {
+                            localPts.Add(Point3.Create(cartPt.X, cartPt.Y, 0));
+                        }
+                    }
+                    var globalPtList = new List<Point2>();
+
+                    for(var i = 0; i < localPts.Count; i++)
+                    {
+                        Axis2Placement3D.ToGlobal(plcmCombined, localPts[i], out var ptxyz);
+                        var ptxy = Point2.Create(ptxyz.X, ptxyz.Y);
+                        globalPtList.Add(ptxy);         //evtl globalPtList und absIFCPoints zusammenfassen (Axis-Ausgabe muss angepasst werden)
+                        absIFCPts.Add(ptxy);
+                    }
+
+                    for(var i = 0; i < globalPtList.Count; i++)
+                    {
+                        if((i + 1) >= globalPtList.Count)
+                            break;
+
+                        var wallSegment = new LinePoints();
+
+                        wallSegment.segmentA = globalPtList.ElementAt(i);
+                        wallSegment.segmentB = globalPtList.ElementAt(i + 1);
+
+                        Line2.Create(wallSegment.segmentA, wallSegment.segmentB, out var wallAxis);
+
+                        wallSegment.wallLine = wallAxis;
+
+                        wallLined.Add(wallSegment);
+
+                        WallToDXF(wallSegment, "WallsSweptSolid", DXFcolor.yellow);
+                    }
+
+                    break;
+
+                case "Brep":
+                    break;
+
+                case "Clipping":
+                    break;
+
+                case "CSG":
+                    break;
+            }
+        }
+
+        public static void GetFootprintGeometry(IIfcRepresentation rep)
+        { }
 
         //Variante mit OuterRayOrigins:
 
@@ -357,15 +528,10 @@ namespace IfcGeometryExtractor
 
                             extWallLines.Add(extWall);
 
-                            netDxf.Vector2 extWallA = new netDxf.Vector2(extA.X, extA.Y);
-                            netDxf.Vector2 extWallB = new netDxf.Vector2(extB.X, extB.Y);
-
-                            netDxf.Entities.Line extWallDXF = new netDxf.Entities.Line(extWallA, extWallB);
-                            extWallDXF.Layer = new netDxf.Tables.Layer("externalWalls");
-
-                            dxf.AddEntity(extWallDXF);
-
                             extPts.Add(extSec);
+
+                            PointsToDXF(extSec, "ExternalWallIntersects", DXFcolor.cyan);
+                            WallToDXF(extWall, "ExternalWalls", DXFcolor.blue);
                         }
                     }
                 }
@@ -620,51 +786,6 @@ namespace IfcGeometryExtractor
             };
         }
 
-        public static void WriteDXF(IList<Point2> ptsXY, string layerName, int colorInt)
-        {
-            netDxf.Tables.Layer layer = new netDxf.Tables.Layer(layerName);
-
-            foreach(var ptXY in ptsXY)
-            {
-                netDxf.Entities.Point pt = new netDxf.Entities.Point(ptXY.X, ptXY.Y, 0);
-
-                netDxf.Entities.Circle circle = new netDxf.Entities.Circle(new netDxf.Vector2(ptXY.X, ptXY.Y), colorInt * 0.1);
-
-                pt.Layer = layer;
-                circle.Layer = layer;
-
-                switch(colorInt)
-                {
-                    case 1:
-                        layer.Color = new AciColor(255, 0, 0);
-                        break;
-
-                    case 2:
-                        layer.Color = new AciColor(0, 255, 0);
-                        break;
-
-                    case 3:
-                        layer.Color = new AciColor(0, 0, 255);
-                        break;
-
-                    case 4:
-                        layer.Color = new AciColor(100, 200, 50);
-                        break;
-
-                    case 5:
-                        layer.Color = new AciColor(200, 100, 200);
-                        break;
-
-                    case 6:
-                        layer.Color = new AciColor(50, 50, 200);
-                        break;
-                }
-
-                dxf.AddEntity(pt);
-                dxf.AddEntity(circle);
-            }
-        }
-
         public static Point2 CalcCentroidIFCPts(IList<Point2> points2D)
         {
             ifcPtsCentroid = Point2.Centroid(points2D);
@@ -760,6 +881,66 @@ namespace IfcGeometryExtractor
 
             return rays;
         }
+
+        public static void PointsToDXF(Point2 ptXY, string layerName, DXFcolor color)
+        {
+            netDxf.Tables.Layer layer = new netDxf.Tables.Layer(layerName);
+
+            netDxf.Entities.Point pt = new netDxf.Entities.Point(ptXY.X, ptXY.Y, 0);
+
+            netDxf.Entities.Circle circle = new netDxf.Entities.Circle(new netDxf.Vector2(ptXY.X, ptXY.Y), 0.2);
+
+            layer.Color = GetDXFColor(color);
+
+            pt.Layer = layer;
+            circle.Layer = layer;
+
+            dxf.AddEntity(pt);
+            dxf.AddEntity(circle);
+        }
+
+        public static void WallToDXF(LinePoints wallLine, string layerName, DXFcolor color)
+        {
+            netDxf.Vector2 vec1 = new netDxf.Vector2(wallLine.segmentA.X, wallLine.segmentA.Y);
+            netDxf.Vector2 vec2 = new netDxf.Vector2(wallLine.segmentB.X, wallLine.segmentB.Y);
+
+            netDxf.Entities.Line wallLineDXF = new netDxf.Entities.Line(vec1, vec2);
+
+            wallLineDXF.Layer = new netDxf.Tables.Layer(layerName);
+
+            wallLineDXF.Layer.Color = GetDXFColor(color);
+
+            dxf.AddEntity(wallLineDXF);
+        }
+
+        public static AciColor GetDXFColor(DXFcolor color)
+        {
+            switch(color)
+            {
+                case DXFcolor.red:
+                    return new AciColor(255, 0, 0);
+
+                case DXFcolor.green:
+                    return new AciColor(0, 255, 0);
+
+                case DXFcolor.blue:
+                    return new AciColor(0, 0, 255);
+
+                case DXFcolor.yellow:
+                    return new AciColor(255, 255, 0);
+
+                case DXFcolor.magenta:
+                    return new AciColor(255, 0, 255);
+
+                case DXFcolor.cyan:
+                    return new AciColor(0, 255, 255);
+
+                default:
+                    return new AciColor(255, 255, 255);
+            }
+        }
+
+        public enum DXFcolor { red, green, blue, cyan, yellow, magenta }
 
         public class LinePoints
         {
