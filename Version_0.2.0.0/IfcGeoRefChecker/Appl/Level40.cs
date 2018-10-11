@@ -99,11 +99,11 @@ namespace IfcGeoRefChecker.Appl
                 }
                 else
                 {
-                    this.Instance_Object_WCS.Add("IfcAxis2Placement3D");
+                    this.Instance_Object_WCS.Add("IfcAxis2Placement");
                     this.Instance_Object_WCS.Add("n/a");
                 }
 
-                if(plcm is IIfcAxis2Placement3D)
+                if(this.plcm is IIfcAxis2Placement3D)
                 {
                     this.plcmXYZ.GetPlacementXYZ(this.plcm);
 
@@ -111,6 +111,15 @@ namespace IfcGeoRefChecker.Appl
                     this.ProjectLocation = this.plcmXYZ.LocationXYZ;
                     this.ProjectRotationX = this.plcmXYZ.RotationX;
                     this.ProjectRotationZ = this.plcmXYZ.RotationZ;
+                }
+
+                if(this.plcm is IIfcAxis2Placement2D)
+                {
+                    this.plcmXYZ.GetPlacementXYZ(this.plcm);
+
+                    this.GeoRef40 = this.plcmXYZ.GeoRefPlcm;
+                    this.ProjectLocation = this.plcmXYZ.LocationXYZ;
+                    this.ProjectRotationX = this.plcmXYZ.RotationX;
                 }
 
                 //variable for the TrueNorth attribute
@@ -200,10 +209,18 @@ namespace IfcGeoRefChecker.Appl
             + dashline + "\r\n Project context element:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
             + "\r\n Placement referenced in " + this.Instance_Object_WCS[0] + "=" + this.Instance_Object_WCS[1];
 
-            logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1] + "\r\n  Z = " + this.ProjectLocation[2];
+            if(plcm is IIfcAxis2Placement2D)
+            {
+                logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1];
+                logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]})";
+            }
 
-            logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]}/{this.ProjectRotationX[2]})";
-            logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
+            if(plcm is IIfcAxis2Placement3D)
+            {
+                logLevel40 += "\r\n  X = " + this.ProjectLocation[0] + "\r\n  Y = " + this.ProjectLocation[1] + "\r\n  Z = " + this.ProjectLocation[2];
+                logLevel40 += $"\r\n  Rotation X-axis = ({this.ProjectRotationX[0]}/{this.ProjectRotationX[1]}/{this.ProjectRotationX[2]})";
+                logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
+            }
 
             if(this.Instance_Object_North.Contains("n/a"))
 

@@ -382,43 +382,62 @@ namespace IfcGeoRefChecker
                 cb_Rotation40.SelectedItem = "vect";
                 cb_TrueNorth40.SelectedItem = "vect";
 
-                // check if necessary !!!
-
                 this.xyz40.Insert(0, geoRef40.ProjectLocation[0]);
                 this.xyz40.Insert(1, geoRef40.ProjectLocation[1]);
-                this.xyz40.Insert(2, geoRef40.ProjectLocation[2]);
-
-                this.dirZ.X = geoRef40.ProjectRotationZ[0];
-                this.dirZ.Y = geoRef40.ProjectRotationZ[1];
-                this.dirZ.Z = geoRef40.ProjectRotationZ[2];
 
                 this.dirX.X = geoRef40.ProjectRotationX[0];
                 this.dirX.Y = geoRef40.ProjectRotationX[1];
-                this.dirX.Z = geoRef40.ProjectRotationX[2];
 
                 this.dirTN.X = geoRef40.TrueNorthXY[0];
                 this.dirTN.Y = geoRef40.TrueNorthXY[1];
+
+                if(geoRef40.ProjectLocation.Count > 2)
+                {
+                    this.xyz40.Insert(2, geoRef40.ProjectLocation[2]);
+
+                    this.dirZ.X = geoRef40.ProjectRotationZ[0];
+                    this.dirZ.Y = geoRef40.ProjectRotationZ[1];
+                    this.dirZ.Z = geoRef40.ProjectRotationZ[2];
+
+                    this.dirX.Z = geoRef40.ProjectRotationX[2];
+
+                    this.unitZ40 = new Appl.Calc().ConvertLengthUnits(this.unit, geoRef40.ProjectLocation[2]);
+                    tb_originZ_40.Text = changeLengthUnit(unitZ40, this.unit);
+
+                    tb_rotationZ_40.Text = this.dirZ.X + ", " + this.dirZ.Y + ", " + this.dirZ.Z;
+                    tb_rotationX_40.Text = this.dirX.X + ", " + this.dirX.Y + ", " + this.dirX.Z;
+
+                    if(!cb_Rotation40.Items.Contains("deg"))
+                    {
+                        cb_Rotation40.Items.Add("deg");
+                    }
+
+                    tb_originZ_40.IsEnabled = true;
+                    tb_rotationZ_40.IsEnabled = true;
+                }
+                else
+                {
+                    tb_rotationZ_40.Text = "";
+                    tb_rotationX_40.Text = this.dirX.X + ", " + this.dirX.Y;
+                    tb_originZ_40.Text = "";
+
+                    cb_Rotation40.Items.Remove("deg");
+
+                    tb_originZ_40.IsEnabled = false;
+                    tb_rotationZ_40.IsEnabled = false;
+                }
 
                 //--------------------
 
                 // calculate unit views for results window
                 this.unitX40 = new Appl.Calc().ConvertLengthUnits(this.unit, geoRef40.ProjectLocation[0]);
                 this.unitY40 = new Appl.Calc().ConvertLengthUnits(this.unit, geoRef40.ProjectLocation[1]);
-                this.unitZ40 = new Appl.Calc().ConvertLengthUnits(this.unit, geoRef40.ProjectLocation[2]);
 
                 // when initialized set unit selection to project unit
                 cb_Origin40.SelectedItem = this.unit;
 
                 tb_originX_40.Text = changeLengthUnit(unitX40, this.unit);
                 tb_originY_40.Text = changeLengthUnit(unitY40, this.unit);
-                tb_originZ_40.Text = changeLengthUnit(unitZ40, this.unit);
-
-                //tb_originX_40.Text = this.xyz40[0].ToString();
-                //tb_originY_40.Text = this.xyz40[1].ToString();
-                //tb_originZ_40.Text = this.xyz40[2].ToString();
-
-                tb_rotationX_40.Text = this.dirX.X + ", " + this.dirX.Y + ", " + this.dirX.Z;
-                tb_rotationZ_40.Text = this.dirZ.X + ", " + this.dirZ.Y + ", " + this.dirZ.Z;
 
                 tb_rotationTN_40.Text = this.dirTN.X + ", " + this.dirTN.Y;
             }
@@ -993,24 +1012,44 @@ namespace IfcGeoRefChecker
 
                 try
                 {
-                    geoRef40.ProjectLocation.Clear();
+                    if(geoRef40.ProjectLocation.Count > 2)
+                    {
+                        geoRef40.ProjectLocation.Clear();
 
-                    var x40New = double.Parse(ReplaceTrim(tb_originX_40.Text));
-                    var y40New = double.Parse(ReplaceTrim(tb_originY_40.Text));
-                    var z40New = double.Parse(ReplaceTrim(tb_originZ_40.Text));
+                        var x40New = double.Parse(ReplaceTrim(tb_originX_40.Text));
+                        var y40New = double.Parse(ReplaceTrim(tb_originY_40.Text));
+                        var z40New = double.Parse(ReplaceTrim(tb_originZ_40.Text));
 
-                    this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), x40New);
-                    this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), y40New);
-                    this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), z40New);
+                        this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), x40New);
+                        this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), y40New);
+                        this.unitZ30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), z40New);
 
-                    double x40Conv, y40Conv, z40Conv;
-                    this.unitX30.TryGetValue(this.unit, out x40Conv);
-                    this.unitY30.TryGetValue(this.unit, out y40Conv);
-                    this.unitZ30.TryGetValue(this.unit, out z40Conv);
+                        double x40Conv, y40Conv, z40Conv;
+                        this.unitX30.TryGetValue(this.unit, out x40Conv);
+                        this.unitY30.TryGetValue(this.unit, out y40Conv);
+                        this.unitZ30.TryGetValue(this.unit, out z40Conv);
 
-                    geoRef40.ProjectLocation.Add(x40Conv);
-                    geoRef40.ProjectLocation.Add(y40Conv);
-                    geoRef40.ProjectLocation.Add(z40Conv);
+                        geoRef40.ProjectLocation.Add(x40Conv);
+                        geoRef40.ProjectLocation.Add(y40Conv);
+                        geoRef40.ProjectLocation.Add(z40Conv);
+                    }
+                    else
+                    {
+                        geoRef40.ProjectLocation.Clear();
+
+                        var x40New = double.Parse(ReplaceTrim(tb_originX_40.Text));
+                        var y40New = double.Parse(ReplaceTrim(tb_originY_40.Text));
+
+                        this.unitX30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), x40New);
+                        this.unitY30 = new Appl.Calc().ConvertLengthUnits(cb_Origin40.SelectedItem.ToString(), y40New);
+
+                        double x40Conv, y40Conv, z40Conv;
+                        this.unitX30.TryGetValue(this.unit, out x40Conv);
+                        this.unitY30.TryGetValue(this.unit, out y40Conv);
+
+                        geoRef40.ProjectLocation.Add(x40Conv);
+                        geoRef40.ProjectLocation.Add(y40Conv);
+                    }
                 }
 
                 catch(Exception ex)
@@ -1023,11 +1062,50 @@ namespace IfcGeoRefChecker
 
                 try
                 {
-                    geoRef40.ProjectRotationX.Clear();
-                    geoRef40.ProjectRotationZ.Clear();
-
-                    if(cb_Rotation40.SelectedItem.ToString() == "vect")
+                    if(geoRef40.ProjectRotationX.Count > 2)
                     {
+                        geoRef40.ProjectRotationX.Clear();
+                        geoRef40.ProjectRotationZ.Clear();
+
+                        if(cb_Rotation40.SelectedItem.ToString() == "vect")
+                        {
+                            char delimiter = ',';
+                            var entryX = ReplaceTrimVector(tb_rotationX_40.Text);
+                            string[] vectorX = entryX.Split(delimiter);
+
+                            foreach(var vect in vectorX)
+                            {
+                                geoRef40.ProjectRotationX.Add(double.Parse(vect));
+                            }
+
+                            var entryZ = ReplaceTrimVector(tb_rotationZ_40.Text);
+                            string[] vectorZ = entryZ.Split(delimiter);
+
+                            foreach(var vect in vectorZ)
+                            {
+                                geoRef40.ProjectRotationZ.Add(double.Parse(vect));
+                            }
+                        }
+                        else
+                        {
+                            var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotationX_40.Text)));
+
+                            geoRef40.ProjectRotationX.Add(vectorX.X);
+                            geoRef40.ProjectRotationX.Add(vectorX.Y);
+                            geoRef40.ProjectRotationX.Add(vectorX.Z);
+
+                            var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(ReplaceTrim(tb_rotationZ_40.Text)));
+
+                            geoRef40.ProjectRotationZ.Add(vectorZ.X);
+                            geoRef40.ProjectRotationZ.Add(vectorZ.Y);
+                            geoRef40.ProjectRotationZ.Add(vectorZ.Z);
+                        }
+                    }
+                    else
+                    {
+                        geoRef40.ProjectRotationX.Clear();
+                        //geoRef40.ProjectRotationZ.Clear();
+
                         char delimiter = ',';
                         var entryX = ReplaceTrimVector(tb_rotationX_40.Text);
                         string[] vectorX = entryX.Split(delimiter);
@@ -1037,27 +1115,6 @@ namespace IfcGeoRefChecker
                             geoRef40.ProjectRotationX.Add(double.Parse(vect));
                         }
 
-                        var entryZ = ReplaceTrimVector(tb_rotationZ_40.Text);
-                        string[] vectorZ = entryZ.Split(delimiter);
-
-                        foreach(var vect in vectorZ)
-                        {
-                            geoRef40.ProjectRotationZ.Add(double.Parse(vect));
-                        }
-                    }
-                    else
-                    {
-                        var vectorX = new Appl.Calc().GetVector3DForXAxis(double.Parse(ReplaceTrim(tb_rotationX_40.Text)));
-
-                        geoRef40.ProjectRotationX.Add(vectorX.X);
-                        geoRef40.ProjectRotationX.Add(vectorX.Y);
-                        geoRef40.ProjectRotationX.Add(vectorX.Z);
-
-                        var vectorZ = new Appl.Calc().GetVector3DForZAxis(double.Parse(ReplaceTrim(tb_rotationZ_40.Text)));
-
-                        geoRef40.ProjectRotationZ.Add(vectorZ.X);
-                        geoRef40.ProjectRotationZ.Add(vectorZ.Y);
-                        geoRef40.ProjectRotationZ.Add(vectorZ.Z);
                     }
                 }
                 catch(Exception ex)
@@ -1065,7 +1122,7 @@ namespace IfcGeoRefChecker
                     if(ex is FormatException)
                     {
                         if(cb_Rotation40.SelectedItem.ToString() == "vect")
-                            MessageBox.Show("Rotation can only contain 3 comma-separated values for any 3DVector, e.g. 1,0,0");
+                            MessageBox.Show("Rotation can only contain 2 or 3 comma-separated values for any 2D or 3D Vector, e.g. 1,0 or 1,0,0");
                         else
                             MessageBox.Show("Rotation can only contain numbers for angle value, e.g. 180.5");
                     }
