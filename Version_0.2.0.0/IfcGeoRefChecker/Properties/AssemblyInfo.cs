@@ -8,9 +8,9 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("IfcGeoRefChecker")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Georeferencing checking tool for IFC files")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("HTW Dresden")]
 [assembly: AssemblyProduct("IfcGeoRefChecker")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]

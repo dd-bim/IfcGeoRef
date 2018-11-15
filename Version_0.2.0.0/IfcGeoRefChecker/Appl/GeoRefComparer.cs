@@ -205,6 +205,10 @@ namespace IfcGeoRefChecker.Appl
 
                     var site20 = new Level20(model, siteReading[0].GetHashCode());
                     site20.GetLevel20();
+                    site20.Latitude = Math.Round(site20.Latitude, 8);
+                    site20.Longitude = Math.Round(site20.Latitude, 8);
+                    site20.Elevation = Math.Round(site20.Elevation, 5);
+
                     latlon = site20;
                 }
 
@@ -226,6 +230,11 @@ namespace IfcGeoRefChecker.Appl
                     {
                         var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].GetType().Name);
                         site30.GetLevel30();
+                        for (var j=0; j < site30.ObjectLocationXYZ.Count; j++)
+                        {
+                            site30.ObjectLocationXYZ[i] = Math.Round(site30.ObjectLocationXYZ[i], 5);
+                        }
+                        
                         siteplcm = site30;
                         break;
                     }
@@ -236,6 +245,10 @@ namespace IfcGeoRefChecker.Appl
                     {
                         var cont40 = new Level40(model, ctxReading[i].GetHashCode());
                         cont40.GetLevel40();
+                        for(var j = 0; j < cont40.ProjectLocation.Count; j++)
+                        {
+                            cont40.ProjectLocation[i] = Math.Round(cont40.ProjectLocation[i], 5);
+                        }
                         projplcm = cont40;
                         break;
                     }

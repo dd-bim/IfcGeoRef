@@ -21,26 +21,26 @@ namespace IfcGeoRefChecker.Appl
             this.BldgList = model.Instances.OfType<IIfcBuilding>().ToList();
         }
 
-        public void ReadSlab(IfcStore model)
-        {
-            //read slabs (not of type landing or roof) which could be the baseslab
-            //type baseslab
+        //public void ReadSlab(IfcStore model)
+        //{
+        //    //read slabs (not of type landing or roof) which could be the baseslab
+        //    //type baseslab
 
-            var slabList = model.Instances.OfType<IIfcSlab>().Where(x => x.PredefinedType != IfcSlabTypeEnum.ROOF).Where(x => x.PredefinedType != IfcSlabTypeEnum.LANDING);
+        //    var slabList = model.Instances.OfType<IIfcSlab>().Where(x => x.PredefinedType != IfcSlabTypeEnum.ROOF).Where(x => x.PredefinedType != IfcSlabTypeEnum.LANDING);
 
-            foreach(var slab in slabList)
-            {
-                MessageBox.Show(slab.Name+ "..." +slab.ObjectType + "..." +slab.PredefinedType);
-            }
-        }
+        //    foreach(var slab in slabList)
+        //    {
+        //        MessageBox.Show(slab.Name+ "..." +slab.ObjectType + "..." +slab.PredefinedType);
+        //    }
+        //}
 
-        public void ReadLocalPlacements(IfcStore model)
-        {
-            var plcmList = model.Instances.OfType<IIfcLocalPlacement>().ToList();
+        //public void ReadLocalPlacements(IfcStore model)
+        //{
+        //    var plcmList = model.Instances.OfType<IIfcLocalPlacement>().ToList();
 
-            foreach(var plcm in plcmList)
-            {
-            }
-        }
+        //    foreach(var plcm in plcmList)
+        //    {
+        //    }
+        //}
     }
 }
