@@ -31,6 +31,7 @@ namespace IfcGeometryExtractor
         //---------------------------------------------------
 
         private static List<LinePoints> wallLined = new List<LinePoints>();                         //Wandlinien für Schnittpunktberechnung mit Paaren der globalen Wandkoords
+        private static List<LinePoints> wallLinedClean = new List<LinePoints>();
         private static IList<LinePoints> cvxOuterLines = new List<LinePoints>();
         private static List<LinePoints> extUniWalls = new List<LinePoints>();
         private static LinePoints firstLine;
@@ -46,24 +47,22 @@ namespace IfcGeometryExtractor
 
         private static void Main(string[] args)
         {
+            Console.WriteLine("Building geometry extractor");
+            Console.WriteLine("Please choose a IFC model:");
+            Console.WriteLine("...Schependomlaan --> 1");
+            Console.WriteLine("...Haus_CG_ifc2x3_coordination_view --> 2");
+            Console.WriteLine("...FZK-Haus --> 3 or default");
+            Console.WriteLine("...Buerogebaeude --> 4");
+            Console.WriteLine("...Haus-Constr --> 5");
+            nr = Console.ReadLine();
 
-                Console.WriteLine("Building geometry extractor");
-                Console.WriteLine("Please choose a IFC model:");
-                Console.WriteLine("...Schependomlaan --> 1");
-                Console.WriteLine("...Haus_CG_ifc2x3_coordination_view --> 2");
-                Console.WriteLine("...FZK-Haus --> 3 or default");
-                Console.WriteLine("...Buerogebaeude --> 4");
-                Console.WriteLine("...Haus-Constr --> 5");
-                nr = Console.ReadLine();
+            //Testmodelle:
 
-                //Testmodelle:
-
-                var source = "D:\\1_CityBIM\\1_Programmierung\\IfcGeoRef\\zzz_IFC_Testdateien\\";
-                var path = source + "Projekt1.ifc";
+            var source = "D:\\1_CityBIM\\1_Programmierung\\IfcGeoRef\\zzz_IFC_Testdateien\\";
+            var path = source + "Projekt1.ifc";
 
             try
             {
-
                 switch(nr)
                 {
                     case "1":
@@ -92,6 +91,10 @@ namespace IfcGeometryExtractor
 
                     case "7":
                         path = source + "Haus-Constr2intern.ifc";
+                        break;
+
+                    case "8":
+                        path = source + "IFCSDLV4.ifc";
                         break;
 
                     default:
@@ -187,29 +190,41 @@ namespace IfcGeometryExtractor
                         Console.WriteLine("Segmente Pkt gleich: " + wl.segmentA.X + " / " + wl.segmentA.Y);
 
                     WallToDXF(wl, "0_detectedWalls", DXFcolor.yellow);
-                    PointsToDXF(wl.segmentA, "0_detectedWalls", DXFcolor.yellow);
-                    PointsToDXF(wl.segmentB, "0_detectedWalls", DXFcolor.yellow);
+                    PointsToDXF(wl.segmentA, "0_detectedWallPts", DXFcolor.yellow);
+                    PointsToDXF(wl.segmentB, "0_detectedWallPts", DXFcolor.yellow);
                 }
                 //--------------------------------------------------------------------------
 
                 Console.ReadKey();
 
-                CompareCvxWalls();
+                CleanUpWallLines(wallLined);
 
-                FindOuterIntersectionPts(wallLined);
+                Console.WriteLine("cleans= " + wallLinedClean.Count);
 
-                CreateRealIntersecPts();
-
-                var globalPts = GetGlobalPlacement(realIntersecPts);
-
-                globalPts.Add(globalPts[0]); //geschlossener Ring
-
-                foreach(var pt in globalPts)
+                foreach(var w in wallLinedClean)
                 {
-                    PointsToDXF(pt, "globalSecs", DXFcolor.red);
+                    WallToDXF(w, "cleanLines", DXFcolor.red);
 
-                    Console.WriteLine(pt.X + " , " + pt.Y);
+                    PointsToDXF(w.segmentA, "cleanPts", DXFcolor.red);
+                    PointsToDXF(w.segmentB, "cleanPts", DXFcolor.red);
                 }
+
+                //CompareCvxWalls();
+
+                //FindOuterIntersectionPts(wallLined);
+
+                //CreateRealIntersecPts();
+
+                ////var globalPts = GetGlobalPlacement(realIntersecPts);
+
+                ////globalPts.Add(globalPts[0]); //geschlossener Ring
+
+                //foreach(var pt in realIntersecPts)
+                //{
+                //    PointsToDXF(pt, "finalWKTpts", DXFcolor.red);
+
+                //    Console.WriteLine(pt.X + " , " + pt.Y);
+                //}
 
                 dxf.Save(path + ".dxf");
 
@@ -220,14 +235,12 @@ namespace IfcGeometryExtractor
             catch(Exception ex)
             {
                 Console.WriteLine(ex);
-                
 
                 dxf.Save(path + ".dxf");
 
                 System.Diagnostics.Process.Start(path + ".dxf");
 
                 Console.ReadLine();
-
             }
         }
 
@@ -235,6 +248,96 @@ namespace IfcGeometryExtractor
         //Methodendeklarationen
         //-----------------------
         //-----------------------
+
+        public static void CleanUpWallLines(List<LinePoints> ifcWallLines)
+        {
+            var relatedWalls = new List<LinePoints>();
+
+            for(var j = 0; j < ifcWallLines.Count; j++)
+            {
+                var overlaps = new List<bool>();
+
+                //if(relatedWalls.Contains(ifcWallLines[j]))
+                //    continue;
+
+                //relatedWalls.Clear();
+
+                for(var k = 0; k < ifcWallLines.Count; k++)
+                {
+                    if(j == k)
+                        continue;
+
+                    //if(IdentifyOverlapLines(wallLined[j], wallLined[k]))
+                    //{
+                    //    relatedWalls.Add(wallLined[k]);
+
+                    //    if (!relatedWalls.Contains(wallLined[j]))
+                    //        relatedWalls.Add(wallLined[j]);
+                    //}
+
+                    if(IdentifyOverlapLines(ifcWallLines[j], ifcWallLines[k]))
+                    {
+                        overlaps.Add(true);
+                    }
+                    else
+                    {
+                        overlaps.Add(false);
+                    }
+                }
+
+                if(!overlaps.Contains(true))
+                    wallLinedClean.Add(ifcWallLines[j]);               //Wandlinie ist einzeln, nicht überlappend, und nicht benachbart in gleicher Richtung vorhanden 
+                                                                    //wird daher direkt in "saubere" Wandlinien geschrieben
+
+                //if (relatedWalls.Count > 0)
+                //    wallLinedClean.Add(UnifyWallLines(relatedWalls));
+            }
+        }
+
+        public static LinePoints UnifyWallLines(List<LinePoints> relWalls)
+        {
+            var unitedWall = new LinePoints();
+
+            var ptsA = from wall in relWalls
+                       select wall.segmentA;
+
+            var ptsB = from wall in relWalls
+                       select wall.segmentB;
+
+            var pts = new List<Point2>();
+            pts.AddRange(ptsA);
+            pts.AddRange(ptsB);
+
+            var dist = 0.0;
+
+            //Point2 start;
+            //Point2 end;
+
+            for(var i = 0; i < pts.Count; i++)
+            {
+                for(var j = 0; j < pts.Count; j++)
+                {
+                    var dx = pts[i].X - pts[j].X;
+                    var dy = pts[i].Y - pts[j].Y;
+
+                    var distL = Math.Sqrt((dx * dx + dy * dy));
+
+                    if(distL > dist)
+                    {
+                        unitedWall.segmentA = pts[i];
+                        unitedWall.segmentB = pts[j];
+
+                        Line2.Create(pts[i], pts[j], out var wall);
+
+                        unitedWall.wallLine = wall;
+
+                        dist = distL;
+                    }
+                }
+            }
+
+            return unitedWall;
+        }
 
         //Methode zur Extraktion von Wänden aus der IFC-Datei
         //----------------------------------------------------------
@@ -266,58 +369,60 @@ namespace IfcGeometryExtractor
         //Methode zur Umrechnung der absoluten Koordinaten, bezogen auf die Aggregationshierarchie ins (globale) Projektsystem
         //----------------------------------------------------------
 
-        public static List<Point2> GetGlobalPlacement(IList<Point2> intersecs)
-        {
-            var globalPts = new List<Point2>();
+        //Deprecated: keine Übergabe zur Map von global berechneten Koordinaten
 
-            var globPlcmts = new List<Axis2Placement3D>();
+        //public static List<Point2> GetGlobalPlacement(IList<Point2> intersecs)
+        //{
+        //    var globalPts = new List<Point2>();
 
-            var ctx = model.Instances.OfType<IIfcGeometricRepresentationContext>().     //enthält Projektkoordinatensystem
-                Where(m => m.CoordinateSpaceDimension == 3).                            //Beschränkung auf Model-Context
-                First();                                                                //erstgefundenes Objekt (sollte sowieso nur einmal in IFC vorkommen)
+        //    var globPlcmts = new List<Axis2Placement3D>();
 
-            var ifcWcs = (IIfcAxis2Placement3D)ctx.WorldCoordinateSystem;               //IfcAxis2Placement3D des Projektes (Projektkoordinatensystem)
+        //    var ctx = model.Instances.OfType<IIfcGeometricRepresentationContext>().     //enthält Projektkoordinatensystem
+        //        Where(m => m.CoordinateSpaceDimension == 3).                            //Beschränkung auf Model-Context
+        //        First();                                                                //erstgefundenes Objekt (sollte sowieso nur einmal in IFC vorkommen)
 
-            var libWcs = ConvertAxis2Plcm(ifcWcs);                                      //Umwandlung in Library-Klasse
+        //    var ifcWcs = (IIfcAxis2Placement3D)ctx.WorldCoordinateSystem;               //IfcAxis2Placement3D des Projektes (Projektkoordinatensystem)
 
-            globPlcmts.Add(libWcs);
+        //    var libWcs = ConvertAxis2Plcm(ifcWcs);                                      //Umwandlung in Library-Klasse
 
-            var north = ctx.TrueNorth;                                                  //Winkel zwischen Projektnord und geograph. Nord
+        //    globPlcmts.Add(libWcs);
 
-            var libTN = Axis2Placement3D.Create();                                      //Axis2Placement für True North, basierend auf WCS
+        //    var north = ctx.TrueNorth;                                                  //Winkel zwischen Projektnord und geograph. Nord
 
-            Direction3.Create(north.Y, north.X, 0.0, out var libDirTN);                 //True North Verdrehung als neue X-Achse
+        //    var libTN = Axis2Placement3D.Create();                                      //Axis2Placement für True North, basierend auf WCS
 
-            libTN.RefDirection = libDirTN;
+        //    Direction3.Create(north.Y, north.X, 0.0, out var libDirTN);                 //True North Verdrehung als neue X-Achse
 
-            globPlcmts.Add(libTN);
+        //    libTN.RefDirection = libDirTN;
 
-            var map = model.Instances.OfType<IIfcMapConversion>().                      //MapConversion zu CRS vorhanden
-                Where(g => g.SourceCRS is IIfcGeometricRepresentationContext).
-                FirstOrDefault();
+        //    globPlcmts.Add(libTN);
 
-            if(map != null)
-            {
-                var vecMap = BimGisCad.Representation.Geometry.Elementary.Vector3.Create(map.Eastings, map.Northings, map.OrthogonalHeight);
-                Direction3.Create(map.XAxisAbscissa.Value, map.XAxisOrdinate.Value, 0.0, out var libDirMap);
+        //    var map = model.Instances.OfType<IIfcMapConversion>().                      //MapConversion zu CRS vorhanden
+        //        Where(g => g.SourceCRS is IIfcGeometricRepresentationContext).
+        //        FirstOrDefault();
 
-                var libMap = Axis2Placement3D.Create(vecMap);
-                libMap.RefDirection = libDirMap;
+        //    if(map != null)
+        //    {
+        //        var vecMap = BimGisCad.Representation.Geometry.Elementary.Vector3.Create(map.Eastings, map.Northings, map.OrthogonalHeight);
+        //        Direction3.Create(map.XAxisAbscissa.Value, map.XAxisOrdinate.Value, 0.0, out var libDirMap);
 
-                globPlcmts.Add(libMap);
-            }
+        //        var libMap = Axis2Placement3D.Create(vecMap);
+        //        libMap.RefDirection = libDirMap;
 
-            var plcmGlobal = Axis2Placement3D.Combine(globPlcmts.ToArray());               //Kombinieren der Systeme zu globalem System
+        //        globPlcmts.Add(libMap);
+        //    }
 
-            foreach(var sec in intersecs)
-            {
-                Axis2Placement3D.ToGlobal(plcmGlobal, sec, out var gbSec);
+        //    var plcmGlobal = Axis2Placement3D.Combine(globPlcmts.ToArray());               //Kombinieren der Systeme zu globalem System
 
-                globalPts.Add(Point2.Create(gbSec.X, gbSec.Y));
-            }
+        //    foreach(var sec in intersecs)
+        //    {
+        //        Axis2Placement3D.ToGlobal(plcmGlobal, sec, out var gbSec);
 
-            return globalPts;
-        }
+        //        globalPts.Add(Point2.Create(gbSec.X, gbSec.Y));
+        //    }
+
+        //    return globalPts;
+        //}
 
         //Methoden, die von jeder einzelnen Wand aufgerufen werden:
         //----------------------------------------------------------
@@ -330,6 +435,11 @@ namespace IfcGeometryExtractor
         {
             var plcmts = new List<Axis2Placement3D>();
             var relPlcmts = GetRelativePlacements(plcmRelObj, plcmts);
+
+            //Achtung: folgende Zeile löscht LocalPlacement vom letzten Objekt in der Liste
+            //Dies ist das Placement vom (höchstgelegenen) IfcSite-Objekt (Annahme: korrekte Aggregation in IFC-Datei)
+            //Rotation und Translation von IfcSite werden absichtlich übergangen (=> Vermeidung großer Koordinaten für Map-Platzierung)
+            relPlcmts.RemoveAt(relPlcmts.Count - 1);
 
             siteSystem = Axis2Placement3D.Combine(relPlcmts.ToArray());
 
@@ -364,12 +474,6 @@ namespace IfcGeometryExtractor
                 {
                     //Methode ruft sich selber auf bis keine relativen Platzierungen mehr vorhanden sind
                     GetRelativePlacements(higherPlcm, plcmts);
-                }
-                else
-                {
-                    //Console.WriteLine("No more relative Placements existent. Please refer now to the World Coordinate System.");
-
-                    //TO DO: Umwandlung ins WCS vornehmen
                 }
             }
             else
@@ -571,7 +675,7 @@ namespace IfcGeometryExtractor
 
                 wallLines.Add(wallSegment);
 
-                //WallToDXF(wallSegment, "WallsBody", DXFcolor.yellow);
+                WallToDXF(wallSegment, "partsWallsBody", DXFcolor.cyan);
             }
 
             return wallLines;
@@ -622,14 +726,14 @@ namespace IfcGeometryExtractor
                 Line2.Create(ptPair[0], ptPair[1], out var wallAxis);
                 wallLine.wallLine = wallAxis;
 
-                //WallToDXF(wallLine, "WallsAxis", DXFcolor.green);
+                WallToDXF(wallLine, "partsWallsAxis", DXFcolor.green);
             }
 
             return wallLine;
         }
 
         public static void GetFootprintGeometry(IIfcRepresentation rep)
-        { }
+        { } // To Be implemented
 
         //------------------------------------------neuer Ansatz zum Finden----------------------------------------
 
@@ -658,7 +762,7 @@ namespace IfcGeometryExtractor
             {
                 var pt1 = Point2.Create(convexHull[i].Position[0], convexHull[i].Position[1]);
 
-                PointsToDXF(pt1, "convex", DXFcolor.magenta);
+                PointsToDXF(pt1, "convexHullPts", DXFcolor.magenta);
 
                 Point2 pt2;
 
@@ -697,13 +801,29 @@ namespace IfcGeometryExtractor
 
                 var cvxMatchLines = new List<LinePoints>();
 
+                //foreach (var cvx in cvxLines)
+                //{
+                //    var wallMatch = from cvx in cvxLines                                                 //Vergleich Convex Hull mit Wandkanten
+                //                   where cvx.wallLine.Direction.Equals(wall.wallLine.Direction)
+                //                   select wall;
+
+                //    extWallLines.AddRange(wallMatch.Distinct());
+                //}
+
                 foreach(var cvx in cvxLines)
                 {
+                    var dirCvxX = Math.Round(Math.Abs(cvx.wallLine.Direction.X), 4);
+                    var dirCvxY = Math.Round(Math.Abs(cvx.wallLine.Direction.Y), 4);
+
                     var cvxMatch = from wall in wallLined                                                 //Vergleich Convex Hull mit Wandkanten
-                                   where wall.wallLine.Direction.Equals(cvx.wallLine.Direction)
+                                   where
+                                   (Math.Round(Math.Abs(wall.wallLine.Direction.X), 4)).Equals(dirCvxX) &&
+                                   (Math.Round(Math.Abs(wall.wallLine.Direction.Y), 4)).Equals(dirCvxY)/* &&*/
+                                   //(wall.segmentA.Equals(cvx.segmentA) || wall.segmentA.Equals(cvx.segmentB)) &&
+                                   //(wall.segmentB.Equals(cvx.segmentB) || wall.segmentB.Equals(cvx.segmentA))
                                    select cvx;
 
-                    cvxMatchLines.AddRange(cvxMatch.Distinct());
+                    //cvxMatchLines.AddRange(cvxMatch.Distinct());
 
                     extWallLines.AddRange(cvxMatch.Distinct());  //Listen vereinigen ?!
                 }
@@ -716,23 +836,23 @@ namespace IfcGeometryExtractor
 
                 foreach(var cvxM in cvxMatchLines)
                 {
-                    WallToDXF(cvxM, "convexWallLine", DXFcolor.blue);
+                    WallToDXF(cvxM, "convexHullMatchLine", DXFcolor.blue);
                 }
 
                 DensifyRayOrigins(1);
 
-                //foreach(var cvxO in cvxOuterLines)
-                //{
-                //    WallToDXF(cvxO, "convexLineOutside", DXFcolor.yellow);
+                foreach(var cvxO in cvxOuterLines)
+                {
+                    WallToDXF(cvxO, "convexLineOutside", DXFcolor.yellow);
 
-                //    var mpt = Point2.Create((cvxO.segmentB.X + (cvxO.segmentA.X - cvxO.segmentB.X) / 2), (cvxO.segmentB.Y + (cvxO.segmentA.Y - cvxO.segmentB.Y) / 2));
+                    //    var mpt = Point2.Create((cvxO.segmentB.X + (cvxO.segmentA.X - cvxO.segmentB.X) / 2), (cvxO.segmentB.Y + (cvxO.segmentA.Y - cvxO.segmentB.Y) / 2));
 
-                //    PointsToDXF(mpt, "mittelpunkte", DXFcolor.magenta);
+                    //    PointsToDXF(mpt, "mittelpunkte", DXFcolor.magenta);
 
-                //    var rayB = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
+                    //    var rayB = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
 
-                //    bundleList.Add(rayB);
-                //}
+                    //    bundleList.Add(rayB);
+                }
             }
             catch { }
         }
@@ -807,8 +927,8 @@ namespace IfcGeometryExtractor
 
                             extPts.Add(extSec);                             //prüfen, ob diese Liste noch benötigt wird (außer Visualisierung)
 
-                            PointsToDXF(extSec, "ExternalWallIntersects", DXFcolor.cyan);
-                            //WallToDXF(extWall, "ExternalWalls", DXFcolor.blue);
+                            PointsToDXF(extSec, "RayWallIntersects", DXFcolor.cyan);
+                            WallToDXF(extWall, "FoundedExternalWalls", DXFcolor.blue);
                         }
                     }
                 }
@@ -828,21 +948,47 @@ namespace IfcGeometryExtractor
             {
                 Console.WriteLine(extWallLines.Count + "vorher");
 
-                foreach(var wall in extWallLines)
-                {
-                    WallToDXF(wall, "externeWallsVorVereinigung", DXFcolor.red);
-                }
+                //foreach(var wall in extWallLines)
+                //{
+                //    WallToDXF(wall, "externeWallsVorVereinigung", DXFcolor.red);
+                //}
 
                 CalcSameLines();
 
                 Console.WriteLine(extWallLines.Count + "nachher");
 
-                foreach(var wall in extWallLines)
-                {
-                    WallToDXF(wall, "externeWallsBereinigt", DXFcolor.magenta);
-                }
+                //foreach(var wall in extWallLines)
+                //{
+                //    WallToDXF(wall, "FoundedExternalWallsAfterCalcSameLines", DXFcolor.magenta);
+                //}
             }
             catch(Exception ex) { Console.WriteLine(ex); }
+        }
+
+        public static bool IdentifyOverlapLines(LinePoints a, LinePoints b)
+        {
+            //Möglichkeiten für Überlappungen/Nachbarschaft:
+            ////b liegt komplett in a
+            ////b, segA grenzt an a
+            ////b, segB grenzt an a
+            ////a liegt komplett in b
+            ////a, segA grenzt an b
+            ////a, segB grenzt an b
+
+            if(
+            Math.Round(Math.Abs(a.wallLine.Direction.X), 4).Equals(Math.Round(Math.Abs(b.wallLine.Direction.X), 4)) &&
+            (ValidIntersecPt(a.segmentA, a.segmentB, b.segmentA) ||
+            ValidIntersecPt(a.segmentA, a.segmentB, b.segmentB) ||
+            ValidIntersecPt(b.segmentA, b.segmentB, a.segmentA) ||
+            ValidIntersecPt(b.segmentA, b.segmentB, a.segmentB)
+            ))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public static void CalcSameLines()  //Versuch, Linien vorher zu bereinigen (evtl vor Outerlines mit remove durchführen)
@@ -890,7 +1036,7 @@ namespace IfcGeometryExtractor
                                     unitedWallLine.segmentB = segB;
                                     //Line2.Create(unitedWallLine.segmentA, unitedWallLine.segmentB, out var newline);
 
-                                    WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
+                                    //WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
 
                                     removedWalls.Add(extWallLines[j]);
                                     removedWalls.Add(extWallLines[k]);
@@ -924,7 +1070,7 @@ namespace IfcGeometryExtractor
                                     unitedWallLine.segmentB = segB;
                                     //Line2.Create(unitedWallLine.segmentA, unitedWallLine.segmentB, out var newline);
 
-                                    WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
+                                    //WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
 
                                     removedWalls.Add(extWallLines[j]);
                                     removedWalls.Add(extWallLines[k]);
@@ -942,7 +1088,7 @@ namespace IfcGeometryExtractor
 
             foreach(var wallR in removedWalls)
             {
-                WallToDXF(wallR, "removed", DXFcolor.red);
+                WallToDXF(wallR, "RemovedWallsinCalcSameLines", DXFcolor.red);
 
                 if(extWallLines.Contains(wallR))
                     extWallLines.Remove(wallR);
@@ -954,7 +1100,7 @@ namespace IfcGeometryExtractor
             {
                 // Console.WriteLine("NextLine: " + nextLine.wallLine.ToString() + ", SegA: " + (nextLine.segmentA.X - nextLine.segmentB.X) + ", SegB: " + (nextLine.segmentA.Y - nextLine.segmentB.Y));
 
-                WallToDXF(nextLine, "extuniwalls", DXFcolor.green);
+                WallToDXF(nextLine, "BereinigteExternalWallsAfterCalcSameLines", DXFcolor.green);
             }
 
             firstLine = extUniWalls[0];
@@ -1104,7 +1250,7 @@ namespace IfcGeometryExtractor
 
             foreach(var cvxO in cvxOuterLines)
             {
-                WallToDXF(cvxO, "convexLineOutside", DXFcolor.yellow);
+                //WallToDXF(cvxO, "convexLineOutside", DXFcolor.yellow);
 
                 var deltax = cvxO.segmentA.X - cvxO.segmentB.X;
                 var deltay = cvxO.segmentA.Y - cvxO.segmentB.Y;
@@ -1306,7 +1452,7 @@ namespace IfcGeometryExtractor
             IList<Line2> rays = new List<Line2>();
 
             //Variable deg gibt implizit Anzahl der Strahlen vor (für Test beliebig, später auswählbar oder 0.1)
-            var deg = 5;
+            var deg = 3;
 
             var rad = deg * Math.PI / 180;
 
