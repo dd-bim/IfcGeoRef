@@ -34,8 +34,9 @@ namespace IfcGeometryExtractor
         private static List<LinePoints> wallLinedClean = new List<LinePoints>();
         private static List<LinePoints> cvxLinesClean = new List<LinePoints>();
         private static List<LinePoints> extWallLinesClean = new List<LinePoints>();
-        private static IList<LinePoints> cvxOuterLines = new List<LinePoints>();
+
         private static List<LinePoints> extUniWalls = new List<LinePoints>();
+
         private static LinePoints firstLine;
 
         private static IList<Point2> realIntersecPts = new List<Point2>();
@@ -88,11 +89,11 @@ namespace IfcGeometryExtractor
                         break;
 
                     case "6":
-                        path = source + "Haus-Constrtn25.ifc";
+                        path = source + "OpenModels\\301110FJK-Project-Final.ifc";
                         break;
 
                     case "7":
-                        path = source + "Haus-Constr2intern.ifc";
+                        path = source + "OpenModels\\20180117201620_Svaleveien 8_Hus A (06).ifc";
                         break;
 
                     case "8":
@@ -139,12 +140,13 @@ namespace IfcGeometryExtractor
 
                     var repTypes = singleWall.Representation.Representations;
 
-                    var repList = new List<IIfcRepresentation>();
+                    //var repList = new List<IIfcRepresentation>();
 
                     var repBody = from rep in repTypes
                                   where rep.RepresentationIdentifier == "Body"
                                   select rep;
 
+                    //if (repBody != null)
                     var wallDetec = GetBodyGeometry(repBody.FirstOrDefault());
 
                     if(wallDetec.Count > 0)
@@ -180,6 +182,7 @@ namespace IfcGeometryExtractor
 
                 //Ausgabe:
                 //--------------------------------------------------------------------------
+
                 Console.WriteLine("Gefundene Wandsegmente: " + wallLined.Count);
                 Console.WriteLine();
 
@@ -192,11 +195,11 @@ namespace IfcGeometryExtractor
 
                 foreach(var wl in wallLined)
                 {
-                    var dX = wl.segmentA.X - wl.segmentB.X;
-                    var dY = wl.segmentA.Y - wl.segmentB.Y;
-
-                    if((dX == 0.0) && (dY == 0.0))
+                    if(CalcDistance(wl.segmentA, wl.segmentB) == 0)
                         Console.WriteLine("Segmente Pkt gleich: " + wl.segmentA.X + " / " + wl.segmentA.Y);
+
+                    if(wl.wallLine.Direction.Equals(null))
+                        Console.WriteLine("Nullalble direction found");
 
                     WallToDXF(wl, "0_detectedWalls", DXFcolor.yellow);
                     PointsToDXF(wl.segmentA, "0_detectedWallPts", DXFcolor.yellow);
@@ -212,10 +215,10 @@ namespace IfcGeometryExtractor
 
                 foreach(var w in wallLinedClean)
                 {
-                    WallToDXF(w, "cleanLines", DXFcolor.red);
+                    WallToDXF(w, "1_cleanLines", DXFcolor.red);
 
-                    PointsToDXF(w.segmentA, "cleanPts", DXFcolor.red);
-                    PointsToDXF(w.segmentB, "cleanPts", DXFcolor.red);
+                    PointsToDXF(w.segmentA, "1_cleanPts", DXFcolor.red);
+                    PointsToDXF(w.segmentB, "1_cleanPts", DXFcolor.red);
                 }
 
                 CompareCvxWalls();
@@ -224,13 +227,28 @@ namespace IfcGeometryExtractor
 
                 CreateRealIntersecPts();
 
+                realIntersecPts.Add(realIntersecPts[0]);
+
                 foreach(var pt in realIntersecPts)
                 {
-                    PointsToDXF(pt, "RealIntersecs", DXFcolor.yellow);
+                    PointsToDXF(pt, "ZRealIntersecs", DXFcolor.yellow);
 
-                    Console.WriteLine(pt.X + " / " + pt.Y);
+                    // Console.WriteLine(pt.X + " / " + pt.Y);
 
                     //"WKTRep": "POLYGON((10 10, 100 10, 100 80, 70 80, 70 30, 30 30, 30 55, 10 55, 10 10))",
+                }
+
+                for(var i = 0; i < (realIntersecPts.Count - 1); i++)
+                {
+                    var poly = new LinePoints(realIntersecPts[i], realIntersecPts[i + 1]);
+                    //poly.segmentA = realIntersecPts[i];
+                    //poly.segmentB = realIntersecPts[i + 1];
+
+                    //poly.wallLine = polyline;
+
+                    WallToDXF(poly, "Polygon", DXFcolor.green);
+
+                    WriteSegments2Console(poly);
                 }
 
                 ////var globalPts = GetGlobalPlacement(realIntersecPts);
@@ -244,9 +262,27 @@ namespace IfcGeometryExtractor
                 //    Console.WriteLine(pt.X + " , " + pt.Y);
                 //}
 
-                dxf.Save(path + ".dxf");
+                Console.WriteLine();
+                Console.WriteLine("Start AutoCAD for Visualisation?: press j / n");
 
-                System.Diagnostics.Process.Start(path + ".dxf");
+                var cad = Console.ReadLine();
+
+                switch(cad)
+                {
+                    case "j":
+                        {
+                            dxf.Save(path + ".dxf");
+
+                            System.Diagnostics.Process.Start(path + ".dxf");
+
+                            Console.ReadKey();
+
+                            break;
+                        }
+
+                    default:
+                        break;
+                }
 
                 Console.ReadKey();
             }
@@ -271,76 +307,43 @@ namespace IfcGeometryExtractor
         {
             var wallLined = new List<LinePoints>();
 
-            switch(unit)
+            var segA = new Point2();
+            var segB = new Point2();
+
+            foreach(var w in walls)
             {
-                case "m":
-                    foreach(var w in walls)
-                    {
-                        var segA = Point2.Create(/*RoundCoords*/(w.segmentA.X), /*RoundCoords*/(w.segmentA.Y));
-                        var segB = Point2.Create(/*RoundCoords*/(w.segmentB.X), /*RoundCoords*/(w.segmentB.Y));
+                switch(unit)
+                {
+                    case "m":
+                        segA = Point2.Create((w.segmentA.X), (w.segmentA.Y));
+                        segB = Point2.Create((w.segmentB.X), (w.segmentB.Y));
+                        break;
 
-                        var wall = new LinePoints();
-                        wall.segmentA = segA;
-                        wall.segmentB = segB;
-                        Line2.Create(wall.segmentA, wall.segmentB, out var wallL);
-                        wall.wallLine = wallL;
-                        wallLined.Add(wall);
-                    }
-                    break;
+                    case "mm":
+                        segA = Point2.Create((w.segmentA.X / 1000), (w.segmentA.Y / 1000));
+                        segB = Point2.Create((w.segmentB.X / 1000), (w.segmentB.Y / 1000));
+                        break;
 
-                case "mm":
+                    case "ft":
+                        segA = Point2.Create((w.segmentA.X * 0.3048), (w.segmentA.Y * 0.3048));
+                        segB = Point2.Create((w.segmentB.X * 0.3048), (w.segmentB.Y * 0.3048));
+                        break;
 
-                    foreach(var w in walls)
-                    {
-                        var segA = Point2.Create(/*RoundCoords*/(w.segmentA.X / 1000), /*RoundCoords*/(w.segmentA.Y / 1000));
-                        var segB = Point2.Create(/*RoundCoords*/(w.segmentB.X / 1000), /*RoundCoords*/(w.segmentB.Y / 1000));
+                    default:
+                        segA = Point2.Create((w.segmentA.X), (w.segmentA.Y));
+                        segB = Point2.Create((w.segmentB.X), (w.segmentB.Y));
+                        break;
+                }
 
-                        var wall = new LinePoints();
-                        wall.segmentA = segA;
-                        wall.segmentB = segB;
-                        Line2.Create(wall.segmentA, wall.segmentB, out var wallL);
-                        wall.wallLine = wallL;
-                        wallLined.Add(wall);
-                    }
-                    break;
-
-                case "ft":
-
-                    foreach(var w in walls)
-                    {
-                        var segA = Point2.Create(/*RoundCoords*/(w.segmentA.X * 0.3048), /*RoundCoords*/(w.segmentA.Y * 0.3048));
-                        var segB = Point2.Create(/*RoundCoords*/(w.segmentB.X * 0.3048), /*RoundCoords*/(w.segmentB.Y * 0.3048));
-
-                        var wall = new LinePoints();
-                        wall.segmentA = segA;
-                        wall.segmentB = segB;
-                        Line2.Create(wall.segmentA, wall.segmentB, out var wallL);
-                        wall.wallLine = wallL;
-                        wallLined.Add(wall);
-                    }
-                    break;
+                var wall = new LinePoints(segA, segB);
+                wallLined.Add(wall);
             }
-
             return wallLined;
-        }
-
-        public static double RoundCoords(double coord)
-        {
-            coord = Math.Round(coord, 3);
-
-            return coord;
-        }
-
-        public static double RoundDirection(double direc)
-        {
-            direc = Math.Round(direc, 8);
-
-            return direc;
         }
 
         public static void CleanUpWallLines(List<LinePoints> ifcWallLines, string task)
         {
-            var indices = new List<int>();
+            var indices = new List<int>();                 //wichtig!
             var interimWalls = new List<LinePoints>();
 
             for(var j = 0; j < ifcWallLines.Count; j++)
@@ -349,40 +352,40 @@ namespace IfcGeometryExtractor
 
                 var overlaps = new List<bool>();
 
-                //if(relatedWalls.Contains(ifcWallLines[j]))
-                //    continue;
-
-                //relatedWalls.Clear();
-
                 for(var k = 0; k < ifcWallLines.Count; k++)
                 {
-                    //if(j == k)
-                    //    continue;
-
-                    if(IdentifyOverlapLines(ifcWallLines[j], ifcWallLines[k]))
+                    try
                     {
-                        if(!j.Equals(k))
-                            overlaps.Add(true);
-
-                        if(!indices.Contains(k))
+                        if(IdentifyOverlapLines(ifcWallLines[j], ifcWallLines[k]))
                         {
-                            indices.Add(k);
+                            if(!j.Equals(k))
+                                overlaps.Add(true);
 
-                            relatedWallsLoc.Add(ifcWallLines[k]);
+                            if(!indices.Contains(k))
+                            {
+                                indices.Add(k);
+
+                                relatedWallsLoc.Add(ifcWallLines[k]);
+                            }
+                        }
+                        else
+                        {
+                            overlaps.Add(false);
                         }
                     }
-                    else
+                    catch
                     {
-                        overlaps.Add(false);
+                        Console.WriteLine("lines error by:" + j + " and " + k);
                     }
                 }
+
+                //Console.WriteLine("similars for: " + j + " = " + relatedWallsLoc.Count);
 
                 if(!overlaps.Contains(true))
                 {
                     if(task.Equals("wall"))
                         wallLinedClean.Add(ifcWallLines[j]);               //Wandlinie ist einzeln, nicht überlappend, und nicht benachbart in gleicher Richtung vorhanden
                                                                            //wird daher direkt in "saubere" Wandlinien geschrieben
-
                     if(task.Equals("cvx"))
                         cvxLinesClean.Add(ifcWallLines[j]);
 
@@ -394,34 +397,24 @@ namespace IfcGeometryExtractor
                     var unifiedWall = UnifyWallLines(relatedWallsLoc);
 
                     if(!unifiedWall.segmentA.Equals(unifiedWall.segmentB))
-                        interimWalls.Add(unifiedWall);          //übergibt in Beziehung stehende Linien und erstellt neue Linie mit weit auseinander ligendsten Punkten
+                        interimWalls.Add(unifiedWall);          //übergibt in Beziehung stehende Linien und erstellt neue Linie mit weit auseinander liegendsten Punkten
                 }
-
-                Console.WriteLine("counter interims, loop, int j: " + j + "Count= " + interimWalls.Count);
             }
-
-            foreach(var w in interimWalls)
-            {
-                WallToDXF(w, "interim", DXFcolor.blue);
-            }
-
-            Console.WriteLine("counter interims, all: " + interimWalls.Count);
 
             //Wiederholung bis alle Linien "sauber" sind
 
+            Console.WriteLine(interimWalls.Count);
+
             if(interimWalls.Count > 0)
             {
-                Console.WriteLine("Neuer Durchlauf!");
-                Console.WriteLine("counter cleans: " + wallLinedClean.Count);
-
-                var interims = new List<LinePoints>();
-                interims.AddRange(interimWalls);
-
                 if(task.Equals("wall"))
-                    CleanUpWallLines(interims, "wall");
+                    CleanUpWallLines(interimWalls, "wall");
 
                 if(task.Equals("cvx"))
-                    CleanUpWallLines(interims, "cvx");
+                    CleanUpWallLines(interimWalls, "cvx");
+
+                if(task.Equals("ext"))
+                    CleanUpWallLines(interimWalls, "ext");
             }
             else
             {
@@ -431,7 +424,10 @@ namespace IfcGeometryExtractor
 
         public static LinePoints UnifyWallLines(List<LinePoints> relWalls)
         {
-            var unitedWall = new LinePoints();
+            //var unitedWall = new LinePoints();
+
+            var uniPtA = new Point2();
+            var uniPtB = new Point2();
 
             var ptsA = from wall in relWalls
                        select wall.segmentA;
@@ -449,26 +445,19 @@ namespace IfcGeometryExtractor
             {
                 for(var j = 0; j < pts.Count; j++)
                 {
-                    var dx = pts[i].X - pts[j].X;
-                    var dy = pts[i].Y - pts[j].Y;
-
-                    var distL = Math.Sqrt((dx * dx + dy * dy));
+                    var distL = CalcDistance(pts[i], pts[j]);
 
                     if(distL > dist)
                     {
-                        unitedWall.segmentA = pts[i];
-                        unitedWall.segmentB = pts[j];
-
-                        Line2.Create(pts[i], pts[j], out var wall);
-
-                        unitedWall.wallLine = wall;
+                        uniPtA = pts[i];
+                        uniPtB = pts[j];
 
                         dist = distL;
                     }
                 }
             }
 
-            return unitedWall;
+            return new LinePoints(uniPtA, uniPtB);
         }
 
         //Methode zur Extraktion von Wänden aus der IFC-Datei
@@ -796,18 +785,9 @@ namespace IfcGeometryExtractor
                 if((i + 1) >= globalPtList.Count)
                     break;
 
-                var wallSegment = new LinePoints();
-
-                wallSegment.segmentA = globalPtList.ElementAt(i);
-                wallSegment.segmentB = globalPtList.ElementAt(i + 1);
-
-                Line2.Create(wallSegment.segmentA, wallSegment.segmentB, out var wallAxis);
-
-                wallSegment.wallLine = wallAxis;
+                var wallSegment = new LinePoints(globalPtList.ElementAt(i), globalPtList.ElementAt(i + 1));
 
                 wallLines.Add(wallSegment);
-
-                //WallToDXF(wallSegment, "partsWallsBody", DXFcolor.cyan);
             }
 
             return wallLines;
@@ -853,12 +833,6 @@ namespace IfcGeometryExtractor
 
                 wallLine.segmentA = ptPair[0];
                 wallLine.segmentB = ptPair[1];
-
-                //für Weiterverarbeitung im Programm:
-                Line2.Create(ptPair[0], ptPair[1], out var wallAxis);
-                wallLine.wallLine = wallAxis;
-
-                //WallToDXF(wallLine, "partsWallsAxis", DXFcolor.green);
             }
 
             return wallLine;
@@ -905,12 +879,12 @@ namespace IfcGeometryExtractor
                     pt2 = Point2.Create(convexHull[0].Position[0], convexHull[0].Position[1]);
                 }
 
-                Line2.Create(pt1, pt2, out var cvxLine);
+                //Line2.Create(pt1, pt2, out var cvxLine);
 
-                var cvxLineSeg = new LinePoints();
-                cvxLineSeg.segmentA = pt1;
-                cvxLineSeg.segmentB = pt2;
-                cvxLineSeg.wallLine = cvxLine;
+                var cvxLineSeg = new LinePoints(pt1, pt2);
+                //cvxLineSeg.segmentA = pt1;
+                //cvxLineSeg.segmentB = pt2;
+                //cvxLineSeg.wallLine = cvxLine;
 
                 realIntersecPts.Add(pt1);
 
@@ -918,6 +892,34 @@ namespace IfcGeometryExtractor
             }
 
             return cvxLines;
+        }
+
+        public static bool SameSegment(LinePoints firstSeg, LinePoints secondSeg)
+        {
+            if((SamePoint(firstSeg.segmentA, secondSeg.segmentA) && SamePoint(firstSeg.segmentB, secondSeg.segmentB)) ||
+                (SamePoint(firstSeg.segmentB, secondSeg.segmentB) && SamePoint(firstSeg.segmentA, secondSeg.segmentA)) ||
+                (SamePoint(firstSeg.segmentA, secondSeg.segmentB) && SamePoint(firstSeg.segmentB, secondSeg.segmentA)) ||
+                (SamePoint(firstSeg.segmentB, secondSeg.segmentA) && SamePoint(firstSeg.segmentA, secondSeg.segmentB)))
+                return true;
+            else
+                return false;
+        }
+
+        public static bool SamePoint(Point2 firstPt, Point2 secondPt)
+        {
+            if(RoundPoints(firstPt).Equals(RoundPoints(secondPt)))
+                return true;
+            else
+                return false;
+        }
+
+        public static bool SimilarDirection(LinePoints firstDir, LinePoints secondDir)
+        {
+            if((RoundDirection(Math.Abs(firstDir.wallLine.Direction.X)).Equals(RoundDirection(Math.Abs(secondDir.wallLine.Direction.X)))) &&
+                (RoundDirection(Math.Abs(firstDir.wallLine.Direction.Y)).Equals(RoundDirection(Math.Abs(secondDir.wallLine.Direction.Y)))))
+                return true;
+            else
+                return false;
         }
 
         public static void CompareCvxWalls()
@@ -935,157 +937,140 @@ namespace IfcGeometryExtractor
 
                 foreach(var cvxH in cvxLines)
                 {
-                    WallToDXF(cvxH, "convexHull", DXFcolor.yellow);
+                    WallToDXF(cvxH, "2a_convexHull_overall", DXFcolor.yellow);
                 }
 
                 foreach(var cvxH in cvxLinesClean)
                 {
-                    PointsToDXF(cvxH.segmentA, "convexHullPts", DXFcolor.magenta);
-                    PointsToDXF(cvxH.segmentB, "convexHullPts", DXFcolor.magenta);
-
-                    WallToDXF(cvxH, "convexHullClean", DXFcolor.magenta);
+                    PointsToDXF(cvxH.segmentA, "2b_convexHullCleanPts_overall", DXFcolor.magenta);
+                    PointsToDXF(cvxH.segmentB, "2b_convexHullCleanPts_overall", DXFcolor.magenta);
+                    WallToDXF(cvxH, "2b_convexHullClean_overall", DXFcolor.magenta);
                 }
 
                 var cvxMatchLines = new List<LinePoints>();
-
-                //foreach (var cvx in cvxLines)
-                //{
-                //    var wallMatch = from cvx in cvxLines                                                 //Vergleich Convex Hull mit Wandkanten
-                //                   where cvx.wallLine.Direction.Equals(wall.wallLine.Direction)
-                //                   select wall;
-
-                //    extWallLines.AddRange(wallMatch.Distinct());
-                //}
-
-                //List<LinePoints> cvxMatches = null;
+                var cvxOuterLines = new List<LinePoints>();
 
                 foreach(var cvx in cvxLinesClean)
                 {
-                    var dirCvxX = /*RoundDirection*/(Math.Abs(cvx.wallLine.Direction.X));
-                    var dirCvxY = /*RoundDirection*/(Math.Abs(cvx.wallLine.Direction.Y));
+                    var cvxMatches = (from w in wallLinedClean                                                  //Wände, wo keine Nische ist (CvxHull=Wall)
+                                      where SimilarDirection(w, cvx) &&
+                                         Line2.DistanceToLine(cvx.wallLine, w.segmentA) < 0.01 &&
+                                         Line2.DistanceToLine(cvx.wallLine, w.segmentB) < 0.01
+                                      select cvx).ToList();
 
-                    var cvxMatches = (from wall in wallLinedClean                                                 //Vergleich Convex Hull mit Wandkanten
-                                      where
-                                      /*RoundDirection*/(Math.Abs(wall.wallLine.Direction.X)).Equals(dirCvxX) &&
-                                      /*RoundDirection*/(Math.Abs(wall.wallLine.Direction.Y)).Equals(dirCvxY)
-                                      select cvx);
+                    var cvxMatchesDist = cvxMatches.Distinct(); //cvxMatchLines.Add
 
-                    //var cvxMatch= from wall in wallLinedClean                                                 //Vergleich Convex Hull mit Wandkanten
-                    //               where
-                    //               (Math.Round(Math.Abs(wall.wallLine.Direction.X), 4)).Equals(dirCvxX) &&
-                    //               (Math.Round(Math.Abs(wall.wallLine.Direction.Y), 4)).Equals(dirCvxY) &&
-                    //               (wall.segmentA.Equals(cvx.segmentA) || wall.segmentA.Equals(cvx.segmentB)) &&      //alt. Prüfbedingung für 1 Wand (direktMatch)
-                    //               (wall.segmentB.Equals(cvx.segmentB) || wall.segmentB.Equals(cvx.segmentA))
-                    //              select cvx;                                                                   //"saubere" ConvexHull-Lines
+                    foreach(var cvxM in cvxMatchesDist)
+                    {
+                        WallToDXF(cvxM, "2c_convexHull_matches_generalized", DXFcolor.blue);
+                    }
 
-                    //var cvxExamine = cvxMD.Except(cvxMatch);  //ConvexHull-Lines, wo Nischen vorhanden sind
+                    var cvxMatchExt = from wall in wallLinedClean                                                 //passende ConvexHull-Kanten (ohne Kanten mit Nischen)
+                                      where SameSegment(wall, cvx)
+                                      select cvx;                                                                   //"saubere" ConvexHull-Lines
 
-                    ////Touches - Test
-                    ////wenn 2 => directMatch
-                    ////wenn > 2 => more than one line => Nische vorhanden
-                    ////dann Punkte extrahieren, die nicht Start- und Endpunkt der cvx-Linie sind
-                    ////jede zweite Punktkombination ist eine Match-Line
-                    ////dazwischen sind Nische(n)
-                    ////dort muss mindestens ein RayOrigin in die Mitte
-                    ////problematisch wird es, falls sich die Nische weiter verzweigt
+                    foreach(var cvxM in cvxMatchExt)
+                    {
+                        WallToDXF(cvxM, "2c_convexHull_matches_specialized", DXFcolor.blue);
+                    }
 
-                    //foreach(var w in cvxMatch)
-                    //{
-                    //    WallToDXF(w, "matchedLinesStrikt", DXFcolor.green);
+                    cvxMatchLines.AddRange(cvxMatchExt);                                                            //sauberer ConvexHull-Lines werden direkt in Matches geschrieben
 
-                    //}
+                    if(!cvxMatchExt.Contains(cvx))
+                        cvxOuterLines.Add(cvx);
 
-                    //foreach(var w in cvxMD)
-                    //{
-                    //    WallToDXF(w, "matchedLinesDir", DXFcolor.blue);
+                    var cvxExamine = cvxMatches.Except(cvxMatchExt);                                                //Differenz --> Kanten, wo Nischen vorhanden sind
 
-                    //}
+                    foreach(var cvxE in cvxExamine)
+                    {
+                        WallToDXF(cvxE, "2c_convexHull_matches_difference", DXFcolor.blue);
+                    }
 
-                    //foreach(var w in cvxExamine)
-                    //{
-                    //    WallToDXF(w, "matchedLinesExamine", DXFcolor.magenta);
+                    foreach(var c in cvxExamine)                                                                    //Detektion der Teile der Kanten, wo Nische sich befindet
+                    {
+                        cvxOuterLines.Remove(c);
 
-                    //}
+                        var matchWalls = (from w in wallLinedClean                                                  //Wände, wo keine Nische ist (CvxHull=Wall)
+                                          where
+                                             (RoundDirection(Math.Abs(w.wallLine.Direction.X))).Equals(RoundDirection(Math.Abs(c.wallLine.Direction.X))) &&
+                                             (RoundDirection(Math.Abs(w.wallLine.Direction.Y))).Equals(RoundDirection(Math.Abs(c.wallLine.Direction.Y))) &&
+                                             Line2.DistanceToLine(c.wallLine, w.segmentA) < 0.01 &&
+                                             Line2.DistanceToLine(c.wallLine, w.segmentB) < 0.01
+                                          select w).ToList();
 
-                    //cvxMatchLines.AddRange(cvxMatch);
+                        cvxMatchLines.AddRange(matchWalls);                                                          //Teile, wo keine Nische ist, werden sauberen Kanten hinzugefügt
 
-                    //extWallLines.AddRange(cvxMatch);  //Listen vereinigen ?!
+                        //--------------------------------------
+                        foreach(var mw in matchWalls)
+                        {
+                            WallToDXF(mw, "2d_convexhull_matches_spez_no_niches", DXFcolor.cyan);  //DXF-Ausgabe
+                        }
+                        //--------------------------------------
 
-                    //var cvxMD = cvxMatches.Distinct();       //Bereinigte ConvexHull-Lines ("sauber" und mit Nischen)
+                        var matchPts = ((from w in matchWalls
+                                         select w.segmentA).Union(from w in matchWalls select w.segmentB)).ToList();     //alle Punkte der gefundenen Wände
 
-                    //IEnumerable<LinePoints> cvxMatch = null;
+                        var tempCvxLines = new List<LinePoints>();
 
-                    //foreach (var cvx in cvxMD)
-                    //{
-                    //cvxMatch = from wall in wallLinedClean                                                 //Vergleich Convex Hull mit Wandkanten
-                    //               where
-                    //               (wall.segmentA.Equals(cvx.segmentA) || wall.segmentA.Equals(cvx.segmentB)) &&      //alt. Prüfbedingung für 1 Wand (direktMatch)
-                    //               (wall.segmentB.Equals(cvx.segmentB) || wall.segmentB.Equals(cvx.segmentA))
-                    //               select cvx;                                                                   //"saubere" ConvexHull-Lines
+                        for(var i = 0; i < matchPts.Count(); i++)
+                        {
+                            for(var j = i + 1; j < matchPts.Count(); j++)
+                            {
+                                if(!i.Equals(j))
+                                {
+                                    /*                                    Line2.Create(matchPts[i], matchPts[j], out var cvxL);   */                       //Berechnung aller Linienkombinationen aus Punkten
+                                    var tempCvx = new LinePoints(matchPts[i], matchPts[j]);
+                                    //tempCvx.segmentA = matchPts[i];
+                                    //tempCvx.segmentB = matchPts[j];
 
-                    //}
+                                    if(!tempCvxLines.Contains(tempCvx))
+                                        tempCvxLines.Add(tempCvx);
+                                }
+                            }
+                        }
 
-                    //var cvxExamine = cvxMD.Except(cvxMatch);  //ConvexHull-Lines, wo Nischen vorhanden sind
+                        var clTempCvxLines = tempCvxLines.Distinct();
 
-                    //Touches - Test
-                    //wenn 2 => directMatch
-                    //wenn > 2 => more than one line => Nische vorhanden
-                    //dann Punkte extrahieren, die nicht Start- und Endpunkt der cvx-Linie sind
-                    //jede zweite Punktkombination ist eine Match-Line
-                    //dazwischen sind Nische(n)
-                    //dort muss mindestens ein RayOrigin in die Mitte
-                    //problematisch wird es, falls sich die Nische weiter verzweigt
+                        foreach(var cl in clTempCvxLines)
+                        {
+                            var clEq = from w in matchWalls                                                         //gleiche Wände zu vorhandenen Cvx-Wänden
+                                       where SameSegment(w, cl)
+                                       select cl;
 
-                    //foreach(var w in cvxMatch)
-                    //{
-                    //    WallToDXF(w, "matchedLinesStrikt", DXFcolor.green);
+                            var clPts = from p in matchPts
+                                        where ValidIntersecPt(cl.segmentA, cl.segmentB, p)                                //Anzahl Punkte auf Segment
+                                        select p;
 
-                    //}
+                            if(clEq.Count() == 0 && clPts.Count() < 3)                                              //keine Berücksichtigung vorhandener Wände
+                            {                                                                                       //sowie keine Berücksichtigung zu langer Linien (mehr als 2 Schnittpunkte)
+                                WallToDXF(cl, "2d_convexhull_matches_spez_niches", DXFcolor.cyan);  //DXF-Ausgabe
 
-                    //foreach(var w in cvxMD)
-                    //{
-                    //    WallToDXF(w, "matchedLinesDir", DXFcolor.blue);
-
-                    //}
-
-                    //foreach(var w in cvxExamine)
-                    //{
-                    //    WallToDXF(w, "matchedLinesExamine", DXFcolor.magenta);
-
-                    //}
-
-                    cvxMatchLines.AddRange(cvxMatches);
-
-                    //extWallLines.AddRange(cvxMatches);  //Listen vereinigen ?!
+                                cvxOuterLines.Add(cl);                                                              //Cvx-Teil vor Nische wird OuterLines hinzugefügt
+                            }
+                        }
+                    }
                 }
-
-                foreach(var cvxL in cvxLinesClean)
-                {
-                    if(!cvxMatchLines.Contains(cvxL))
-                        cvxOuterLines.Add(cvxL);
-                }
-
                 var cvxMatch = cvxMatchLines.Distinct();
+                var cvxOuter = cvxOuterLines.Distinct().ToList();
 
-                var cvxCt = cvxLinesClean.Count - cvxMatch.Count();
-
-                if(cvxCt > 0)
+                if(cvxOuter.Count() > 0)                                   //wenn Ergebnis 0, dann ist konvexe Hülle = äußere Wandlinien (keine konkaven Linien vorhanden)
                 {
                     realIntersecPts.Clear();
 
                     foreach(var cvxM in cvxMatch)
                     {
-                        WallToDXF(cvxM, "convexHullMatchLine", DXFcolor.blue);
+                        WallToDXF(cvxM, "2z_convexHull_result_matchLines", DXFcolor.blue);
                         extWallLines.Add(cvxM);
                     }
 
-                    foreach(var cvxO in cvxOuterLines)
+                    foreach(var cvxO in cvxOuter)
                     {
-                        WallToDXF(cvxO, "convexLineOutside", DXFcolor.cyan);
+                        WallToDXF(cvxO, "2z_convexHull_result_OuterLines", DXFcolor.cyan);
+                        DensifyRayOrigins(cvxO);
                     }
-
-                    DensifyRayOrigins(1);
                 }
+                else
+                    Console.WriteLine("Berechung beendet. Konvexe Hülle = Wandaußenkanten!");
             }
             catch { }
         }
@@ -1096,6 +1081,8 @@ namespace IfcGeometryExtractor
         {
             foreach(var rayBundle in bundleList)
             {
+                PointsToDXF(rayBundle.rayOrigin, "RayOrigins", DXFcolor.green);
+
                 foreach(var ray in rayBundle.rays)
                 {
                     var distances = new Dictionary<Point2, double>();
@@ -1129,7 +1116,7 @@ namespace IfcGeometryExtractor
 
                                 var sectPt = new IntersectionPoints();
                                 sectPt.intersection = intersec;
-                                sectPt.distToRayOrigin = Math.Sqrt((dx * dx + dy * dy));
+                                sectPt.distToRayOrigin = CalcDistance(intersec, rayBundle.rayOrigin);
 
                                 intersecs.Add(sectPt);
                             }
@@ -1161,7 +1148,7 @@ namespace IfcGeometryExtractor
                             //extPts.Add(extSec);                             //prüfen, ob diese Liste noch benötigt wird (außer Visualisierung)
 
                             PointsToDXF(extSec, "RayWallIntersects", DXFcolor.cyan);
-                            WallToDXF(extWall, "FoundedExternalWalls", DXFcolor.blue);
+                            WallToDXF(extWall, "ZFoundedExternalWalls", DXFcolor.blue);
                         }
                     }
                 }
@@ -1183,18 +1170,23 @@ namespace IfcGeometryExtractor
                 {
                     Console.WriteLine(extWallLines.Count + "vorher");
 
-                    //foreach(var wall in extWallLines)
-                    //{
-                    //    WallToDXF(wall, "externeWallsVorVereinigung", DXFcolor.red);
-                    //}
-
-                    firstLine = extWallLines[0];
-
-                    WallToDXF(firstLine, "FirstExternalLine", DXFcolor.green);
+                    foreach(var wall in extWallLines)
+                    {
+                        WallToDXF(wall, "externeWallsVorVereinigung", DXFcolor.red);
+                    }
 
                     CleanUpWallLines(extWallLines, "ext");
 
-                    NextIntersectionPt(firstLine);
+                    foreach(var wall in extWallLinesClean)
+                    {
+                        WallToDXF(wall, "ExternalWallsCleanBeforeIntersection", DXFcolor.magenta);
+                    }
+
+                    firstLine = extWallLinesClean[0];
+
+                    WallToDXF(firstLine, "FirstExternalLine", DXFcolor.green);
+
+                    NextIntersectionPtV2(firstLine);
 
                     //CalcSameLines();
 
@@ -1202,7 +1194,7 @@ namespace IfcGeometryExtractor
 
                     foreach(var wall in extWallLinesClean)
                     {
-                        WallToDXF(wall, "FoundedExternalWallsAfterCalcSameLines", DXFcolor.magenta);
+                        WallToDXF(wall, "ExternalWallsAfterIntersection", DXFcolor.magenta);
                     }
                 }
             }
@@ -1211,408 +1203,184 @@ namespace IfcGeometryExtractor
 
         public static bool IdentifyOverlapLines(LinePoints a, LinePoints b)
         {
-            //Möglichkeiten für Überlappungen/Nachbarschaft:
-            ////b liegt komplett in a
-            ////b, segA grenzt an a
-            ////b, segB grenzt an a
-            ////a liegt komplett in b
-            ////a, segA grenzt an b
-            ////a, segB grenzt an b
+            try
+            {
+                //Möglichkeiten für Überlappungen/Nachbarschaft:
+                ////b liegt komplett in a
+                ////b, segA grenzt an a
+                ////b, segB grenzt an a
+                ////a liegt komplett in b
+                ////a, segA grenzt an b
+                ////a, segB grenzt an b
 
-            if(
-            RoundDirection(Math.Abs(a.wallLine.Direction.X)).Equals(RoundDirection(Math.Abs(b.wallLine.Direction.X))) && //P1: gleiche Richtung
-            (ValidIntersecPt(a.segmentA, a.segmentB, b.segmentA) ||     //P2: innerhalb Segmente (Bbox-Calc)
-            ValidIntersecPt(a.segmentA, a.segmentB, b.segmentB) ||
-            ValidIntersecPt(b.segmentA, b.segmentB, a.segmentA) ||
-            ValidIntersecPt(b.segmentA, b.segmentB, a.segmentB))
-            )
-            {
-                return true;
+                if(SimilarDirection(a, b) && // P1: gleiche Richtung
+                    (ValidIntersecPt(a.segmentA, a.segmentB, b.segmentA) ||     //P2: innerhalb Segmente (Bbox-Calc)
+                    ValidIntersecPt(a.segmentA, a.segmentB, b.segmentB) ||
+                    ValidIntersecPt(b.segmentA, b.segmentB, a.segmentA) ||
+                    ValidIntersecPt(b.segmentA, b.segmentB, a.segmentB)))
+                    return true;
+                else
+                    return false;
             }
-            else
+            catch(Exception ex)
             {
+                Console.WriteLine(ex.Message);
+                WriteSegments2Console(a);
+                WriteSegments2Console(b);
+                WriteSegments2Console(wallLined[0]);
+                WriteSegments2Console(wallLined[1]);
                 return false;
             }
         }
 
-        //public static void CalcSameLines()  //Versuch, Linien vorher zu bereinigen (evtl vor Outerlines mit remove durchführen)
-        //{
-        //    var realIntersecPts = new List<Point2>();
+        //Variante 2
 
-        //    //var nextLine = new LinePoints();
-        //    //var unitedList = new List<LinePoints>();
-
-        //    var removedWalls = new List<LinePoints>();
-
-        //    for(var j = 0; j < extWallLines.Count; j++)
-        //    {
-        //        for(var k = (j + 1); k < extWallLines.Count; k++)
-        //        {
-        //            if(extWallLines[j] != extWallLines[k]) //nicht gleiche Linien vergleichen
-        //            {
-        //                var dirAx = Math.Round(Math.Abs(extWallLines[j].wallLine.Direction.X), 4);
-        //                var dirAy = Math.Round(Math.Abs(extWallLines[j].wallLine.Direction.Y), 4);
-        //                var dirBx = Math.Round(Math.Abs(extWallLines[k].wallLine.Direction.X), 4);
-        //                var dirBy = Math.Round(Math.Abs(extWallLines[k].wallLine.Direction.Y), 4);
-
-        //                if(dirAx.Equals(dirBx) && dirAy.Equals(dirBy))          //nur Linien gleicher Richtung wählen
-
-        //                {
-        //                    if(ValidIntersecPt(extWallLines[j].segmentA, extWallLines[j].segmentB, extWallLines[k].segmentA) ||
-        //                        ValidIntersecPt(extWallLines[j].segmentA, extWallLines[j].segmentB, extWallLines[k].segmentB))
-        //                    {
-        //                        var pts = new List<Point2>() { extWallLines[j].segmentA, extWallLines[j].segmentB, extWallLines[k].segmentA, extWallLines[k].segmentB };
-
-        //                        var segA = UnitedLine(pts, 0);
-        //                        var segB = UnitedLine(pts, 1);
-
-        //                        if(!segA.Equals(segB))
-        //                        {
-        //                            Line2.Create(segA, segB, out var newline);
-
-        //                            Console.WriteLine(segA.X + "  " + segA.Y);
-        //                            Console.WriteLine(segB.X + "  " + segB.Y);
-
-        //                            var unitedWallLine = new LinePoints();
-
-        //                            unitedWallLine.wallLine = newline;
-        //                            unitedWallLine.segmentA = segA;
-        //                            unitedWallLine.segmentB = segB;
-        //                            //Line2.Create(unitedWallLine.segmentA, unitedWallLine.segmentB, out var newline);
-
-        //                            //WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
-
-        //                            removedWalls.Add(extWallLines[j]);
-        //                            removedWalls.Add(extWallLines[k]);
-
-        //                            if(!extWallLines.Contains(unitedWallLine))
-        //                                extWallLines.Add(unitedWallLine);
-        //                        }
-        //                    }
-        //                    else if(ValidDistToIntersect(extWallLines[j].segmentA, extWallLines[k].segmentA) ||
-        //                        ValidDistToIntersect(extWallLines[j].segmentA, extWallLines[k].segmentB) ||
-        //                        ValidDistToIntersect(extWallLines[j].segmentB, extWallLines[k].segmentA) ||
-        //                        ValidDistToIntersect(extWallLines[j].segmentB, extWallLines[k].segmentB))
-        //                    {
-        //                        //var unitedWallLine = new LinePoints();
-        //                        var pts = new List<Point2>() { extWallLines[j].segmentA, extWallLines[j].segmentB, extWallLines[k].segmentA, extWallLines[k].segmentB };
-
-        //                        var segA = UnitedLine(pts, 0);
-        //                        var segB = UnitedLine(pts, 1);
-
-        //                        if(!segA.Equals(segB))
-        //                        {
-        //                            Line2.Create(segA, segB, out var newline);
-
-        //                            Console.WriteLine(segA.X + "  " + segA.Y);
-        //                            Console.WriteLine(segB.X + "  " + segB.Y);
-
-        //                            var unitedWallLine = new LinePoints();
-
-        //                            unitedWallLine.wallLine = newline;
-        //                            unitedWallLine.segmentA = segA;
-        //                            unitedWallLine.segmentB = segB;
-        //                            //Line2.Create(unitedWallLine.segmentA, unitedWallLine.segmentB, out var newline);
-
-        //                            //WallToDXF(unitedWallLine, "AvereinigteLinien", DXFcolor.green);
-
-        //                            removedWalls.Add(extWallLines[j]);
-        //                            removedWalls.Add(extWallLines[k]);
-
-        //                            if(!extWallLines.Contains(unitedWallLine))
-        //                                extWallLines.Add(unitedWallLine);
-
-        //                            //extUniWalls.Add(unitedWallLine);
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    foreach(var wallR in removedWalls)
-        //    {
-        //        WallToDXF(wallR, "RemovedWallsinCalcSameLines", DXFcolor.red);
-
-        //        if(extWallLines.Contains(wallR))
-        //            extWallLines.Remove(wallR);
-        //    }
-
-        //    extUniWalls.AddRange(extWallLines);
-
-        //    foreach(var nextLine in extUniWalls)
-        //    {
-        //        // Console.WriteLine("NextLine: " + nextLine.wallLine.ToString() + ", SegA: " + (nextLine.segmentA.X - nextLine.segmentB.X) + ", SegB: " + (nextLine.segmentA.Y - nextLine.segmentB.Y));
-
-        //        WallToDXF(nextLine, "BereinigteExternalWallsAfterCalcSameLines", DXFcolor.green);
-        //    }
-
-        //    firstLine = extUniWalls[0];
-
-        //    NextIntersectionPt(firstLine);
-        //}
-
-        public static void NextIntersectionPt(LinePoints startLine)
+        public static void NextIntersectionPtV2(LinePoints startLine)               //jeweils Übergabe der vorherigen Linie, zu Beginn erster Eintrag aus ExtWallLines
         {
             try
             {
                 var nextLine = new LinePoints();
+                var tempIntersecs = new Dictionary<LinePoints, Point2>();           //Liste für temporär gefundene Schnittpunkte pro Startlinie
 
-                var distances = new Dictionary<LinePoints, double>();
-                bool flag = false;
-                var tempIntersecExactly = new Dictionary<LinePoints, Point2>();
-                var tempIntersecNearby = new Dictionary<LinePoints, Point2>();
-
-                for(var k = 0; k < extWallLinesClean.Count; k++)
+                for(var k = 0; k < extWallLinesClean.Count; k++)                    //Durchlaufen aller (anderen) noch verfügbaren ExtWallLines
                 {
-                    distances.Clear();
-                    flag = false;
-
                     LinePoints followLine;
 
-                    if(extWallLinesClean.Count == 1)
+                    if(extWallLinesClean.Count == 1)                                //für letzten Durchlauf, ggf. hier Verbesserung nötig?!
                     {
-                        followLine = firstLine;         //klappt nur bei korrekten Linien in ExtWallLines
+                        followLine = firstLine;
                     }
                     else
                     {
                         followLine = extWallLinesClean[k];
                     }
 
-                    if(startLine != followLine)
+                    if(startLine != followLine)                                     //nicht dieselben Linien vergleichen
                     {
+                        //--------------normale Schnittpunkte und nahe Schnittpunkte-----------------
+
                         if(Point2.Create(startLine.wallLine, followLine.wallLine, out var realIntersec))  //nur wenn Schnittpunkt zw Linien gefunden wird
-
                         {
-                            if(realIntersec.X != 0 && realIntersec.Y != 0)
+                            if(realIntersec.X != 0 && realIntersec.Y != 0)                  //Bedingung zuvor gibt bei false Point(0,0) zurück
                             {
-                                //potentieller Schnittpunkt auf Geraden
-
                                 var lineAsegA = startLine.segmentA;
                                 var lineAsegB = startLine.segmentB;
                                 var lineBsegA = followLine.segmentA;
                                 var lineBsegB = followLine.segmentB;
 
-                                if(
-                                    (ValidIntersecPt(lineAsegA, lineAsegB, realIntersec) &&                     //Fall 1
+                                if((ValidIntersecPt(lineAsegA, lineAsegB, realIntersec) &&                     //Fall 1
                                     ValidIntersecPt(lineBsegA, lineBsegB, realIntersec))
-
-                                    )
-
-                                //realer Schnittpunkt auf Segmenten
-
-                                {
-                                    if(!realIntersecPts.Contains(realIntersec))
-
-                                    {                                       //keine doppelten Punkte
-                                        tempIntersecExactly.Add(followLine, realIntersec);
-
-                                        //nextLine = followLine;
-                                        //extWallLines.Remove(startLine);
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("intersec schon vorhanden");
-                                    }
-
-                                    //flag = true;
-
-                                    //if(!startLine.Equals(firstLine))
-                                    //break;                                  //Abbruch der Schleife, wenn exakter Schnittpunkt gefunden wurde
-                                }
-                                else
-                                {
-                                    if(((ValidDistToIntersect(realIntersec, lineAsegA) || ValidDistToIntersect(realIntersec, lineAsegB)) &&                     //Fall 2a
+                                    ||
+                                    ((ValidDistToIntersect(realIntersec, lineAsegA) || ValidDistToIntersect(realIntersec, lineAsegB)) &&                     //Fall 2a
                                     !ValidIntersecPt(lineAsegA, lineAsegB, realIntersec) &&
                                     ValidIntersecPt(lineBsegA, lineBsegB, realIntersec))
                                     ||
                                     ((ValidDistToIntersect(realIntersec, lineBsegA) || ValidDistToIntersect(realIntersec, lineBsegB)) &&                     //Fall 2b
                                     !ValidIntersecPt(lineBsegA, lineBsegB, realIntersec) &&
-                                    ValidIntersecPt(lineAsegA, lineAsegB, realIntersec)))
-                                    {
-                                        if(!realIntersecPts.Contains(realIntersec))
-
-                                        {                                       //keine doppelten Punkte
-                                            tempIntersecNearby.Add(followLine, realIntersec);
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("intersec schon vorhanden");
-                                        }
-                                    }
-                                    continue;                                   //Schleife weiter durchlaufen (evtl. wird noch realer Punkt gefunden)
+                                    ValidIntersecPt(lineAsegA, lineAsegB, realIntersec))                                                            //Fall3
+                                                                                                                                                    //es gibt
+                                    )
+                                {
+                                    tempIntersecs.Add(followLine, realIntersec);
                                 }
-
-                                //else
-                                //{
-                                //    //Schnittberechnung möglich, aber außerhalb der Kanten)
-
-                                //    Console.WriteLine("innere else" + realIntersec.X + "   /  " + realIntersec.Y);
-
-                                //    //Berechne Lot-Abstand von potentieller Follow - Line zum letztgefundenen Punkt
-                                //    //  von allen Lotabständen den geringsten nehmen
-                                //    //  Lotfußpunkt wird nächster RealIntersec
-                                //    //  Kante, auf welcher Lotfußpunkt liegt, wird Follow-Line
-
-                                //    var localDist = new List<double>();
-
-                                //    var dx1 = lineAsegA.X - lineBsegA.X;
-                                //    var dy1 = lineAsegA.Y - lineBsegA.Y;
-                                //    localDist.Add(Math.Sqrt((dx1 * dx1 + dy1 * dy1)));
-
-                                //    var dx2 = lineAsegA.X - lineBsegB.X;
-                                //    var dy2 = lineAsegA.Y - lineBsegB.Y;
-                                //    localDist.Add(Math.Sqrt((dx2 * dx2 + dy2 * dy2)));
-
-                                //    var dx3 = lineAsegB.X - lineBsegA.X;
-                                //    var dy3 = lineAsegB.Y - lineBsegA.Y;
-                                //    localDist.Add(Math.Sqrt((dx3 * dx3 + dy3 * dy3)));
-
-                                //    var dx4 = lineAsegB.X - lineBsegB.X;
-                                //    var dy4 = lineAsegB.Y - lineBsegB.Y;
-                                //    localDist.Add(Math.Sqrt((dx4 * dx4 + dy4 * dy4)));
-
-                                //    distances.Add(followLine, localDist.Min());
-
-                                //    flag = false;
-
-                                //continue;
-                                //}
                             }
-                            else
-                            {
-                                Console.WriteLine("äußere else");
+                        }
+                    }
+                    else
+                        continue;
+                }
+                //--------------fehlende kurze Linien --> Schnittpunkterzeugung -----------------
 
-                                continue;
-                            }
+                var tempWallLines = (from w in extWallLinesClean
+                                     where !tempIntersecs.Keys.Contains(w) && !w.Equals(startLine)
+                                     select w);                                     //im Folgenden werden nur Wandlinien betrachtet, die eben nicht gefunden worden sind
 
-                            //neue Berechnung Strahlen (Schnittberechnung nicht möglich, parallele Kanten)
+                var pts = (from w in tempWallLines                                  //alle Start- und Endpunkte der anderen Linien
+                           where !w.Equals(startLine)
+                           select w.segmentA).Union(from w in tempWallLines where !w.Equals(startLine) select w.segmentB);
+
+                foreach(var ppt in pts)
+                {
+                    if(Line2.DistanceToLine(startLine.wallLine, ppt) < 0.5)
+                    {
+                        var ftPt = Line2.PerpendicularFoot(startLine.wallLine, ppt);
+
+                        if(ValidIntersecPt(startLine.segmentA, startLine.segmentB, ftPt))
+                        {
+                            //Line2.Create(ftPt, ppt, out var bridgeLine);
+
+                            var bridge = new LinePoints(ftPt, ppt);
+                            //bridge.segmentA = ftPt;
+                            //bridge.segmentB = ppt;
+                            //bridge.wallLine = bridgeLine;
+
+                            if(!tempIntersecs.Keys.Contains(bridge))
+                                tempIntersecs.Add(bridge, ftPt);
                         }
                     }
                 }
 
-                if(tempIntersecExactly.Count == 1)                             //Standardfall: nur ein exakter Schnittpunkt gefunden
-                {
-                    realIntersecPts.Add(tempIntersecExactly.First().Value);         //Schnittpunkt ist Punkt von Polygon
-                    nextLine = tempIntersecExactly.First().Key;                     //nächste Polygonlinie ist followline
-                    extWallLinesClean.Remove(startLine);                            //Vorgängerlinie wird gelöscht (keine weitere Betrachtung)
-                }
+                //------------Wahl des nahsten Schnittpunktes--------------
 
-                if(tempIntersecExactly.Count > 1)                               //Fall tritt ein, wenn entlang Hauptlinie Vorsprünge vorhanden sind, welche die
-                {                                                               //die Hauptlinie (hier startline) schneiden
+                Point2 lastPt;
+
+                if(realIntersecPts.Count == 0)
+                {
+                    lastPt = startLine.segmentA;
+                }
+                else
+                {
                     var lastIntersec = realIntersecPts.LastOrDefault();
 
-                    var keys = from kp in tempIntersecExactly
-                               select kp.Key;
-
-                    var dists = from val in tempIntersecExactly.Values
-                                select (CalcDistance(val, lastIntersec));
-
-                    var minDist = dists.Min();
-
-                    var pt = (from val in tempIntersecExactly.Values
-                              where ((CalcDistance(val, lastIntersec)) == minDist)
-                              select val).First();
-
-                    var line = (from kp in tempIntersecExactly
-                                where kp.Value.Equals(pt)
-                                select kp.Key).First();
-
-                    realIntersecPts.Add(pt);
-                    nextLine = line;
-                    //extWallLinesClean.Remove(startLine);
-
-                    //var newline = startLine;
-
-                    //newline.segmentB = Line2.PointOnLine(startLine.wallLine, minDist);
-
-                    //extWallLinesClean.Add(newline);
+                    if(CalcDistance(startLine.segmentA, lastIntersec) > CalcDistance(startLine.segmentB, lastIntersec))
+                    {
+                        lastPt = startLine.segmentA;
+                    }
+                    else
+                    {
+                        lastPt = startLine.segmentB;
+                    }
                 }
 
-                if(tempIntersecExactly.Count == 0)                               //Fall tritt ein, kein sinnvoller Schnitt möglich ist (Linie fehlt) oder Lücke vorhanden (Axis-Rep)
+                //
+                Console.WriteLine("temps= " + tempIntersecs.Count);
+
+                if(tempIntersecs.Count == 0)
                 {
-                    if(tempIntersecNearby.Count == 1)                           //wahrscheinlich echte Schnittpunkte, allerdings mit Lücken (Festlegung, zulässige Lücke <= 50 cm)
-                    {
-                        realIntersecPts.Add(tempIntersecNearby.First().Value);         //Schnittpunkt ist (wahrscheinlich) Punkt von Polygon
-                        nextLine = tempIntersecNearby.First().Key;                     //nächste Polygonlinie ist followline
-                        extWallLinesClean.Remove(startLine);                            //Vorgängerlinie wird gelöscht (keine weitere Betrachtung)
-                    }
+                    Point2.Create(startLine.wallLine, firstLine.wallLine, out var intersec);
 
-                    if(tempIntersecNearby.Count > 1)                               //Fall tritt ein, wenn entlang Hauptlinie Vorsprünge vorhanden sind, welche die
-                    {                                                               //die Hauptlinie (hier startline) schneiden
-                        var lastIntersec = realIntersecPts.LastOrDefault();
-
-                        var keys = from kp in tempIntersecNearby
-                                   select kp.Key;
-
-                        var dists = from val in tempIntersecNearby.Values
-                                    select (CalcDistance(val, lastIntersec));
-
-                        var minDist = dists.Min();
-
-                        var pt = (from val in tempIntersecNearby.Values
-                                  where ((CalcDistance(val, lastIntersec)) == minDist)
-                                  select val).First();
-
-                        var line = (from kp in tempIntersecNearby
-                                    where kp.Value.Equals(pt)
-                                    select kp.Key).First();
-
-                        realIntersecPts.Add(pt);
-                        nextLine = line;
-                    }
-
-                    if(tempIntersecNearby.Count == 0)
-                    {
-                        Console.WriteLine("to be implemented, kein sinnvoller Schnittpunkt gefunden");
-
-                        var lastIntersec = realIntersecPts.LastOrDefault();
-
-                        var perpPt = startLine.segmentB;
-
-                        if(CalcDistance(startLine.segmentA, lastIntersec) > CalcDistance(startLine.segmentB, lastIntersec))
-                        {
-                            perpPt = startLine.segmentA;
-                        }
-
-                        var dists = from w in extWallLinesClean
-                                    select (Line2.DistanceToLine(w.wallLine, perpPt));
-
-                        var minDist = dists.Min();
-
-                        var line = (from w in extWallLinesClean
-                                    where Line2.DistanceToLine(w.wallLine, perpPt) == minDist
-                                    select w).First();
-
-                        var pt = Line2.PerpendicularFoot(line.wallLine, perpPt);
-
-                        realIntersecPts.Add(perpPt);
-                        realIntersecPts.Add(pt);
-                        nextLine = line;
-                        extWallLinesClean.Remove(startLine);
-                    }
+                    tempIntersecs.Add(firstLine, intersec);
                 }
 
-                //realIntersecPts.Add(tempIntersec);
+                var nextPtDist = (from ptt in tempIntersecs.Values
+                                  select (CalcDistance(ptt, lastPt))).Min();
 
-                //nextLine = followline; //followline auf dict
+                foreach(var t in tempIntersecs)
+                {
+                    Console.WriteLine(t.Key.segmentA.X + " / " + t.Key.segmentA.Y + " ; " + t.Key.segmentB.X + " / " + t.Key.segmentB.Y);
+                    Console.WriteLine(t.Value.X + " / " + t.Value.Y);
+                }
 
-                //if(!flag)
-                //{
-                //var ordDist = distances.OrderBy(d => d.Value);
+                var nextLinePts = (from ptt in tempIntersecs
+                                   where CalcDistance(ptt.Value, lastPt) == nextPtDist
+                                   select ptt.Key).First();
 
-                //nextLine = (from line in ordDist
-                //            select line.Key).First();
-                //}
+                var nextIntersecPt = (from ptt in tempIntersecs
+                                      where CalcDistance(ptt.Value, lastPt) == nextPtDist
+                                      select ptt.Value).First();
 
-                //Console.WriteLine("NextLine: " + nextLine.wallLine.ToString() + ", SegA: " + (nextLine.segmentA.X - nextLine.segmentB.X) + ", SegB: " + (nextLine.segmentA.Y - nextLine.segmentB.Y));
+                //Fälle von falscher Schnittberechnung abfangen --> Bsp. 0/0 oder außerhalb Gebäude oder auch schneiden der neuen Linie mit alter Linie
 
-                //extWallLinesClean.Remove(startLine);
+                realIntersecPts.Add(nextIntersecPt);
+
+                nextLine = nextLinePts;
+
+                extWallLinesClean.Remove(startLine);
 
                 Console.WriteLine(extWallLinesClean.Count);
 
-                if(extWallLinesClean.Count > 0)
-                    NextIntersectionPt(nextLine);
+                if(!tempIntersecs.Keys.Contains(firstLine))
+                    NextIntersectionPtV2(nextLine);
             }
 
             catch(Exception ex) { Console.WriteLine(ex); }
@@ -1620,82 +1388,79 @@ namespace IfcGeometryExtractor
 
         //----------------------------------------------------------------------------------------------
 
+        //----------------------------------------------------------------------------------------------
+
         //Hilfsmethoden und Klassen
 
-        public static double CalcDistance(Point2 a, Point2 b)
+        public static void DensifyRayOrigins(LinePoints cvxO)
         {
-            var dx = a.X - b.X;
-            var dy = a.Y - b.Y;
+            var deltax = cvxO.segmentB.X - cvxO.segmentA.X;
+            var deltay = cvxO.segmentB.Y - cvxO.segmentA.Y;
 
-            return (Math.Sqrt((dx * dx) + (dy * dy)));
-        }
+            var length = CalcDistance(cvxO.segmentA, cvxO.segmentB);
+            var div = Math.Floor(length);
 
-        public static void DensifyRayOrigins(int densLev) // TO DO: Ändern zu neuem Ansatz (fortlaufendes Halbieren der Cvx-kKnte)
-        {
-            bundleList.Clear();
+            double dxPart = 0;
+            double dyPart = 0;
 
-            foreach(var cvxO in cvxOuterLines)
+            if(div == 0)
+                div = 4;
+
+            if(div > 0 && div <= 2)
             {
-                //WallToDXF(cvxO, "convexLineOutside", DXFcolor.yellow);
-
-                var deltax = cvxO.segmentA.X - cvxO.segmentB.X;
-                var deltay = cvxO.segmentA.Y - cvxO.segmentB.Y;
-
-                switch(densLev)
-                {
-                    case 0:
-                        {
-                            var mpt = Point2.Create((cvxO.segmentB.X + deltax / 2), (cvxO.segmentB.Y + deltay / 2));
-
-                            PointsToDXF(mpt, "RayOrigins", DXFcolor.magenta);
-
-                            var rayB = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
-                            bundleList.Add(rayB);
-
-                            break;
-                        }
-
-                    case 1:
-                        {
-                            var mpt1 = Point2.Create((cvxO.segmentB.X + deltax / 4), (cvxO.segmentB.Y + deltay / 4));
-                            var mpt2 = Point2.Create((cvxO.segmentA.X - deltax / 4), (cvxO.segmentA.Y - deltay / 4));
-
-                            PointsToDXF(mpt1, "RayOrigins", DXFcolor.magenta);
-                            PointsToDXF(mpt2, "RayOrigins", DXFcolor.magenta);
-
-                            var rayB1 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt1);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
-                            bundleList.Add(rayB1);
-                            var rayB2 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt2);
-                            bundleList.Add(rayB2);
-
-                            break;
-                        }
-
-                    case 2:
-                        {
-                            var mpt1 = Point2.Create((cvxO.segmentB.X + deltax / 8), (cvxO.segmentB.Y + deltay / 8));
-                            var mpt2 = Point2.Create((cvxO.segmentB.X + deltax / 2 - deltax / 8), (cvxO.segmentB.Y + deltay / 2 - deltay / 8));
-                            var mpt3 = Point2.Create((cvxO.segmentA.X - deltax / 2 + deltax / 8), (cvxO.segmentA.Y - deltay / 2 + deltay / 8));
-                            var mpt4 = Point2.Create((cvxO.segmentA.X - deltax / 8), (cvxO.segmentA.Y - deltay / 8));
-
-                            PointsToDXF(mpt1, "RayOrigins", DXFcolor.magenta);
-                            PointsToDXF(mpt2, "RayOrigins", DXFcolor.magenta);
-                            PointsToDXF(mpt3, "RayOrigins", DXFcolor.magenta);
-                            PointsToDXF(mpt4, "RayOrigins", DXFcolor.magenta);
-
-                            var rayB1 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt1);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
-                            bundleList.Add(rayB1);
-                            var rayB2 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt2);
-                            bundleList.Add(rayB2);
-                            var rayB3 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt3);
-                            bundleList.Add(rayB3);
-                            var rayB4 = new RayBundle(cvxO.wallLine.GetHashCode().ToString(), mpt4);
-                            bundleList.Add(rayB4);
-
-                            break;
-                        }
-                }
+                div = div * 4;
             }
+
+            if(div > 2 && div <= 5)
+            {
+                div = div * 2;
+            }
+
+            dxPart = deltax / div;
+            dyPart = deltay / div;
+
+            int i = 1;
+
+            do
+            {
+                if(i == 1)
+                {
+                    bundleList.Add(new RayBundle(Point2.Create((cvxO.segmentA.X + (dxPart / 2)), (cvxO.segmentA.Y + (dyPart / 2)))));
+                }
+
+                if(i > 1 && i < div)
+                {
+                    bundleList.Add(new RayBundle(Point2.Create((cvxO.segmentA.X + dxPart * (i - 1) + dxPart / 2), (cvxO.segmentA.Y + dyPart * (i - 1) + dyPart / 2))));
+                }
+
+                if(i == div)
+                {
+                    bundleList.Add(new RayBundle(Point2.Create((cvxO.segmentA.X + dxPart * i - dxPart / 2), (cvxO.segmentA.Y + dyPart * i - dyPart / 2))));
+                }
+
+                i++;
+            } while(i <= div);
+
+            ////anhand der Länge ermitteln
+
+            //var mpt1 = Point2.Create((cvxO.segmentB.X + deltax / 8), (cvxO.segmentB.Y + deltay / 8));
+            //var mpt2 = Point2.Create((cvxO.segmentB.X + deltax / 2 - deltax / 8), (cvxO.segmentB.Y + deltay / 2 - deltay / 8));
+            //var mpt3 = Point2.Create((cvxO.segmentA.X - deltax / 2 + deltax / 8), (cvxO.segmentA.Y - deltay / 2 + deltay / 8));
+            //var mpt4 = Point2.Create((cvxO.segmentA.X - deltax / 8), (cvxO.segmentA.Y - deltay / 8));
+
+            //PointsToDXF(mpt1, "RayOrigins", DXFcolor.magenta);
+            //PointsToDXF(mpt2, "RayOrigins", DXFcolor.magenta);
+            //PointsToDXF(mpt3, "RayOrigins", DXFcolor.magenta);
+            //PointsToDXF(mpt4, "RayOrigins", DXFcolor.magenta);
+
+            //var rayB1 = new RayBundle(mpt1);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
+            //bundleList.Add(rayB1);
+            //var rayB2 = new RayBundle(mpt2);
+            //bundleList.Add(rayB2);
+            //var rayB3 = new RayBundle(mpt3);
+            //bundleList.Add(rayB3);
+            //var rayB4 = new RayBundle(mpt4);
+            //bundleList.Add(rayB4);
         }
 
         public static Point2 UnitedLine(List<Point2> pts, int begOrEnd)
@@ -1749,44 +1514,41 @@ namespace IfcGeometryExtractor
         }
 
         //Bbox-Filter für Schnittpunkte nur auf Wandkante (nicht außerhalb des Hauses)
-        public static bool ValidIntersecPt(Point2 segmentA, Point2 segmentB, Point2 intersec)
+        public static bool ValidIntersecPt(Point2 segmentA, Point2 segmentB, Point2 thirdP)
         {
             double xMin, yMin, xMax, yMax;
 
-            var XsegA = RoundCoords(segmentA.X);
-            var YsegA = RoundCoords(segmentA.Y);
-            var XsegB = RoundCoords(segmentB.X);
-            var YsegB = RoundCoords(segmentB.Y);
+            var segA = RoundPoints(segmentA);
+            var segB = RoundPoints(segmentB);
 
-            var Xintersec = RoundCoords(intersec.X);
-            var Yintersec = RoundCoords(intersec.Y);
+            var thirdPt = RoundPoints(thirdP);
 
             if(segmentA.X <= segmentB.X)
             {
-                xMin = XsegA;
-                xMax = XsegB;
+                xMin = segA.X;
+                xMax = segB.X;
             }
             else
             {
-                xMin = XsegB;
-                xMax = XsegA;
+                xMin = segB.X;
+                xMax = segA.X;
             }
 
             if(segmentA.Y <= segmentB.Y)
             {
-                yMin = YsegA;
-                yMax = YsegB;
+                yMin = segA.Y;
+                yMax = segB.Y;
             }
             else
             {
-                yMin = YsegB;
-                yMax = YsegA;
+                yMin = segB.Y;
+                yMax = segA.Y;
             }
 
             Line2.Create(segmentA, segmentB, out var checkL);
-            var dst = Line2.DistanceToLine(checkL, intersec);
+            var dst = Line2.DistanceToLine(checkL, thirdPt);
 
-            if(Xintersec <= xMax && Xintersec >= xMin && Yintersec <= yMax && Yintersec >= yMin && dst < 0.01)
+            if(thirdPt.X <= xMax && thirdPt.X >= xMin && thirdPt.Y <= yMax && thirdPt.Y >= yMin && dst < 0.01)
             {
                 return true;
             }
@@ -1796,46 +1558,52 @@ namespace IfcGeometryExtractor
             }
         }
 
-        public static void WriteCoords(string coord, string task)
+        public class LinePoints
         {
-            var time = DateTime.Now.ToString("yyyy-dd-M--HH-mm");
+            public Line2 wallLine { get; private set; }
+            public Point2 segmentA { get; set; }
+            public Point2 segmentB { get; set; }
 
-            using(var writeLog = File.AppendText(("D:\\1_CityBIM\\1_Programmierung\\IfcGeoRef\\" + task + nr + "_" + time + ".txt")))
+            public LinePoints()
             {
-                try
-                {
-                    writeLog.WriteLine(coord);
-                }
+                this.segmentA = segmentA;
+                this.segmentB = segmentB;
+                Line2.Create(segmentA, segmentB, out var line);
+                this.wallLine = line;
+            }
 
-                catch(Exception ex)
-                {
-                    writeLog.WriteLine($"Error occured while writing Logfile. \r\n Message: {ex.Message}");
-                }
-            };
+            public LinePoints(Point2 segmentA, Point2 segmentB)
+            {
+                this.segmentA = segmentA;
+                this.segmentB = segmentB;
+                Line2.Create(segmentA, segmentB, out var line);
+                this.wallLine = line;
+            }
         }
 
-        public static void CalcBbox(IList<Point2> ifcPoints)
+        public class IntersectionPoints
         {
-            //Bbox:
-            var xValuesIFC = ifcPoints.Select(x => x.X);
-            var yValuesIFC = ifcPoints.Select(y => y.Y);
-
-            var xMinIFC = xValuesIFC.Min();
-            var xMaxIFC = xValuesIFC.Max();
-
-            var yMinIFC = yValuesIFC.Min();
-            var yMaxIFC = yValuesIFC.Max();
-
-            bbox = new BboxIFC()
-            {
-                lowerLeftPt = Point2.Create(xMinIFC, yMinIFC),
-                upperRightPt = Point2.Create(xMaxIFC, yMaxIFC),
-                widthX = xMaxIFC - xMinIFC,
-                widthY = yMaxIFC - yMinIFC
-            };
+            public Point2 intersection { get; set; }
+            public double distToRayOrigin { get; set; }
         }
 
-        public static IList<Line2> InitializeRays(Point2 rayOrigin)
+        //Klassen und Methoden zur Berechnung der Strahlenbündel:
+
+        public class RayBundle
+        {
+            public IList<Line2> rays { get; set; }
+            public Point2 rayOrigin { get; set; }
+            public string rayIdentifier { get; set; }
+
+            public RayBundle(Point2 rayOrigin)
+            {
+                this.rayOrigin = rayOrigin;
+
+                this.rays = InitializeRays(rayOrigin);
+            }
+        }
+
+        private static IList<Line2> InitializeRays(Point2 rayOrigin)
         {
             //Initialiseren der Spinne
             IList<Line2> rays = new List<Line2>();
@@ -1856,13 +1624,109 @@ namespace IfcGeometryExtractor
             return rays;
         }
 
+        //einfache Berechnungsmethoden:
+        //-------------------------------------------------------
+
+        //Länge zwischen zwei Punkten:
+        public static double CalcDistance(Point2 a, Point2 b)
+        {
+            var dx = a.X - b.X;
+            var dy = a.Y - b.Y;
+
+            return (Math.Sqrt((dx * dx) + (dy * dy)));
+        }
+
+        //Berechnung BoundingBox:
+        public class BboxIFC
+        {
+            public Point2 lowerLeftPt { get; set; }
+            public Point2 upperRightPt { get; set; }
+            public double widthX { get; set; }
+            public double widthY { get; set; }
+        }
+
+        public static BboxIFC CalcBbox(IList<Point2> ifcPoints)
+        {
+            //Bbox:
+            var xValuesIFC = ifcPoints.Select(x => x.X);
+            var yValuesIFC = ifcPoints.Select(y => y.Y);
+
+            var xMinIFC = xValuesIFC.Min();
+            var xMaxIFC = xValuesIFC.Max();
+
+            var yMinIFC = yValuesIFC.Min();
+            var yMaxIFC = yValuesIFC.Max();
+
+            return bbox = new BboxIFC()
+            {
+                lowerLeftPt = Point2.Create(xMinIFC, yMinIFC),
+                upperRightPt = Point2.Create(xMaxIFC, yMaxIFC),
+                widthX = xMaxIFC - xMinIFC,
+                widthY = yMaxIFC - yMinIFC
+            };
+        }
+
+        public static Point2 RoundPoints(Point2 pt)
+        {
+            return Point2.Create(RoundCoords(pt.X), RoundCoords(pt.Y));
+        }
+
+        private static double RoundCoords(double coord)
+        {
+            coord = Math.Round(coord, 4);
+
+            return coord;
+        }
+
+        public static double RoundDirection(double direc)
+        {
+            direc = Math.Round(direc, 4);
+
+            return direc;
+        }
+
+        //Methoden zur Ausgabe in File
+        //-------------------------------------------------------
+
+        public static void WriteCoords(string coord, string task)
+        {
+            var time = DateTime.Now.ToString("yyyy-dd-M--HH-mm");
+
+            using(var writeLog = File.AppendText(("D:\\1_CityBIM\\1_Programmierung\\IfcGeoRef\\" + task + nr + "_" + time + ".txt")))
+            {
+                try
+                {
+                    writeLog.WriteLine(coord);
+                }
+
+                catch(Exception ex)
+                {
+                    writeLog.WriteLine($"Error occured while writing Logfile. \r\n Message: {ex.Message}");
+                }
+            };
+        }
+
+        //Methoden zur Ausgabe in Console
+        //-------------------------------------------------------
+
+        public static void WriteSegments2Console(LinePoints segment)
+        {
+            Console.WriteLine("Segment:");
+            Console.WriteLine("Punkt A: X = " + segment.segmentA.X + ", Y = " + segment.segmentA.Y);
+            Console.WriteLine("Punkt B: X = " + segment.segmentB.X + ", Y = " + segment.segmentB.Y);
+            Console.WriteLine("Direction: x = " + segment.wallLine.Direction.X + ", Y = " + segment.wallLine.Direction.Y);
+        }
+
+        //Methoden zur Visualisierung in AutoCAD
+        //-------------------------------------------------------
+
         public static void PointsToDXF(Point2 ptXY, string layerName, DXFcolor color)
         {
-            netDxf.Tables.Layer layer = new netDxf.Tables.Layer(layerName);
+            var layer = new netDxf.Tables.Layer(layerName);
 
-            netDxf.Entities.Point pt = new netDxf.Entities.Point(ptXY.X, ptXY.Y, 0);
+            var pt = new netDxf.Entities.Point(ptXY.X, ptXY.Y, 0);
 
-            netDxf.Entities.Circle circle = new netDxf.Entities.Circle(new netDxf.Vector2(ptXY.X, ptXY.Y), 0.2);
+            var circle = new netDxf.Entities.Circle(new netDxf.Vector2(ptXY.X, ptXY.Y), 0.2);
 
             layer.Color = GetDXFColor(color);
 
@@ -1875,10 +1739,10 @@ namespace IfcGeometryExtractor
 
         public static void WallToDXF(LinePoints wallLine, string layerName, DXFcolor color)
         {
-            netDxf.Vector2 vec1 = new netDxf.Vector2(wallLine.segmentA.X, wallLine.segmentA.Y);
-            netDxf.Vector2 vec2 = new netDxf.Vector2(wallLine.segmentB.X, wallLine.segmentB.Y);
+            var vec1 = new netDxf.Vector2(wallLine.segmentA.X, wallLine.segmentA.Y);
+            var vec2 = new netDxf.Vector2(wallLine.segmentB.X, wallLine.segmentB.Y);
 
-            netDxf.Entities.Line wallLineDXF = new netDxf.Entities.Line(vec1, vec2);
+            var wallLineDXF = new netDxf.Entities.Line(vec1, vec2);
 
             wallLineDXF.Layer = new netDxf.Tables.Layer(layerName);
 
@@ -1887,7 +1751,7 @@ namespace IfcGeometryExtractor
             dxf.AddEntity(wallLineDXF);
         }
 
-        public static AciColor GetDXFColor(DXFcolor color)
+        private static AciColor GetDXFColor(DXFcolor color)
         {
             switch(color)
             {
@@ -1915,43 +1779,5 @@ namespace IfcGeometryExtractor
         }
 
         public enum DXFcolor { red, green, blue, cyan, yellow, magenta }
-
-        public class LinePoints
-        {
-            public Line2 wallLine { get; set; }
-            public Point2 segmentA { get; set; }
-            public Point2 segmentB { get; set; }
-        }
-
-        public class IntersectionPoints
-        {
-            public Point2 intersection { get; set; }
-            public double distToRayOrigin { get; set; }
-        }
-
-        public class RayBundle
-        {
-            public IList<Line2> rays { get; set; }
-            public Point2 rayOrigin { get; set; }
-            public string rayIdentifier { get; set; }
-
-            public RayBundle(string rayIdentifier, Point2 rayOrigin)
-            {
-                this.rayIdentifier = rayIdentifier;
-                this.rayOrigin = rayOrigin;
-
-                this.rays = InitializeRays(rayOrigin);
-            }
-        }
-
-        public class BboxIFC
-        {
-            public Point2 lowerLeftPt { get; set; }
-            public Point2 upperRightPt { get; set; }
-
-            public double widthX { get; set; }
-
-            public double widthY { get; set; }
-        }
     }
 }
