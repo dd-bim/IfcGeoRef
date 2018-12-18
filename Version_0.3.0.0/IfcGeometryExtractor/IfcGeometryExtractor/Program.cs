@@ -35,13 +35,9 @@ namespace IfcGeometryExtractor
         private static List<LinePoints> cvxLinesClean = new List<LinePoints>();
         private static List<LinePoints> extWallLinesClean = new List<LinePoints>();
 
-        private static List<LinePoints> extUniWalls = new List<LinePoints>();
-
         private static LinePoints firstLine;
 
         private static IList<Point2> realIntersecPts = new List<Point2>();
-
-        private static IList<Point2> extPts = new List<Point2>();                  //Schnittpunkte (Ray-Wandachse)
 
         private static List<LinePoints> extWallLines = new List<LinePoints>();                   //Wandlinien, auf denen äußere Schnittpunkte liegen
 
@@ -241,10 +237,6 @@ namespace IfcGeometryExtractor
                 for(var i = 0; i < (realIntersecPts.Count - 1); i++)
                 {
                     var poly = new LinePoints(realIntersecPts[i], realIntersecPts[i + 1]);
-                    //poly.segmentA = realIntersecPts[i];
-                    //poly.segmentB = realIntersecPts[i + 1];
-
-                    //poly.wallLine = polyline;
 
                     WallToDXF(poly, "Polygon", DXFcolor.green);
 
@@ -1085,10 +1077,7 @@ namespace IfcGeometryExtractor
 
                 foreach(var ray in rayBundle.rays)
                 {
-                    var distances = new Dictionary<Point2, double>();
-                    var distList = new List<double>();
                     var intersecs = new List<IntersectionPoints>();
-                    var intersecPts = new List<Point2>();
 
                     foreach(var wallLine in wallLines)
                     {
@@ -1101,24 +1090,7 @@ namespace IfcGeometryExtractor
                             // Filter, es sind nur Schnittpunkte auf Segment von wallLine erwünscht (Segment=Wandachse=begrenzte Strecke))
                             if(ValidIntersecPt(wallLine.segmentA, wallLine.segmentB, intersec))
                             {
-                                intersecPts.Add(intersec);
-
-                                //Console.WriteLine("Intersection points detected: " + intersec.X + " / " + intersec.Y);
-
-                                //var sectCSV = Point2.ToCSVString(intersec);
-
-                                //WriteCoords(sectCSV, "intersectionCoords");
-
-                                var dx = intersec.X - rayBundle.rayOrigin.X;
-                                var dy = intersec.Y - rayBundle.rayOrigin.Y;
-
-                                //Console.WriteLine("realSec. " + intersec.X + " / " + intersec.Y);
-
-                                var sectPt = new IntersectionPoints();
-                                sectPt.intersection = intersec;
-                                sectPt.distToRayOrigin = CalcDistance(intersec, rayBundle.rayOrigin);
-
-                                intersecs.Add(sectPt);
+                                intersecs.Add(new IntersectionPoints(intersec, CalcDistance(intersec, rayBundle.rayOrigin)));
                             }
                         }
                     }
@@ -1144,8 +1116,6 @@ namespace IfcGeometryExtractor
                                 continue;                                       //verhindert Linien und Punkte Overhead
 
                             extWallLines.Add(extWall);
-
-                            //extPts.Add(extSec);                             //prüfen, ob diese Liste noch benötigt wird (außer Visualisierung)
 
                             PointsToDXF(extSec, "RayWallIntersects", DXFcolor.cyan);
                             WallToDXF(extWall, "ZFoundedExternalWalls", DXFcolor.blue);
@@ -1307,12 +1277,7 @@ namespace IfcGeometryExtractor
 
                         if(ValidIntersecPt(startLine.segmentA, startLine.segmentB, ftPt))
                         {
-                            //Line2.Create(ftPt, ppt, out var bridgeLine);
-
                             var bridge = new LinePoints(ftPt, ppt);
-                            //bridge.segmentA = ftPt;
-                            //bridge.segmentB = ppt;
-                            //bridge.wallLine = bridgeLine;
 
                             if(!tempIntersecs.Keys.Contains(bridge))
                                 tempIntersecs.Add(bridge, ftPt);
@@ -1440,44 +1405,20 @@ namespace IfcGeometryExtractor
 
                 i++;
             } while(i <= div);
-
-            ////anhand der Länge ermitteln
-
-            //var mpt1 = Point2.Create((cvxO.segmentB.X + deltax / 8), (cvxO.segmentB.Y + deltay / 8));
-            //var mpt2 = Point2.Create((cvxO.segmentB.X + deltax / 2 - deltax / 8), (cvxO.segmentB.Y + deltay / 2 - deltay / 8));
-            //var mpt3 = Point2.Create((cvxO.segmentA.X - deltax / 2 + deltax / 8), (cvxO.segmentA.Y - deltay / 2 + deltay / 8));
-            //var mpt4 = Point2.Create((cvxO.segmentA.X - deltax / 8), (cvxO.segmentA.Y - deltay / 8));
-
-            //PointsToDXF(mpt1, "RayOrigins", DXFcolor.magenta);
-            //PointsToDXF(mpt2, "RayOrigins", DXFcolor.magenta);
-            //PointsToDXF(mpt3, "RayOrigins", DXFcolor.magenta);
-            //PointsToDXF(mpt4, "RayOrigins", DXFcolor.magenta);
-
-            //var rayB1 = new RayBundle(mpt1);  //RayBundle-Klasse wahrscheinlich übertrieben (Identifier notwendig?)
-            //bundleList.Add(rayB1);
-            //var rayB2 = new RayBundle(mpt2);
-            //bundleList.Add(rayB2);
-            //var rayB3 = new RayBundle(mpt3);
-            //bundleList.Add(rayB3);
-            //var rayB4 = new RayBundle(mpt4);
-            //bundleList.Add(rayB4);
         }
 
         public static Point2 UnitedLine(List<Point2> pts, int begOrEnd)
         {
             var dist = 0.0;
 
-            Point2 start = pts[0];
-            Point2 end = pts[3];
+            var start = pts[0];
+            var end = pts[3];
 
             for(var i = 0; i < pts.Count; i++)
             {
                 for(var j = 0; j < pts.Count; j++)
                 {
-                    var dx = pts[i].X - pts[j].X;
-                    var dy = pts[i].Y - pts[j].Y;
-
-                    var distL = Math.Sqrt((dx * dx + dy * dy));
+                    var distL = CalcDistance(pts[i], pts[j]);
 
                     if(distL > dist)
                     {
@@ -1500,12 +1441,7 @@ namespace IfcGeometryExtractor
         {
             const double dist = 0.5; //selbst gewählter Parameter
 
-            var dx = intersec.X - segment.X;
-            var dy = intersec.Y - segment.Y;
-
-            //Console.WriteLine("realSec. " + intersec.X + " / " + intersec.Y);
-
-            var realDist = Math.Sqrt((dx * dx + dy * dy));
+            var realDist = CalcDistance(intersec, segment);
 
             if(realDist <= dist)
                 return true;
@@ -1583,8 +1519,14 @@ namespace IfcGeometryExtractor
 
         public class IntersectionPoints
         {
-            public Point2 intersection { get; set; }
-            public double distToRayOrigin { get; set; }
+            public IntersectionPoints(Point2 intersection, double distToRayOrigin)
+            {
+                this.intersection = intersection;
+                this.distToRayOrigin = distToRayOrigin;
+            }
+
+            public Point2 intersection { get; private set; }
+            public double distToRayOrigin { get; private set; }
         }
 
         //Klassen und Methoden zur Berechnung der Strahlenbündel:
