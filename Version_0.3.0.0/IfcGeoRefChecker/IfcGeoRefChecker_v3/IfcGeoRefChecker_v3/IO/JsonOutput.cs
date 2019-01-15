@@ -198,7 +198,7 @@ namespace IfcGeoRefChecker.IO
 
                 var lev50 = jsonObj["LoGeoRef50"].Children();
 
-                foreach(var res in lev40)
+                foreach(var res in lev50)
                 {
                     var l50 = new Level50();
                     JsonConvert.PopulateObject(res.ToString(), l50);
