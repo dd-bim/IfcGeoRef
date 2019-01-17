@@ -15,9 +15,9 @@
                 <RadioButton Name="radio_30" Content="LoGeoRef30 for Translation and Rotation, additional PropertySet for EPSG-Code" HorizontalAlignment="Left" Margin="26,71,0,0" VerticalAlignment="Top"/>
                 <RadioButton Name="radio_mix" Content="Mix of LoGeoRef30 (Translation) and LoGeoRef40 (Rotation), add. PSet for EPSG-Code" HorizontalAlignment="Left" Margin="26,91,0,0" VerticalAlignment="Top"/>
                 <Label Content="Additional options..." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,128,0,0"/>
-                <TextBox HorizontalAlignment="Left" Height="23" Margin="202,179,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="57"/>
-                <Label Content="m  /  EPSG (opt.):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="259,176,0,0" Width="111"/>
-                <TextBox HorizontalAlignment="Left" Height="23" Margin="378,180,0,0" TextWrapping="Wrap" Text="EPSG:" VerticalAlignment="Top" Width="94"/>
+                <TextBox Name="tb_height" IsEnabled="False" HorizontalAlignment="Left" Height="23" Margin="197,179,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="57" RenderTransformOrigin="0.158,0.565"/>
+                <Label Content="m / Vertical Datum (opt.):" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="254,179,0,0" Width="144"/>
+                <TextBox Name="tb_height_datum" IsEnabled="False" HorizontalAlignment="Left" Height="23" Margin="403,179,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="93"/>
                 <Label Content="Manually editing of IFC attributes (only for IFC experts recommended): " HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,227,0,0"/>
                 <Button Content="edit IFC" HorizontalAlignment="Left" Margin="406,230,0,0" VerticalAlignment="Top" Width="66" RenderTransformOrigin="0.28,0.2" Click="edit_manually_Click"/>
             </Grid>
@@ -26,7 +26,7 @@
         <RadioButton Content="manually edited Json ('ifcfile__set.json')" Name="radio_set" HorizontalAlignment="Left" Margin="155,36,0,0" VerticalAlignment="Top"/>
         <Label Content="Read new data from: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <CheckBox Content="Use of BuildingAddress also for SiteAddress (see LoGeoRef 10)" Name="check_10" IsChecked="True" HorizontalAlignment="Left" Margin="61,254,0,0" VerticalAlignment="Top"/>
-        <CheckBox Content="Add an absolute height:" Name="check_height" HorizontalAlignment="Left" Margin="61,280,0,0" VerticalAlignment="Top"/>
+        <CheckBox Content="Add an absolute height:" Name="check_height" HorizontalAlignment="Left" Margin="61,280,0,0" VerticalAlignment="Top" Checked="check_height_Checked"/>
         <Button Content="Export to IFC" HorizontalAlignment="Left" Margin="402,20,0,0" VerticalAlignment="Top" Width="124" RenderTransformOrigin="0.5,0.5" Height="35" Click="final_export_Click">
             <Button.RenderTransform>
                 <TransformGroup>
