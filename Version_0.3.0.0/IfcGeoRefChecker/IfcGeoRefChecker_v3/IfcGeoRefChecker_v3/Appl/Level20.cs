@@ -13,7 +13,7 @@ namespace IfcGeoRefChecker.Appl
     {
         public bool GeoRef20 { get; set; }
 
-        public IList<string> Instance_Object { get; set; }
+        public IList<string> Reference_Object { get; set; }
 
         public double Latitude { get; set; }
 
@@ -41,7 +41,9 @@ namespace IfcGeoRefChecker.Appl
 
         private IfcStore model;
 
-        public Level20() { }
+        public Level20()
+        {
+        }
 
         public Level20(IfcStore model, int ifcInstance)
         {
@@ -51,10 +53,11 @@ namespace IfcGeoRefChecker.Appl
 
                 this.site = model.Instances.Where<IIfcSite>(s => s.GetHashCode() == ifcInstance).Single();
 
-                this.Instance_Object = new List<string>
+                this.Reference_Object = new List<string>
                     {
                         {"#" + site.GetHashCode() },
-                        {site.GetType().Name }
+                        {site.GetType().Name },
+                        {site.GlobalId }
                     };
             }
             catch(Exception e)
@@ -136,7 +139,6 @@ namespace IfcGeoRefChecker.Appl
 
                     if(this.site.OwnerHistory != null)
                     {
-
                         // set timestamp back (xBim creates a new OwnerHistory object)
                         this.site.OwnerHistory.CreationDate = create;
 
@@ -170,16 +172,16 @@ namespace IfcGeoRefChecker.Appl
 
             if((this.Longitude == -999999) || (this.Latitude == -999999))
             {
-                logLevel20 += "\r\n " + this.Instance_Object[0] + "=" + this.Instance_Object[1] + " has no geographic coordinates.";
+                logLevel20 += "\r\n " + this.Reference_Object[0] + "=" + this.Reference_Object[1] + " has no geographic coordinates.";
             }
             else
             {
-                logLevel20 += "Referenced in " + this.Instance_Object[0] + "=" + this.Instance_Object[1] + ":\r\n Latitude: " + this.Latitude + "\r\n Longitude: " + this.Longitude;
+                logLevel20 += "Referenced in " + this.Reference_Object[0] + "=" + this.Reference_Object[1] + ":\r\n Latitude: " + this.Latitude + "\r\n Longitude: " + this.Longitude;
             }
 
             if(this.Elevation == -999999)
             {
-                logLevel20 += "\r\n " + this.Instance_Object[0] + "=" + this.Instance_Object[1] + " has no Elevation.";
+                logLevel20 += "\r\n " + this.Reference_Object[0] + "=" + this.Reference_Object[1] + " has no Elevation.";
             }
             else
             {

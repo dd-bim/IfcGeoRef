@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
-using Microsoft.Win32;
 using Xbim.Ifc;
 
 namespace IfcGeoRefChecker.IO
@@ -19,7 +18,7 @@ namespace IfcGeoRefChecker.IO
         {
             try
             {
-                var fd = new OpenFileDialog();
+                var fd = new Microsoft.Win32.OpenFileDialog();
 
                 fd.Filter = "IFC-files (*.ifc)|*.ifc|All Files (*.*)|*.*";
                 fd.Multiselect = true;

@@ -13,9 +13,7 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<string> Reference_Object { get; set; }
 
-        public IList<string> Instance_Object_WCS { get; set; }
-
-        public IList<string> Instance_Object_North { get; set; }
+        public IList<string> Instance_Object { get; set; }
 
         public IList<double> ProjectLocation { get; set; }
 
@@ -63,7 +61,9 @@ namespace IfcGeoRefChecker.Appl
         //GeoRef 40: read the WorldCoordinateSystem and TrueNorth attribute of IfcGeometricRepresentationContext
         //-------------------------------------------------------------------------------------------------------
 
-        public Level40() { }
+        public Level40()
+        {
+        }
 
         public Level40(IfcStore model, int ifcInstance)
         {
@@ -71,18 +71,25 @@ namespace IfcGeoRefChecker.Appl
             {
                 this.model = model;
 
-                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
+                var proj = model.Instances.OfType<IIfcProject>().Single();
 
                 this.Reference_Object = new List<string>
                     {
-                        {"#" + prjCtx.GetHashCode() },
-                        {prjCtx.GetType().Name }
+                        {"#" + proj.GetHashCode() },
+                        {proj.GetType().Name },
+                        {proj.GlobalId }
+                    };
+
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
+
+                this.Instance_Object = new List<string>
+                    {
+                        {"#" + this.prjCtx.GetHashCode() },
+                        {this.prjCtx.GetType().Name }
                     };
 
                 //variable for the WorldCoordinatesystem attribute
                 this.plcm = prjCtx.WorldCoordinateSystem;
-
-                this.Instance_Object_WCS = new List<string>();
             }
             catch(Exception e)
             {
@@ -94,17 +101,6 @@ namespace IfcGeoRefChecker.Appl
         {
             try
             {
-                if(this.plcm != null)
-                {
-                    this.Instance_Object_WCS.Add("#" + this.plcm.GetHashCode());
-                    this.Instance_Object_WCS.Add(this.plcm.GetType().Name);
-                }
-                else
-                {
-                    this.Instance_Object_WCS.Add("IfcAxis2Placement");
-                    this.Instance_Object_WCS.Add("n/a");
-                }
-
                 if(this.plcm is IIfcAxis2Placement3D)
                 {
                     this.plcmXYZ.GetPlacementXYZ(this.plcm);
@@ -127,22 +123,15 @@ namespace IfcGeoRefChecker.Appl
                 //variable for the TrueNorth attribute
                 var dir = prjCtx.TrueNorth;
 
-                this.Instance_Object_North = new List<string>();
                 this.TrueNorthXY = new List<double>();
 
                 if(dir != null)
                 {
-                    this.Instance_Object_North.Add("#" + dir.GetHashCode());
-                    this.Instance_Object_North.Add(dir.GetType().Name);
-
                     this.TrueNorthXY.Add(dir.DirectionRatios[0]);
                     this.TrueNorthXY.Add(dir.DirectionRatios[1]);
                 }
                 else
                 {
-                    this.Instance_Object_North.Add("IfcDirection");
-                    this.Instance_Object_North.Add("n/a");
-
                     //if omitted, default values (see IFC schema for IfcGeometricRepresentationContext):
 
                     this.TrueNorthXY.Add(0);
@@ -208,8 +197,8 @@ namespace IfcGeoRefChecker.Appl
             string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
 
             logLevel40 += "\r\n \r\nProject context attributes for georeferencing (Location: WorldCoordinateSystem / Rotation: TrueNorth)"
-            + dashline + "\r\n Project context element:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
-            + "\r\n Placement referenced in " + this.Instance_Object_WCS[0] + "=" + this.Instance_Object_WCS[1];
+            + dashline + "\r\n Project:" + this.Reference_Object[0] + "=" + this.Reference_Object[1]
+            + "\r\n Project context element: " + this.Instance_Object[0] + "=" + this.Instance_Object[1];
 
             if(plcm is IIfcAxis2Placement2D)
             {
@@ -224,17 +213,9 @@ namespace IfcGeoRefChecker.Appl
                 logLevel40 += $"\r\n  Rotation Z-axis = ({this.ProjectRotationZ[0]}/{this.ProjectRotationZ[1]}/{this.ProjectRotationZ[2]})";
             }
 
-            if(this.Instance_Object_North.Contains("n/a"))
-
-            {
-                logLevel40 += "\r\n \r\n No rotation regarding True North mentioned.";
-            }
-            else
-            {
-                logLevel40 += "\r\n \r\n True North referenced in " + this.Instance_Object_North[0] + "=" + this.Instance_Object_North[1]
-                    + "\r\n  X-component =" + this.TrueNorthXY[0]
-                    + "\r\n  Y-component =" + this.TrueNorthXY[1];
-            }
+            logLevel40 += "\r\n \r\n True North:"
+                + "\r\n  X-component =" + this.TrueNorthXY[0]
+                + "\r\n  Y-component =" + this.TrueNorthXY[1];
 
             logLevel40 += "\r\n \r\n LoGeoRef 40 = " + this.GeoRef40 + "\r\n" + line;
 

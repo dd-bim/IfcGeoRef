@@ -15,9 +15,7 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<string> Reference_Object { get; set; }
 
-        public IList<string> Instance_Object_Project { get; set; }
-
-        public IList<string> Instance_Object_CRS { get; set; }
+        public IList<string> Instance_Object { get; set; }
 
         public double Translation_Eastings { get; set; }
 
@@ -88,18 +86,21 @@ namespace IfcGeoRefChecker.Appl
             {
                 this.model = model;
 
-                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
+                var proj = model.Instances.OfType<IIfcProject>().Single();
 
                 this.Reference_Object = new List<string>
-                                        {
-                        {"IfcMapConversion"},
-                        {"n/a"}
+                    {
+                        {"#" + proj.GetHashCode() },
+                        {proj.GetType().Name },
+                        {proj.GlobalId }
                     };
 
-                this.Instance_Object_Project = new List<string>
+                this.prjCtx = model.Instances.Where<IIfcGeometricRepresentationContext>(s => s.GetHashCode() == ifcInstance).Single();
+
+                this.Instance_Object = new List<string>
                     {
-                        {"#" + prjCtx.GetHashCode()},
-                        {prjCtx.GetType().Name}
+                        {"#" + this.prjCtx.GetHashCode() },
+                        {this.prjCtx.GetType().Name }
                     };
 
                 var maps = model.Instances.OfType<IIfcMapConversion>();
@@ -124,12 +125,6 @@ namespace IfcGeoRefChecker.Appl
                     }
                 }
 
-                this.Instance_Object_CRS = new List<string>
-                    {
-                        {"IfcProjectedCRS"},
-                        {"n/a"}
-                    };
-
                 this.RotationXY = new List<double>();
             }
             catch(Exception e)
@@ -147,8 +142,8 @@ namespace IfcGeoRefChecker.Appl
                 {
                     //this.mapCvs = (IfcMapConversion)prjCtx.HasCoordinateOperation;
 
-                    this.Reference_Object[0] = "#" + mapCvs.GetHashCode();
-                    this.Reference_Object[1] = mapCvs.GetType().Name;
+                    this.Instance_Object[0] = "#" + mapCvs.GetHashCode();
+                    this.Instance_Object[1] = mapCvs.GetType().Name;
 
                     this.Translation_Eastings = (mapCvs.Eastings != null) ? mapCvs.Eastings : 0;
                     this.Translation_Northings = (mapCvs.Northings != null) ? mapCvs.Northings : 0;
@@ -173,9 +168,6 @@ namespace IfcGeoRefChecker.Appl
 
                     if(mapCRS != null)
                     {
-                        this.Instance_Object_CRS[0] = "#" + mapCRS.GetHashCode();
-                        this.Instance_Object_CRS[1] = mapCRS.GetType().Name;
-
                         this.CRS_Name = (mapCRS.Name != null) ? mapCRS.Name.ToString() : "n/a";
                         this.CRS_Description = (mapCRS.Description != null) ? mapCRS.Description.ToString() : "n/a";
                         this.CRS_Geodetic_Datum = (mapCRS.GeodeticDatum != null) ? mapCRS.GeodeticDatum.ToString() : "n/a";
@@ -189,12 +181,6 @@ namespace IfcGeoRefChecker.Appl
                 else
                 {
                     this.GeoRef50 = false;
-
-                    this.Reference_Object.Add("IfcMapConversion");
-                    this.Reference_Object.Add("n/a");
-
-                    this.Instance_Object_CRS.Add("IfcProjectedCRS");
-                    this.Instance_Object_CRS.Add("n/a");
 
                     this.Translation_Eastings = 0;
                     this.Translation_Northings = 0;
@@ -294,18 +280,18 @@ namespace IfcGeoRefChecker.Appl
 
             logLevel50 += "\r\n \r\nSpecific entities for georeferencing (only in scope of IFC4; IfcMapConversion references IfcGeometricRepresenationContext)" + dashline + "\r\n";
 
-            if(this.Reference_Object != null && prjCtx.HasCoordinateOperation.Count() != 0)
+            if(prjCtx.HasCoordinateOperation.Count() != 0)
 
             {
-                logLevel50 += " Project Context element which is referenced by IfcMapConversion: " + this.Instance_Object_Project[0] + "=" + this.Instance_Object_Project[1]
-                + "\r\n MapConversion element: " + this.Reference_Object[0] + "=" + this.Reference_Object[1]
+                logLevel50 += " Project for which IfcMapConversion applies: " + this.Reference_Object[0] + "=" + this.Reference_Object[1]
+                + "\r\n MapConversion element: " + this.Instance_Object[0] + "=" + this.Instance_Object[1]
                 + "\r\n  Translation Eastings:" + this.Translation_Eastings
                 + "\r\n  Translation Northings:" + this.Translation_Northings
                 + "\r\n  Translation Height:" + this.Translation_Orth_Height
                 + "\r\n  Rotation X-axis(Abscissa):" + this.RotationXY[0]
                 + "\r\n  Rotation X-axis(Ordinate):" + this.RotationXY[1]
                 + "\r\n  Scale:" + this.Scale
-                + "\r\n CRS element: " + this.Instance_Object_CRS[0] + "=" + this.Instance_Object_CRS[1]
+                + "\r\n CRS element: "
                 + "\r\n  Name:" + this.CRS_Name
                 + "\r\n  Description:" + this.CRS_Description
                 + "\r\n  Geodetic Datum:" + this.CRS_Geodetic_Datum

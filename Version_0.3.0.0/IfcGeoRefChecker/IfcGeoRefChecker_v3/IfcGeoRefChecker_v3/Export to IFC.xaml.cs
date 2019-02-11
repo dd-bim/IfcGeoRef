@@ -10,44 +10,53 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class Export2IFC : Window
     {
-        private string file;
-        private string jsonObj;
+        private string filePath;
+        private string fileName;
+        private string direc;
 
-        public Export2IFC(string file)
+        private IO.JsonOutput jsonMap;
+
+        public Export2IFC(string direc, string filePath, string fileName)
         {
-            InitializeComponent();
+            this.direc = direc;
+            this.filePath = filePath;
+            this.fileName = fileName;
 
-            this.file = file;
-            this.jsonObj = File.ReadAllText(file + "_map.json");
-        }
+            var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + fileName + "_map.json");
 
-        private void edit_manually_Click(object sender, RoutedEventArgs e)
-        {
-            var ifcResults = new Results(this.file, this.jsonObj);
-            ifcResults.Show();
-        }
-
-        private void final_export_Click(object sender, RoutedEventArgs e)
-        {
-            var jsonMap = new IO.JsonOutput();
+            this.jsonMap = new IO.JsonOutput();
             jsonMap.PopulateJson(jsonObj);
 
+            InitializeComponent();
+
+            lb_jsonmap.Content = fileName + "_map.json";
+        }
+
+        private void getJsonContent()
+        {
             var lev50map = (from l50 in jsonMap.LoGeoRef50
                             select l50).First();
 
+            var lev50oth = from l50 in jsonMap.LoGeoRef50
+                           where l50 != lev50map
+                           select l50;
+
+            foreach(var l50 in lev50oth)
+            {
+                if(radio_50.IsChecked == true)
+                {
+                    l50.CRS_Name = lev50map.CRS_Name;
+                }
+            }
+
             if(radio_50.IsChecked == true)
             {
-                var lev50oth = from l50 in jsonMap.LoGeoRef50
-                               where l50 != lev50map
-                               select l50;
-
                 foreach(var l50 in lev50oth)
                 {
                     l50.Translation_Eastings = lev50map.Translation_Eastings;
                     l50.Translation_Northings = lev50map.Translation_Northings;
 
                     l50.RotationXY = lev50map.RotationXY;
-                    l50.CRS_Name = lev50map.CRS_Name;
                 }
             }
             else if(radio_40.IsChecked == true)
@@ -61,7 +70,8 @@ namespace IfcGeoRefChecker
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
                 }
 
-                jsonMap.LoGeoRef50 = null;
+                lev50map.Translation_Eastings = 0;
+                lev50map.Translation_Northings = 0;
             }
             else if(radio_30.IsChecked == true)
             {
@@ -74,7 +84,9 @@ namespace IfcGeoRefChecker
                     l30.ObjectRotationX[1] = lev50map.RotationXY[1];
                 }
 
-                jsonMap.LoGeoRef50 = null;
+                lev50map.Translation_Eastings = 0;
+                lev50map.Translation_Northings = 0;
+
             }
             else if(radio_mix.IsChecked == true)
             {
@@ -90,30 +102,15 @@ namespace IfcGeoRefChecker
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
                 }
 
-                jsonMap.LoGeoRef50 = null;
-            }
+                lev50map.Translation_Eastings = 0;
+                lev50map.Translation_Northings = 0;
 
-            if(check_10.IsChecked == true)
-            {
-                var lev10Bldg = (from l10Bldg in jsonMap.LoGeoRef10
-                                 where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
-                                 select l10Bldg).Single();
-
-                var lev10Site = (from l10Site in jsonMap.LoGeoRef10
-                                 where l10Site.Reference_Object[1].Equals("IfcSite")
-                                 select l10Site).Single();
-
-                lev10Site.AddressLines = lev10Bldg.AddressLines;
-                lev10Site.Postalcode = lev10Bldg.Postalcode;
-                lev10Site.Town = lev10Bldg.Town;
-                lev10Site.Region = lev10Bldg.Region;
-                lev10Site.Country = lev10Bldg.Country;
             }
 
             if(check_height.IsChecked == true)
             {
                 var lev20Site = (from l20Site in jsonMap.LoGeoRef20
-                                 where l20Site.Instance_Object[1].Equals("IfcSite")
+                                 where l20Site.Reference_Object[1].Equals("IfcSite")
                                  select l20Site).Single();
 
                 var elev = tb_height.Text.Replace(",", ".");
@@ -137,9 +134,25 @@ namespace IfcGeoRefChecker
                     MessageBox.Show("Error occured. Please provide a number for the absolute height!");
                 }
             }
+        }
+
+        private void edit_manually_Click(object sender, RoutedEventArgs e)
+        {
+            getJsonContent();
 
             var jsonUpd = JsonConvert.SerializeObject(jsonMap, Formatting.Indented);
-            var write = new IO.IfcWriter(this.file, jsonUpd);
+
+            var ifcResults = new Results(direc, filePath, this.fileName, jsonUpd);
+            ifcResults.Show();
+        }
+
+        private void final_export_Click(object sender, RoutedEventArgs e)
+        {
+            getJsonContent();
+
+            var jsonUpd = JsonConvert.SerializeObject(jsonMap, Formatting.Indented);
+
+            var write = new IO.IfcWriter(direc + "\\ifc\\", filePath, fileName, jsonUpd);
         }
 
         private void check_height_Checked(object sender, RoutedEventArgs e)
@@ -172,6 +185,43 @@ namespace IfcGeoRefChecker
             }
 
             return coordinate;
+        }
+
+        private void check_10_Checked(object sender, RoutedEventArgs e)
+        {
+            var lev10Site = (from l10Site in jsonMap.LoGeoRef10
+                             where l10Site.Reference_Object[1].Equals("IfcSite")
+                             select l10Site).Single();
+            var lev10Bldg = (from l10Bldg in jsonMap.LoGeoRef10
+                             where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
+                             select l10Bldg).Single();
+
+            lev10Site.AddressLines[0] = lev10Bldg.AddressLines[0];
+            lev10Site.AddressLines[1] = lev10Bldg.AddressLines[1];
+            lev10Site.AddressLines[2] = lev10Bldg.AddressLines[2];
+            lev10Site.Postalcode = lev10Bldg.Postalcode;
+            lev10Site.Town = lev10Bldg.Town;
+            lev10Site.Region = lev10Bldg.Region;
+            lev10Site.Country = lev10Bldg.Country;
+        }
+
+        private void check_10_Unchecked(object sender, RoutedEventArgs e)
+        {
+            var lev10Site = (from l10Site in jsonMap.LoGeoRef10
+                             where l10Site.Reference_Object[1].Equals("IfcSite")
+                             select l10Site).Single();
+
+            lev10Site.AddressLines[0] = null;
+            lev10Site.AddressLines[1] = null;
+            lev10Site.AddressLines[2] = null;
+            lev10Site.Postalcode = null;
+            lev10Site.Town = null;
+            lev10Site.Region = null;
+            lev10Site.Country = null;
+        }
+
+        private void radio_map_Checked(object sender, RoutedEventArgs e)
+        {
         }
     }
 }

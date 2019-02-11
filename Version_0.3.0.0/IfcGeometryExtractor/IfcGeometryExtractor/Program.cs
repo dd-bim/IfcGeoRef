@@ -63,6 +63,7 @@ namespace IfcGeometryExtractor
             try
             {
                 switch(nr)
+
                 {
                     case "1":
                         path = source + "schependomlaan.-.IFC\\Design model IFC\\IFC_Schependomlaan.ifc";

@@ -71,7 +71,8 @@ namespace IfcGeoRefChecker.Appl
                 this.Reference_Object = new List<string>
                     {
                         {"#" + elem.GetHashCode() },
-                        {elem.GetType().Name }
+                        {elem.GetType().Name },
+                        {elem.GlobalId }
                     };
             }
 

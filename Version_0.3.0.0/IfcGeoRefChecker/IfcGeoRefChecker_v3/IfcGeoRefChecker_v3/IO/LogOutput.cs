@@ -8,14 +8,14 @@ namespace IfcGeoRefChecker.IO
 {
     public class LogOutput
     {
-        public void WriteLogfile(List<string> log, string file/*, string direc*/)
+        public void WriteLogfile(List<string> log, string fileDirec, string file)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             string dashline = "\r\n----------------------------------------------------------------------------------------------------------------------------------------";
             var headline = $"\r\nExamination of {file}.ifc regarding georeferencing content ({DateTime.Now.ToShortDateString()}, {DateTime.Now.ToLongTimeString()})" + dashline + dashline + "\r\n";
 
-            using(var writeLog = File.CreateText((/*direc+ "\\" + */file + ".txt")))
+            using(var writeLog = File.CreateText((fileDirec + ".txt")))
             {
                 try
                 {

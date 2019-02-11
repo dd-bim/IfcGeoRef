@@ -1,30 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using BimGisCad.Representation.Geometry;
 using BimGisCad.Representation.Geometry.Elementary;
 using MIConvexHull;
-using netDxf;
-using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
 {
     public class BldgFootprintExtraxtor
     {
-        //temporär zum Testen / Visualisieren:
-        //---------------------------------------------------
-        private string nr;                                                       //Variable für IFC Modell - Auswahl
-
-        private DxfDocument dxf = new DxfDocument();                             //Variable für DXF-Datei (netDXF-Lib)
-
-        //---------------------------------------------------
-        //IFC-Modell
-        //private IfcStore model;
-
-        //-------------------------------
 
         //absolutes Bauwerkssystem (i.d.R. nicht global):
         private Axis2Placement3D siteSystem;                                   //globales Placement der Wand (ohne Geometrie-Koords)
@@ -61,62 +47,61 @@ namespace IfcGeoRefChecker.Appl
                 {
                     try
                     {
-
                         k++;
-                    
-                    //Ermitteln der Werte für Local Placement
-                    var plcmt = singleWall.ObjectPlacement;
 
-                    //derzeit nur Fall IfcLocalPlacement (Erweiterung für Grid,... nötig)
-                    siteSystem = GetAbsolutePlacement(plcmt);                                            //globales Bauwerkssystem wird ermittelt
+                        //Ermitteln der Werte für Local Placement
+                        var plcmt = singleWall.ObjectPlacement;
 
-                    //Auslesen der Repräsentationstypen
-                    //-----------------------------------
+                        //derzeit nur Fall IfcLocalPlacement (Erweiterung für Grid,... nötig)
+                        siteSystem = GetAbsolutePlacement(plcmt);                                            //globales Bauwerkssystem wird ermittelt
 
-                    var repTypes = singleWall.Representation.Representations;
+                        //Auslesen der Repräsentationstypen
+                        //-----------------------------------
 
-                    //var repList = new List<IIfcRepresentation>();
+                        var repTypes = singleWall.Representation.Representations;
 
-                    var repBody = from rep in repTypes
-                                  where rep.RepresentationIdentifier == "Body"
-                                  select rep;
+                        //var repList = new List<IIfcRepresentation>();
 
-                    //if (repBody != null)
-                    var wallDetec = GetBodyGeometry(repBody.FirstOrDefault());
-
-                    if(wallDetec.Count > 0)
-                    {
-                        wallLined.AddRange(wallDetec);
-                        //Console.WriteLine("For " + singleWall.GetHashCode() + " " + wallDetec.Count + " walllines were detected.");
-
-                        foreach(var wl in wallDetec)
-                        {
-                            var dX = wl.segmentA.X - wl.segmentB.X;
-                            var dY = wl.segmentA.Y - wl.segmentB.Y;
-
-                            if((dX == 0.0) && (dY == 0.0))
-                            {
-                                //Console.WriteLine("Segmente Pkt gleich: " + wl.segmentA.X + " / " + wl.segmentA.Y);
-
-                                //Console.WriteLine(repBody.FirstOrDefault().RepresentationType.ToString());
-                            }
-                        }
-
-                        //Console.WriteLine(repBody.FirstOrDefault().RepresentationType.ToString());
-                    }
-                    else
-                    {
-                        var repAxis = from rep in repTypes
-                                      where rep.RepresentationIdentifier == "Axis"
+                        var repBody = from rep in repTypes
+                                      where rep.RepresentationIdentifier == "Body"
                                       select rep;
 
-                        wallLined.Add(GetAxisGeometry(repAxis.FirstOrDefault()));
-                        //Console.WriteLine("For " + singleWall.GetHashCode() + " Body geometry detection was not successful. There will be an unprecise Axisline-Representation instead.");
-                    }
+                        //if (repBody != null)
+                        var wallDetec = GetBodyGeometry(repBody.FirstOrDefault());
+
+                        if(wallDetec.Count > 0)
+                        {
+                            wallLined.AddRange(wallDetec);
+                            //Console.WriteLine("For " + singleWall.GetHashCode() + " " + wallDetec.Count + " walllines were detected.");
+
+                            foreach(var wl in wallDetec)
+                            {
+                                var dX = wl.segmentA.X - wl.segmentB.X;
+                                var dY = wl.segmentA.Y - wl.segmentB.Y;
+
+                                if((dX == 0.0) && (dY == 0.0))
+                                {
+                                    //Console.WriteLine("Segmente Pkt gleich: " + wl.segmentA.X + " / " + wl.segmentA.Y);
+
+                                    //Console.WriteLine(repBody.FirstOrDefault().RepresentationType.ToString());
+                                }
+                            }
+
+                            //Console.WriteLine(repBody.FirstOrDefault().RepresentationType.ToString());
+                        }
+                        else
+                        {
+                            var repAxis = from rep in repTypes
+                                          where rep.RepresentationIdentifier == "Axis"
+                                          select rep;
+
+                            wallLined.Add(GetAxisGeometry(repAxis.FirstOrDefault()));
+                            //Console.WriteLine("For " + singleWall.GetHashCode() + " Body geometry detection was not successful. There will be an unprecise Axisline-Representation instead.");
+                        }
                     }
                     catch
                     {
-                        MessageBox.Show("error occured "+ k);
+                        MessageBox.Show("error occured " + k);
                     }
                 }
 
@@ -133,33 +118,7 @@ namespace IfcGeoRefChecker.Appl
 
                 wallLined = ConvertToMeter(wallLined, unit);
 
-                foreach(var wl in wallLined)
-                {
-                    //if(CalcDistance(wl.segmentA, wl.segmentB) == 0)
-                    //    //Console.WriteLine("Segmente Pkt gleich: " + wl.segmentA.X + " / " + wl.segmentA.Y);
-
-                    //if(wl.wallLine.Direction.Equals(null))
-                    //    //Console.WriteLine("Nullalble direction found");
-
-                    WallToDXF(wl, "0_detectedWalls", DXFcolor.yellow);
-                    PointsToDXF(wl.segmentA, "0_detectedWallPts", DXFcolor.yellow);
-                    PointsToDXF(wl.segmentB, "0_detectedWallPts", DXFcolor.yellow);
-                }
-                //--------------------------------------------------------------------------
-
-                //Console.ReadKey();
-
                 CleanUpWallLines(wallLined, "wall");
-
-               //Console.WriteLine("cleans= " + wallLinedClean.Count);
-
-                foreach(var w in wallLinedClean)
-                {
-                    WallToDXF(w, "1_cleanLines", DXFcolor.red);
-
-                    PointsToDXF(w.segmentA, "1_cleanPts", DXFcolor.red);
-                    PointsToDXF(w.segmentB, "1_cleanPts", DXFcolor.red);
-                }
 
                 CompareCvxWalls();
 
@@ -173,11 +132,9 @@ namespace IfcGeoRefChecker.Appl
 
                 foreach(var pt in realIntersecPts)
                 {
-                    PointsToDXF(pt, "ZRealIntersecs", DXFcolor.yellow);
-
                     var point = RoundPoints(pt);
 
-                    WKTstring += string.Format("{0} {1}, ", point.X, point.Y); 
+                    WKTstring += string.Format("{0} {1}, ", point.X, point.Y);
 
                     // Console.WriteLine(pt.X + " / " + pt.Y);
 
@@ -191,54 +148,12 @@ namespace IfcGeoRefChecker.Appl
                 for(var i = 0; i < (realIntersecPts.Count - 1); i++)
                 {
                     var poly = new LinePoints(realIntersecPts[i], realIntersecPts[i + 1]);
-
-                    WallToDXF(poly, "Polygon", DXFcolor.green);
-
-                    //WriteSegments2Console(poly);
                 }
 
-                ////var globalPts = GetGlobalPlacement(realIntersecPts);
-
-                ////globalPts.Add(globalPts[0]); //geschlossener Ring
-
-                //foreach(var pt in realIntersecPts)
-                //{
-                //    PointsToDXF(pt, "finalWKTpts", DXFcolor.red);
-
-                //    Console.WriteLine(pt.X + " , " + pt.Y);
-                //}
-
-                //Console.WriteLine();
-                //Console.WriteLine("Start AutoCAD for Visualisation?: press j / n");
-
-                //var cad = Console.ReadLine();
-
-                //switch(cad)
-                //{
-                //    case "j":
-                //        {
-                //            dxf.Save(path + ".dxf");
-
-                //            System.Diagnostics.Process.Start(path + ".dxf");
-
-                //            Console.ReadKey();
-
-                //            break;
-                //        }
-
-                //    default:
-                //        break;
-                //}
             }
             catch(Exception ex)
             {
-                //Console.WriteLine(ex);
-
-                //dxf.Save(path + ".dxf");
-
-                //System.Diagnostics.Process.Start(path + ".dxf");
-
-                //Console.ReadLine();
+                MessageBox.Show("Error occured while calculating Building Footprint." + ex);
 
                 WKTstring = "error";
             }
@@ -744,9 +659,6 @@ namespace IfcGeoRefChecker.Appl
 
                     //Console.WriteLine("  -> Coords-Axis (global): " + globPt.X + " , " + globPt.Y);
 
-                    //schreibe Koordinaten in Textdatei (Kommata-getrennt):
-                    WriteCoords(Point2.ToCSVString(Point2.Create(globPt.X, globPt.Y)), "wallAxisCoords"); //verebnet
-
                     //WriteCoords(Point3.ToCSVString(globPt)); // mit Höhen
 
                     //Rekonstruktion der Wandachsen:
@@ -859,18 +771,6 @@ namespace IfcGeoRefChecker.Appl
 
                 CleanUpWallLines(cvxLines, "cvx");
 
-                foreach(var cvxH in cvxLines)
-                {
-                    WallToDXF(cvxH, "2a_convexHull_overall", DXFcolor.yellow);
-                }
-
-                foreach(var cvxH in cvxLinesClean)
-                {
-                    PointsToDXF(cvxH.segmentA, "2b_convexHullCleanPts_overall", DXFcolor.magenta);
-                    PointsToDXF(cvxH.segmentB, "2b_convexHullCleanPts_overall", DXFcolor.magenta);
-                    WallToDXF(cvxH, "2b_convexHullClean_overall", DXFcolor.magenta);
-                }
-
                 var cvxMatchLines = new List<LinePoints>();
                 var cvxOuterLines = new List<LinePoints>();
 
@@ -884,19 +784,9 @@ namespace IfcGeoRefChecker.Appl
 
                     var cvxMatchesDist = cvxMatches.Distinct(); //cvxMatchLines.Add
 
-                    foreach(var cvxM in cvxMatchesDist)
-                    {
-                        WallToDXF(cvxM, "2c_convexHull_matches_generalized", DXFcolor.blue);
-                    }
-
                     var cvxMatchExt = from wall in wallLinedClean                                                 //passende ConvexHull-Kanten (ohne Kanten mit Nischen)
                                       where SameSegment(wall, cvx)
                                       select cvx;                                                                   //"saubere" ConvexHull-Lines
-
-                    foreach(var cvxM in cvxMatchExt)
-                    {
-                        WallToDXF(cvxM, "2c_convexHull_matches_specialized", DXFcolor.blue);
-                    }
 
                     cvxMatchLines.AddRange(cvxMatchExt);                                                            //sauberer ConvexHull-Lines werden direkt in Matches geschrieben
 
@@ -904,11 +794,6 @@ namespace IfcGeoRefChecker.Appl
                         cvxOuterLines.Add(cvx);
 
                     var cvxExamine = cvxMatches.Except(cvxMatchExt);                                                //Differenz --> Kanten, wo Nischen vorhanden sind
-
-                    foreach(var cvxE in cvxExamine)
-                    {
-                        WallToDXF(cvxE, "2c_convexHull_matches_difference", DXFcolor.blue);
-                    }
 
                     foreach(var c in cvxExamine)                                                                    //Detektion der Teile der Kanten, wo Nische sich befindet
                     {
@@ -923,13 +808,6 @@ namespace IfcGeoRefChecker.Appl
                                           select w).ToList();
 
                         cvxMatchLines.AddRange(matchWalls);                                                          //Teile, wo keine Nische ist, werden sauberen Kanten hinzugefügt
-
-                        //--------------------------------------
-                        foreach(var mw in matchWalls)
-                        {
-                            WallToDXF(mw, "2d_convexhull_matches_spez_no_niches", DXFcolor.cyan);  //DXF-Ausgabe
-                        }
-                        //--------------------------------------
 
                         var matchPts = ((from w in matchWalls
                                          select w.segmentA).Union(from w in matchWalls select w.segmentB)).ToList();     //alle Punkte der gefundenen Wände
@@ -967,8 +845,6 @@ namespace IfcGeoRefChecker.Appl
 
                             if(clEq.Count() == 0 && clPts.Count() < 3)                                              //keine Berücksichtigung vorhandener Wände
                             {                                                                                       //sowie keine Berücksichtigung zu langer Linien (mehr als 2 Schnittpunkte)
-                                WallToDXF(cl, "2d_convexhull_matches_spez_niches", DXFcolor.cyan);  //DXF-Ausgabe
-
                                 cvxOuterLines.Add(cl);                                                              //Cvx-Teil vor Nische wird OuterLines hinzugefügt
                             }
                         }
@@ -983,18 +859,14 @@ namespace IfcGeoRefChecker.Appl
 
                     foreach(var cvxM in cvxMatch)
                     {
-                        WallToDXF(cvxM, "2z_convexHull_result_matchLines", DXFcolor.blue);
                         extWallLines.Add(cvxM);
                     }
 
                     foreach(var cvxO in cvxOuter)
                     {
-                        WallToDXF(cvxO, "2z_convexHull_result_OuterLines", DXFcolor.cyan);
                         DensifyRayOrigins(cvxO);
                     }
                 }
-                //else
-                    //Console.WriteLine("Berechung beendet. Konvexe Hülle = Wandaußenkanten!");
             }
             catch { }
         }
@@ -1005,8 +877,6 @@ namespace IfcGeoRefChecker.Appl
         {
             foreach(var rayBundle in bundleList)
             {
-                PointsToDXF(rayBundle.rayOrigin, "RayOrigins", DXFcolor.green);
-
                 foreach(var ray in rayBundle.rays)
                 {
                     var intersecs = new List<IntersectionPoints>();
@@ -1048,9 +918,6 @@ namespace IfcGeoRefChecker.Appl
                                 continue;                                       //verhindert Linien und Punkte Overhead
 
                             extWallLines.Add(extWall);
-
-                            PointsToDXF(extSec, "RayWallIntersects", DXFcolor.cyan);
-                            WallToDXF(extWall, "ZFoundedExternalWalls", DXFcolor.blue);
                         }
                     }
                 }
@@ -1070,37 +937,15 @@ namespace IfcGeoRefChecker.Appl
             {
                 if(extWallLines.Count > 0)
                 {
-                    //Console.WriteLine(extWallLines.Count + "vorher");
-
-                    foreach(var wall in extWallLines)
-                    {
-                        WallToDXF(wall, "externeWallsVorVereinigung", DXFcolor.red);
-                    }
-
                     CleanUpWallLines(extWallLines, "ext");
-
-                    foreach(var wall in extWallLinesClean)
-                    {
-                        WallToDXF(wall, "ExternalWallsCleanBeforeIntersection", DXFcolor.magenta);
-                    }
 
                     firstLine = extWallLinesClean[0];
 
-                    WallToDXF(firstLine, "FirstExternalLine", DXFcolor.green);
-
                     NextIntersectionPtV2(firstLine);
-
-                    //CalcSameLines();
-
-                    //Console.WriteLine(extWallLines.Count + "nachher");
-
-                    foreach(var wall in extWallLinesClean)
-                    {
-                        WallToDXF(wall, "ExternalWallsAfterIntersection", DXFcolor.magenta);
-                    }
                 }
             }
-            catch(Exception ex) { //Console.WriteLine(ex); 
+            catch(Exception ex)
+            { //Console.WriteLine(ex);
             }
         }
 
@@ -1127,11 +972,6 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception ex)
             {
-                //Console.WriteLine(ex.Message);
-                //WriteSegments2Console(a);
-                //WriteSegments2Console(b);
-                //WriteSegments2Console(wallLined[0]);
-                //WriteSegments2Console(wallLined[1]);
                 return false;
             }
         }
@@ -1241,7 +1081,7 @@ namespace IfcGeoRefChecker.Appl
                 }
 
                 //
-               // Console.WriteLine("temps= " + tempIntersecs.Count);
+                // Console.WriteLine("temps= " + tempIntersecs.Count);
 
                 if(tempIntersecs.Count == 0)
                 {
@@ -1281,7 +1121,8 @@ namespace IfcGeoRefChecker.Appl
                     NextIntersectionPtV2(nextLine);
             }
 
-            catch(Exception ex) { //Console.WriteLine(ex); 
+            catch(Exception ex)
+            { //Console.WriteLine(ex);
             }
         }
 
@@ -1477,6 +1318,7 @@ namespace IfcGeoRefChecker.Appl
 
                 this.rays = InitializeRays(rayOrigin);
             }
+
             //}
 
             private IList<Line2> InitializeRays(Point2 rayOrigin)
@@ -1571,100 +1413,5 @@ namespace IfcGeoRefChecker.Appl
 
             return direc;
         }
-
-        //Methoden zur Ausgabe in File
-        //-------------------------------------------------------
-
-        public void WriteCoords(string coord, string task)
-        {
-            var time = DateTime.Now.ToString("yyyy-dd-M--HH-mm");
-
-            using(var writeLog = File.AppendText(("D:\\1_CityBIM\\1_Programmierung\\IfcGeoRef\\" + task + nr + "_" + time + ".txt")))
-            {
-                try
-                {
-                    writeLog.WriteLine(coord);
-                }
-
-                catch(Exception ex)
-                {
-                    writeLog.WriteLine($"Error occured while writing Logfile. \r\n Message: {ex.Message}");
-                }
-            };
-        }
-
-        //Methoden zur Ausgabe in Console
-        //-------------------------------------------------------
-
-        //public void WriteSegments2Console(LinePoints segment)
-        //{
-        //    Console.WriteLine("Segment:");
-        //    Console.WriteLine("Punkt A: X = " + segment.segmentA.X + ", Y = " + segment.segmentA.Y);
-        //    Console.WriteLine("Punkt B: X = " + segment.segmentB.X + ", Y = " + segment.segmentB.Y);
-        //    Console.WriteLine("Direction: x = " + segment.wallLine.Direction.X + ", Y = " + segment.wallLine.Direction.Y);
-        //}
-
-        //Methoden zur Visualisierung in AutoCAD
-        //-------------------------------------------------------
-
-        public void PointsToDXF(Point2 ptXY, string layerName, DXFcolor color)
-        {
-            var layer = new netDxf.Tables.Layer(layerName);
-
-            var pt = new netDxf.Entities.Point(ptXY.X, ptXY.Y, 0);
-
-            var circle = new netDxf.Entities.Circle(new netDxf.Vector2(ptXY.X, ptXY.Y), 0.2);
-
-            layer.Color = GetDXFColor(color);
-
-            pt.Layer = layer;
-            circle.Layer = layer;
-
-            dxf.AddEntity(pt);
-            dxf.AddEntity(circle);
-        }
-
-        public void WallToDXF(LinePoints wallLine, string layerName, DXFcolor color)
-        {
-            var vec1 = new netDxf.Vector2(wallLine.segmentA.X, wallLine.segmentA.Y);
-            var vec2 = new netDxf.Vector2(wallLine.segmentB.X, wallLine.segmentB.Y);
-
-            var wallLineDXF = new netDxf.Entities.Line(vec1, vec2);
-
-            wallLineDXF.Layer = new netDxf.Tables.Layer(layerName);
-
-            wallLineDXF.Layer.Color = GetDXFColor(color);
-
-            dxf.AddEntity(wallLineDXF);
-        }
-
-        private AciColor GetDXFColor(DXFcolor color)
-        {
-            switch(color)
-            {
-                case DXFcolor.red:
-                    return new AciColor(255, 0, 0);
-
-                case DXFcolor.green:
-                    return new AciColor(0, 255, 0);
-
-                case DXFcolor.blue:
-                    return new AciColor(0, 0, 255);
-
-                case DXFcolor.yellow:
-                    return new AciColor(255, 255, 0);
-
-                case DXFcolor.magenta:
-                    return new AciColor(255, 0, 255);
-
-                case DXFcolor.cyan:
-                    return new AciColor(0, 255, 255);
-
-                default:
-                    return new AciColor(255, 255, 255);
-            }
-        }
-
-        public enum DXFcolor { red, green, blue, cyan, yellow, magenta }
     }
 }

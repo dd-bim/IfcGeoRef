@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using Xbim.Ifc;
-using Xbim.Ifc4.DateTimeResource;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
@@ -26,11 +24,7 @@ namespace IfcGeoRefChecker.Appl
 
         public string Country { get; set; }
 
-        private IIfcSpatialStructureElement elem;
-
         private IIfcPostalAddress address;
-
-        private IfcStore model;
 
         public bool Equals(Level10 other)
         {
@@ -71,70 +65,6 @@ namespace IfcGeoRefChecker.Appl
             { address = null; }
         }
 
-        //public Level10(IIfcSpatialStructureElement spatialElement)
-        //{
-        //    try
-        //    {
-
-
-        //    }
-
-        //    catch(Exception e)
-        //    {
-        //        MessageBox.Show("Error occured while initializing LoGeoRef10 instance. \r\nError message: " + e.Message);
-        //    }
-        //}
-
-        //public Level10(IfcStore model, int ifcInstance, string ifcType)
-        //{
-        //    try
-        //    {
-        //        this.model = model;
-
-        //        this.Reference_Object = new List<string>
-        //            {
-        //                {"#" + ifcInstance},
-        //                {ifcType }
-        //            };
-
-        //        this.Instance_Object = new List<string>
-        //            {
-        //                {"IfcPostalAddress"},
-        //                {"n/a"}
-        //            };
-
-        //        this.AddressLines = new List<string>();
-        //        this.AddressLines.Add("n/a");
-        //        this.AddressLines.Add("n/a");
-        //        this.AddressLines.Add("n/a");
-
-        //        this.Postalcode = "n/a";
-        //        this.Town = "n/a";
-        //        this.Region = "n/a";
-        //        this.Country = "n/a";
-
-        //        if(ifcType == "IfcSite")
-        //        {
-        //            elem = model.Instances.OfType<IIfcSite>().Where(s => s.GetHashCode() == ifcInstance).Single();
-
-        //            address = (elem as IIfcSite).SiteAddress;
-        //        }
-        //        else if(ifcType == "IfcBuilding")
-        //        {
-        //            elem = model.Instances.OfType<IIfcBuilding>().Where(s => s.GetHashCode() == ifcInstance).Single();
-
-        //            address = (elem as IIfcBuilding).BuildingAddress;
-        //        }
-        //        else
-        //        { address = null; }
-        //    }
-
-        //    catch(Exception e)
-        //    {
-        //        MessageBox.Show("Error occured while initializing LoGeoRef10 instance. \r\nError message: " + e.Message);
-        //    }
-        //}
-
         public void GetLevel10(IIfcSpatialStructureElement spatialElement)
         {
             try
@@ -143,7 +73,8 @@ namespace IfcGeoRefChecker.Appl
                 this.Reference_Object = new List<string>
                     {
                         {"#" + spatialElement.GetHashCode()},
-                        {spatialElement.ExpressType.ToString()}
+                        {spatialElement.ExpressType.ToString()},
+                        {spatialElement.GlobalId},
                     };
 
                 this.Instance_Object = new List<string>
@@ -161,18 +92,6 @@ namespace IfcGeoRefChecker.Appl
                 this.Town = "n/a";
                 this.Region = "n/a";
                 this.Country = "n/a";
-
-                //if(spatialElement is IIfcSite)
-                //{
-                //    address = (spatialElement as IIfcSite).SiteAddress;
-                //}
-                //else if(spatialElement is IIfcBuilding)
-                //{
-                //    address = (spatialElement as IIfcBuilding).BuildingAddress;
-                //}
-                //else
-                //{ address = null; }
-
 
                 if(address != null)
                 {
@@ -229,91 +148,6 @@ namespace IfcGeoRefChecker.Appl
             catch(Exception e)
             {
                 MessageBox.Show("Error occured while reading LoGeoRef10 attribute values. \r\nError message: " + e.Message);
-            }
-        }
-
-        public void UpdateLevel10(/*Level10 newLevel10, string schema*/)
-        {
-            try
-            {
-                 using(var txn = this.model.BeginTransaction(model.FileName + "_transedit"))
-                {
-                    //if(this.address == null)
-                    //{
-                    var schema = model.SchemaVersion.ToString();
-
-
-                    
-
-                    //IIfcSite sd = new IIfcSite();
-
-
-                    if(schema == "Ifc2X3")
-                    {
-                        this.address = this.model.Instances.New<Xbim.Ifc2x3.ActorResource.IfcPostalAddress>();
-                    }
-                    else
-                    {
-                        this.address = this.model.Instances.New<Xbim.Ifc4.ActorResource.IfcPostalAddress>();
-                    }
-
-                    IfcTimeStamp create;
-
-                    if(this.elem.OwnerHistory != null)
-                    {
-                        // timestamp for element before reference is added
-                        create = this.elem.OwnerHistory.CreationDate;
-                    }
-                    else
-                    {
-                        create = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                    }
-
-                    if(this.elem is IIfcSite)
-                    {
-                        (this.elem as IIfcSite).SiteAddress = this.address;
-                    }
-                    else
-                    {
-                        (this.elem as IIfcBuilding).BuildingAddress = this.address;
-                    }
-
-                    if(this.elem.OwnerHistory != null)
-                    {
-                        // set timestamp back (xBim creates a new OwnerHistory object)
-                        this.elem.OwnerHistory.CreationDate = create;
-                    }
-
-                    var p = this.address;
-
-                    p.AddressLines.Clear();
-                    p.AddressLines.Add(this.AddressLines[0]);
-                    p.AddressLines.Add(this.AddressLines[1]);
-                    p.AddressLines.Add(this.AddressLines[2]);
-
-                    p.PostalCode = this.Postalcode;
-                    p.Town = this.Town;
-                    p.Region = this.Region;
-                    p.Country = this.Country;
-
-                    if(this.elem.OwnerHistory != null)
-                    {
-                        // timestamp for last modifiedDate in OwnerHistory
-                        long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                        this.elem.OwnerHistory.LastModifiedDate = new Xbim.Ifc4.DateTimeResource.IfcTimeStamp(timestamp);
-                        this.elem.OwnerHistory.ChangeAction = IfcChangeActionEnum.MODIFIED;
-                    }
-                    txn.Commit();
-                }
-
-                var pos = model.FileName.LastIndexOf(".");
-                var file = model.FileName.Substring(0, pos);
-
-                model.SaveAs(file + "_edit");
-            }
-            catch(Exception e)
-            {
-                MessageBox.Show("Error occured while updating LoGeoRef10 attribute values to IfcFile. \r\nError message: " + e.Message);
             }
         }
 

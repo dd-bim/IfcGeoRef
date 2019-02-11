@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using Xbim.Ifc;
 
 namespace IfcGeoRefChecker.Appl
 {
@@ -16,261 +15,288 @@ namespace IfcGeoRefChecker.Appl
         private Level40 projplcm;        //WCS placement (model)
         private Level50 projCRS;        //Map conversion (model)
 
-        private IfcStore refModel;
-        private List<IfcStore> compList = new List<IfcStore>();
+        private string refModel;
+        private Dictionary<string, string> compList = new Dictionary<string, string>();
 
         private List<string> logList = new List<string>();
-        private string refDirec;
+        private string direc;
         private string refFile;
-        private string compFile;
+        //private string compFile;
 
-        public GeoRefComparer(IfcStore refModel, List<IfcStore> compModels)
+        public GeoRefComparer(string direc, KeyValuePair<string, string> jsonRef, Dictionary<string, string> jsonComp)
         {
-            this.refModel = refModel;
-            this.compList = compModels;
+            this.direc = direc;
+            this.refFile = jsonRef.Key;
+            this.refModel = jsonRef.Value;
+            this.compList = jsonComp;
         }
 
-        //public void CompareIFC()
-        //{
-        //    FillGeoref(refModel);
+        public void CompareIFC()
+        {
+            FillGeoref(refFile, refModel);
 
-        //    var refSiteAddress = siteAddress;
-        //    var refBldgAddress = bldgAddress;
-        //    var refLatlon = latlon;
-        //    var refSitePlcm = siteplcm;
-        //    var refProjPlcm = projplcm;
-        //    var refProjCRS = projCRS;
+            var refSiteAddress = siteAddress;
+            var refBldgAddress = bldgAddress;
+            var refLatlon = latlon;
+            var refSitePlcm = siteplcm;
+            var refProjPlcm = projplcm;
+            var refProjCRS = projCRS;
 
-        //    var pos = refModel.FileName.LastIndexOf("\\");
-        //    refFile = refModel.FileName.Substring(pos + 1);
-        //    refDirec = refModel.FileName.Substring(0, pos);
+            foreach(var compModel in compList)
+            {
+                try
+                {
+                    FillGeoref(compModel.Key, compModel.Value);
 
-        //    foreach(var compModel in compList)
-        //    {
-        //        try
-        //        {
-        //            FillGeoref(compModel);
+                    bool eq10site, eq10bldg, eq20site, eq30site, eq40proj, eq50proj;
 
-        //            var pos2 = compModel.FileName.LastIndexOf("\\");
-        //            compFile = compModel.FileName.Substring(pos2 + 1);
+                    if(refSiteAddress == null || siteAddress == null)
+                    {
+                        eq10site = false;
+                        if(refSiteAddress == null && siteAddress == null)
+                            eq10site = true;
+                    }
+                    else
+                    {
+                        eq10site = refSiteAddress.Equals(siteAddress);
+                    }
 
-        //            bool eq10site, eq10bldg, eq20site, eq30site, eq40proj, eq50proj;
+                    if(refBldgAddress == null || bldgAddress == null)
+                    {
+                        eq10bldg = false;
+                        if(refBldgAddress == null && bldgAddress == null)
+                            eq10bldg = true;
+                    }
+                    else
+                    {
+                        eq10bldg = refBldgAddress.Equals(bldgAddress);
+                    }
 
-        //            if(refSiteAddress == null || siteAddress == null)
-        //            {
-        //                eq10site = false;
-        //                if(refSiteAddress == null && siteAddress == null)
-        //                    eq10site = true;
-        //            }
-        //            else
-        //            {
-        //                eq10site = refSiteAddress.Equals(siteAddress);
-        //            }
+                    if(refLatlon == null || latlon == null)
+                    {
+                        eq20site = false;
+                        if(refLatlon == null && latlon == null)
+                            eq20site = true;
+                    }
+                    else
+                    {
+                        eq20site = refLatlon.Equals(latlon);
+                    }
 
-        //            if(refBldgAddress == null || bldgAddress == null)
-        //            {
-        //                eq10bldg = false;
-        //                if(refBldgAddress == null && bldgAddress == null)
-        //                    eq10bldg = true;
-        //            }
-        //            else
-        //            {
-        //                eq10bldg = refBldgAddress.Equals(bldgAddress);
-        //            }
+                    if(refSitePlcm == null || siteplcm == null)
+                    {
+                        eq30site = false;
+                        if(refSitePlcm == null && siteplcm == null)
+                            eq30site = true;
+                    }
+                    else
+                    {
+                        eq30site = refSitePlcm.Equals(siteplcm);
+                    }
 
-        //            if(refLatlon == null || latlon == null)
-        //            {
-        //                eq20site = false;
-        //                if(refLatlon == null && latlon == null)
-        //                    eq20site = true;
-        //            }
-        //            else
-        //            {
-        //                eq20site = refLatlon.Equals(latlon);
-        //            }
+                    if(refProjPlcm == null || projplcm == null)
+                    {
+                        eq40proj = false;
+                        if(refProjPlcm == null && projplcm == null)
+                            eq40proj = true;
+                    }
+                    else
+                    {
+                        eq40proj = refProjPlcm.Equals(projplcm);
+                    }
 
-        //            if(refSitePlcm == null || siteplcm == null)
-        //            {
-        //                eq30site = false;
-        //                if(refSitePlcm == null && siteplcm == null)
-        //                    eq30site = true;
-        //            }
-        //            else
-        //            {
-        //                eq30site = refSitePlcm.Equals(siteplcm);
-        //            }
+                    if(refProjCRS == null || projCRS == null)
+                    {
+                        eq50proj = false;
+                        if(refProjCRS == null && projCRS == null)
+                            eq50proj = true;
+                    }
+                    else
+                    {
+                        eq50proj = refProjCRS.Equals(projCRS);
+                    }
 
-        //            if(refProjPlcm == null || projplcm == null)
-        //            {
-        //                eq40proj = false;
-        //                if(refProjPlcm == null && projplcm == null)
-        //                    eq40proj = true;
-        //            }
-        //            else
-        //            {
-        //                eq40proj = refProjPlcm.Equals(projplcm);
-        //            }
+                    Dictionary<string, bool> equality = new Dictionary<string, bool>
+                            {
+                                { "GeoRef10 (IfcSite address) ", eq10site },
+                                { "GeoRef10 (IfcBuilding address) ", eq10bldg },
+                                { "GeoRef20 (IfcSite Lat/Lon/Elevation) ", eq20site },
+                                { "GeoRef30 (IfcSite Placement) ", eq30site },
+                                { "GeoRef40 (IfcProject WCS/True North) ", eq40proj },
+                                { "GeoRef50 (IfcProject Map Conversion) ", eq50proj }
+                            };
+                    string a = "\r\nComparison to " + compModel.Key + ":";
 
-        //            if(refProjCRS == null || projCRS == null)
-        //            {
-        //                eq50proj = false;
-        //                if(refProjCRS == null && projCRS == null)
-        //                    eq50proj = true;
-        //            }
-        //            else
-        //            {
-        //                eq50proj = refProjCRS.Equals(projCRS);
-        //            }
+                    if(equality.ContainsValue(false))
+                    {
+                        a += "\r\n The georeferencing of the files is NOT equal.";
 
-        //            Dictionary<string, bool> equality = new Dictionary<string, bool>
-        //        {
-        //            { "GeoRef10 (IfcSite address) ", eq10site },
-        //            { "GeoRef10 (IfcBuilding address) ", eq10bldg },
-        //            { "GeoRef20 (IfcSite Lat/Lon/Elevation) ", eq20site },
-        //            { "GeoRef30 (IfcSite Placement) ", eq30site },
-        //            { "GeoRef40 (IfcProject WCS/True North) ", eq40proj },
-        //            { "GeoRef50 (IfcProject Map Conversion) ", eq50proj }
-        //        };
-        //            string a = "\r\nComparison to " + compFile + ":";
+                        var keys = from entry in equality
+                                   where entry.Value == false
+                                   select entry.Key;
 
-        //            if(equality.ContainsValue(false))
-        //            {
-        //                a += "\r\n The georeferencing of the files is NOT equal.";
+                        foreach(var key in keys)
+                        {
+                            a += "\r\n  A difference was detected at " + key;
+                        }
+                    }
+                    else
+                    {
+                        a += "\r\n The georeferencing of the files is exactly equal.";
+                    }
 
-        //                var keys = from entry in equality
-        //                           where entry.Value == false
-        //                           select entry.Key;
+                    logList.Add(a);
+                }
 
-        //                foreach(var key in keys)
-        //                {
-        //                    a += "\r\n  A difference was detected at " + key;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                a += "\r\n The georeferencing of the files is exactly equal.";
-        //            }
+                catch(Exception ex)
+                {
+                    MessageBox.Show("Error occured while comparing Ifc-files at file: " + compModel.Key + "\r\nError message: " + ex.Message);
+                }
+            }
 
-        //            logList.Add(a);
-        //        }
+            WriteCompareLog();
+        }
 
-        //        catch(Exception ex)
-        //        {
-        //            MessageBox.Show("Error occured while comparing Ifc-files at file: " + compFile + "\r\nError message: " + ex.Message);
-        //        }
-        //    }
+        public void WriteCompareLog()
+        {
 
-        //    WriteCompareLog();
-        //}
+            var splits = refFile.Split('\\');
+            var name = splits[splits.Length - 1];
 
-        //public void WriteCompareLog()
-        //{
-        //    using(var writeCompareLog = File.CreateText((refDirec + "\\Comparison_" + refFile + ".txt")))
-        //    {
-        //        try
-        //        {
-        //            writeCompareLog.WriteLine("Results of Comparison regarding Georeferencing for reference model: " + refFile);
+            using(var writeCompareLog = File.CreateText(this.direc + "\\IfcGeoRefChecker\\export\\" + name + "_compare.txt"))
+            {
+                try
+                {
+                    writeCompareLog.WriteLine("Results of Comparison regarding Georeferencing for reference model: " + refFile);
 
-        //            foreach(var entry in logList)
-        //            {
-        //                writeCompareLog.WriteLine(entry);
-        //            }
-        //        }
+                    foreach(var entry in logList)
+                    {
+                        writeCompareLog.WriteLine(entry);
+                    }
+                }
 
-        //        catch(Exception ex)
-        //        {
-        //            writeCompareLog.WriteLine($"Error occured while writing Compare-Logfile. \r\n Message: {ex.Message}");
-        //        }
-        //    };
-        //}
+                catch(Exception ex)
+                {
+                    writeCompareLog.WriteLine($"Error occured while writing Compare-Logfile. \r\n Message: {ex.Message}");
+                }
+            };
+        }
 
-        //public void ShowCompareLog()
-        //{
-        //    var path = refDirec + "\\Comparison_" + refFile + ".txt";
+        public void ShowCompareLog()
+        {
+            var splits = refFile.Split('\\');
+            var name = splits[splits.Length - 1];
 
-        //    System.Diagnostics.Process.Start(path);
-        //}
+            var path = this.direc + "\\IfcGeoRefChecker\\export\\" + name + "_compare.txt";
 
-        //public void FillGeoref(IfcStore model)
-        //{
-        //    try
-        //    {
-        //        var reader = new IO.IfcReader(model);
+            System.Diagnostics.Process.Start(path);
+        }
 
-        //        var siteReading = reader.SiteReader();
+        public void FillGeoref(string name, string model)
+        {
+            try
+            {
+                var json = new IO.JsonOutput();
+                json.PopulateJson(model);
 
-        //        if(siteReading.Count != 0)
-        //        {
-        //            //var site10 = new Level10(model, siteReading[0].GetHashCode(), siteReading[0].GetType().Name);
-        //            var site10 = new Level10(model, siteReading[0].GetHashCode(), siteReading[0].GetType().Name);
-        //            site10.GetLevel10();
-        //            siteAddress = site10;
+                this.siteAddress = (from l10Site in json.LoGeoRef10
+                                    where l10Site.Reference_Object[1].Equals("IfcSite")
+                                    select l10Site).Single();
 
-        //            var site20 = new Level20(model, siteReading[0].GetHashCode());
-        //            site20.GetLevel20();
-        //            site20.Latitude = Math.Round(site20.Latitude, 8);
-        //            site20.Longitude = Math.Round(site20.Latitude, 8);
-        //            site20.Elevation = Math.Round(site20.Elevation, 5);
+                this.bldgAddress = (from l10Bldg in json.LoGeoRef10
+                                    where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
+                                    select l10Bldg).Single();
 
-        //            latlon = site20;
-        //        }
+                this.latlon = (from l20site in json.LoGeoRef20
+                               where l20site.Reference_Object[1].Equals("IfcSite")
+                               select l20site).Single();
 
-        //        var bldgReading = reader.BldgReader();
+                this.siteplcm = (from l30site in json.LoGeoRef30
+                                 where l30site.Reference_Object[1].Equals("IfcSite")
+                                 select l30site).Single();
 
-        //        if(bldgReading.Count != 0)
-        //        {
-        //            var bldg10 = new Level10(model, bldgReading[0].GetHashCode(), bldgReading[0].GetType().Name);
-        //            bldg10.GetLevel10();
-        //            bldgAddress = bldg10;
-        //        }
+                this.projplcm = (from l40 in json.LoGeoRef40
+                                 where l40.Reference_Object[1].Equals("IfcProject")
+                                 select l40).Single();
 
-        //        var prodReading = reader.UpperPlcmProdReader();
-        //        var ctxReading = reader.ContextReader();
+                this.projCRS = (from l50 in json.LoGeoRef50
+                                where l50.Reference_Object[1].Equals("IfcProject")
+                                select l50).Single();
 
-        //        for(var i = 0; i < prodReading.Count; i++)
-        //        {
-        //            if(prodReading[i].GetType().Name == "IfcSite")
-        //            {
-        //                var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].GetType().Name);
-        //                site30.GetLevel30();
-        //                for (var j=0; j < site30.ObjectLocationXYZ.Count; j++)
-        //                {
-        //                    site30.ObjectLocationXYZ[i] = Math.Round(site30.ObjectLocationXYZ[i], 5);
-        //                }
-                        
-        //                siteplcm = site30;
-        //                break;
-        //            }
-        //        }
-        //        for(var i = 0; i < ctxReading.Count; i++)
-        //        {
-        //            if(ctxReading[i].ContextType == "Model")
-        //            {
-        //                var cont40 = new Level40(model, ctxReading[i].GetHashCode());
-        //                cont40.GetLevel40();
-        //                for(var j = 0; j < cont40.ProjectLocation.Count; j++)
-        //                {
-        //                    cont40.ProjectLocation[i] = Math.Round(cont40.ProjectLocation[i], 5);
-        //                }
-        //                projplcm = cont40;
-        //                break;
-        //            }
-        //        }
-        //        for(var i = 0; i < ctxReading.Count; i++)
-        //        {
-        //            if(ctxReading[i].ContextType == "Model" && ctxReading[i].HasCoordinateOperation != null)
-        //            {
-        //                var map50 = new Level50(model, ctxReading[i].GetHashCode());
-        //                map50.GetLevel50();
-        //                projCRS = map50;
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    catch(Exception ex)
-        //    {
-        //        MessageBox.Show("Error occured while comparing Ifc-files at file: " + compFile + "\r\nError message: " + ex.Message);
-        //    }
-        //}
+                //var siteReading = reader.SiteReader();
+
+                //if(siteReading.Count != 0)
+                //{
+                //    //var site10 = new Level10(model, siteReading[0].GetHashCode(), siteReading[0].GetType().Name);
+                //    var site10 = new Level10(model, siteReading[0].GetHashCode(), siteReading[0].GetType().Name);
+                //    site10.GetLevel10();
+                //    siteAddress = site10;
+
+                //    var site20 = new Level20(model, siteReading[0].GetHashCode());
+                //    site20.GetLevel20();
+                //    site20.Latitude = Math.Round(site20.Latitude, 8);
+                //    site20.Longitude = Math.Round(site20.Latitude, 8);
+                //    site20.Elevation = Math.Round(site20.Elevation, 5);
+
+                //    latlon = site20;
+                //}
+
+                //var bldgReading = reader.BldgReader();
+
+                //if(bldgReading.Count != 0)
+                //{
+                //    var bldg10 = new Level10(model, bldgReading[0].GetHashCode(), bldgReading[0].GetType().Name);
+                //    bldg10.GetLevel10();
+                //    bldgAddress = bldg10;
+                //}
+
+                //var prodReading = reader.UpperPlcmProdReader();
+                //var ctxReading = reader.ContextReader();
+
+                //for(var i = 0; i < prodReading.Count; i++)
+                //{
+                //    if(prodReading[i].GetType().Name == "IfcSite")
+                //    {
+                //        var site30 = new Level30(model, prodReading[i].GetHashCode(), prodReading[i].GetType().Name);
+                //        site30.GetLevel30();
+                //        for(var j = 0; j < site30.ObjectLocationXYZ.Count; j++)
+                //        {
+                //            site30.ObjectLocationXYZ[i] = Math.Round(site30.ObjectLocationXYZ[i], 5);
+                //        }
+
+                //        siteplcm = site30;
+                //        break;
+                //    }
+                //}
+                //for(var i = 0; i < ctxReading.Count; i++)
+                //{
+                //    if(ctxReading[i].ContextType == "Model")
+                //    {
+                //        var cont40 = new Level40(model, ctxReading[i].GetHashCode());
+                //        cont40.GetLevel40();
+                //        for(var j = 0; j < cont40.ProjectLocation.Count; j++)
+                //        {
+                //            cont40.ProjectLocation[i] = Math.Round(cont40.ProjectLocation[i], 5);
+                //        }
+                //        projplcm = cont40;
+                //        break;
+                //    }
+                //}
+                //for(var i = 0; i < ctxReading.Count; i++)
+                //{
+                //    if(ctxReading[i].ContextType == "Model" && ctxReading[i].HasCoordinateOperation != null)
+                //    {
+                //        var map50 = new Level50(model, ctxReading[i].GetHashCode());
+                //        map50.GetLevel50();
+                //        projCRS = map50;
+                //        break;
+                //    }
+                //}
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error occured while comparing Ifc-files at file: " + name + "\r\nError message: " + ex.Message);
+            }
+        }
     }
 }

@@ -263,5 +263,52 @@ namespace IfcGeoRefChecker.Appl
 
             return angle;
         }
+
+        public double ParseDouble(string text)
+        {
+            if(text.Contains(" ") == true)
+                text = text.Replace(" ", "");
+
+            if(text.Contains(",") == true)
+                text = text.Replace(",", ".");
+
+            if(double.TryParse(text, out var figure))
+            {
+                return figure;
+            }
+            else
+            {
+                //MessageBox.Show("Not able to parse " + text + " as double. Please change input to double.");
+                return 0;
+            }
+        }
+
+        public double[] ParseDoubleVector(string entry)
+        {
+            if(entry.Contains(" ") == true)
+                entry = entry.Replace(" ", "");
+
+            if(entry.Contains(";") == true)
+                entry = entry.Replace(";", ",");
+
+            if(entry.Contains("/") == true)
+                entry = entry.Replace("/", ",");
+
+            if(entry.Contains("|") == true)
+                entry = entry.Replace("|", ",");
+
+            char delimiter = ',';
+
+            string[] vectorText = entry.Split(delimiter);
+
+            double[] vector = new double[vectorText.Length];
+
+            for(var i = 0; i < vector.Length - 1; i++)
+            {
+                vector[i] = ParseDouble(vectorText[i]);
+            }
+
+            return vector;
+        }
     }
 }

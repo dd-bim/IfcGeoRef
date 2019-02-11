@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +17,10 @@ namespace IfcGeoRefChecker
     public partial class MainWindow : Window
     {
         private Dictionary<string, IfcStore> ModelList;
+
         private Dictionary<string, Dictionary<string, bool>> Dict;
+
+        private string direc = Environment.CurrentDirectory;
 
         private Dictionary<string, string> JsonObjects = new Dictionary<string, string>();
         private Dictionary<string, string> ModelUnit = new Dictionary<string, string>();
@@ -29,14 +34,15 @@ namespace IfcGeoRefChecker
 
                 InitializeComponent();
 
+                tb_direc.Text = this.direc;
+
                 bt_log.IsEnabled = false;
                 bt_json.IsEnabled = false;
-                bt_update.IsEnabled = false;
             }
 
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while initializing program. \r\n" + "Error message: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured while initializing program. \r\n" + "Error message: " + ex.Message);
             }
         }
 
@@ -49,7 +55,7 @@ namespace IfcGeoRefChecker
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while showing Information/License window. \r\n" + "Error message: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured while showing Information/License window. \r\n" + "Error message: " + ex.Message);
             }
         }
 
@@ -74,7 +80,7 @@ namespace IfcGeoRefChecker
                     }
                     catch
                     {
-                        MessageBox.Show("It is not supported to import IfcModels with the same file name. Please rename Ifc-file and try again.");
+                        System.Windows.MessageBox.Show("It is not supported to import IfcModels with the same file name. Please rename Ifc-file and try again.");
                     }
                 }
 
@@ -95,7 +101,7 @@ namespace IfcGeoRefChecker
 
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while Import. \r\n " + "Error message: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured while Import. \r\n " + "Error message: " + ex.Message);
             }
             finally { }
 
@@ -105,7 +111,7 @@ namespace IfcGeoRefChecker
             }
             catch
             {
-                MessageBox.Show("Error occured while Checking!");
+                System.Windows.MessageBox.Show("Error occured while Checking!");
             }
 
             foreach(var m in ModelList)
@@ -122,14 +128,10 @@ namespace IfcGeoRefChecker
                 }
                 catch
                 {
-                    MessageBox.Show("Error occured while detection of groundwalls and/or Closing!");
+                    System.Windows.MessageBox.Show("Error occured while detection of groundwalls and/or Closing!");
                     m.Value.Close();
                 }
             }
-        }
-
-        private void CheckGeoRef_Click(object sender, RoutedEventArgs e)
-        {
         }
 
         private void CheckGeoRef()
@@ -280,23 +282,19 @@ namespace IfcGeoRefChecker
                     var jsonObj = jsonout.CreateJSON(model);
                     JsonObjects.Add(file, jsonObj);
 
-                    //var pos = model.Header.FileName.Name.LastIndexOf("\\");
-                    //var directory = model.Header.FileName.Name.Substring(0, pos);
-
                     if(check_log.IsChecked == true)
                     {
-                        output.WriteLogfile(logOutput, file/*, directory*/);
+                        output.WriteLogfile(logOutput, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
                         bt_log.IsEnabled = true;
                     }
 
                     if(check_json.IsChecked == true)
                     {
-                        jsonout.WriteJSONfile(jsonObj, file/*, directory*/);
+                        jsonout.WriteJSONfile(jsonObj, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
                         bt_json.IsEnabled = true;
                     }
-                    logOutput.Clear();
 
-                    bt_update.IsEnabled = true;
+                    logOutput.Clear();
                 }
                 ReadBool();
 
@@ -304,7 +302,7 @@ namespace IfcGeoRefChecker
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while checking GeoRef. \r\n Error message: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured while checking GeoRef. \r\n Error message: " + ex.Message);
             }
         }
 
@@ -356,7 +354,7 @@ namespace IfcGeoRefChecker
             }
             catch
             {
-                MessageBox.Show("Error occured, unable to read Georef decision.");
+                System.Windows.MessageBox.Show("Error occured, unable to read Georef decision.");
             }
         }
 
@@ -364,16 +362,12 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                //var pos = this.ModelList[ifcModels.Text].Header.FileName.Name.LastIndexOf("\\");
-                //var directory = this.ModelList[ifcModels.Text].Header.FileName.Name.Substring(0, pos + 1);
-
-                var path = /*directory + */ifcModels.Text + ".txt";
-
-                System.Diagnostics.Process.Start(path);
+               
+                System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".txt");
             }
             catch
             {
-                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file.");
+                System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file.");
             }
         }
 
@@ -384,32 +378,11 @@ namespace IfcGeoRefChecker
                 //var pos = this.ModelList[ifcModels.Text].Header.FileName.Name.LastIndexOf("\\");
                 //var directory = this.ModelList[ifcModels.Text].Header.FileName.Name.Substring(0, pos + 1);
 
-                var path = /*directory + */ifcModels.Text + ".json";
-
-                System.Diagnostics.Process.Start(path);
+                System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".json");
             }
             catch
             {
-                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file");
-            }
-        }
-
-        private void bt_update_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
-
-                var showResultsJs = new Results(ifcModels.Text, jsObj);
-                showResultsJs.Show();
-
-                //var showResults = new Results(this.ModelList[ifcModels.Text], ifcModels.Text);
-                //showResults.Show();
-            }
-
-            catch(Exception ex)
-            {
-                MessageBox.Show("Error occured. Unable to open IFCGeoRefUpdater. \r\n Error message: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file");
             }
         }
 
@@ -417,12 +390,12 @@ namespace IfcGeoRefChecker
         {
             if(this.ModelList != null && this.ModelList.Count > 1)
             {
-                var comp = new Compare(this.ModelList);
+                var comp = new Compare(this.direc, this.JsonObjects);
                 comp.Show();
             }
             else
             {
-                MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
+                System.Windows.MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
             }
         }
 
@@ -439,7 +412,7 @@ namespace IfcGeoRefChecker
             }
             catch
             {
-                MessageBox.Show("No help file available. Please check application directory for file Documentation.html");
+                System.Windows.MessageBox.Show("No help file available. Please check application directory for file Documentation.html");
             }
         }
 
@@ -453,21 +426,31 @@ namespace IfcGeoRefChecker
 
         private void bt_update_man_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
+            JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
 
-                var showResultsJs = new Results(ifcModels.Text, jsObj);
-                showResultsJs.Show();
+            var jsonout = new IO.JsonOutput();
+            var jsonPath = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + NameFromPath(ifcModels.Text);
 
-                //var showResults = new Results(this.ModelList[ifcModels.Text], ifcModels.Text);
-                //showResults.Show();
-            }
+            jsonout.WriteJSONfile(jsObj, jsonPath);
 
-            catch(Exception ex)
-            {
-                MessageBox.Show("Error occured. Unable to open IFCGeoRefUpdater. \r\n Error message: " + ex.Message);
-            }
+            var manExp = new UpdateMan(jsonPath);
+            manExp.Show();
+
+            //    try
+            //    {
+            //        JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
+
+            //        var showResultsJs = new Results(ifcModels.Text, jsObj);
+            //        showResultsJs.Show();
+
+            //        //var showResults = new Results(this.ModelList[ifcModels.Text], ifcModels.Text);
+            //        //showResults.Show();
+            //    }
+
+            //    catch(Exception ex)
+            //    {
+            //        MessageBox.Show("Error occured. Unable to open IFCGeoRefUpdater. \r\n Error message: " + ex.Message);
+            //    }
         }
 
         private void bt_update_map_Click(object sender, RoutedEventArgs e)
@@ -481,31 +464,93 @@ namespace IfcGeoRefChecker
             var jsonWkt = new IO.JsonOutput();
             var jsonString = jsonWkt.AddWKTtoJSON(wkt, jsObj);
 
-            jsonWkt.WriteJSONfile(jsonString, ifcModels.Text + "_wkt");
+            jsonWkt.WriteJSONfile(jsonString, this.direc + "\\json\\" + ifcModels.Text + "_wkt");
 
-
-
-            //    tb_wkt.Text = wkt;
-
-            //    //var jsonWKT = new IO.JsonOutput();
-            //    this.jsonout.WKTRep = wkt;
-            //    //this.jsonout.WriteJSONfile(model, file + "_wkt", this.directory);
-
-            //try
-            //{
-            //    System.Diagnostics.Process.Start(@"\buildingLocator\index.html");
-            //}
-            //catch
-            //{
-            //    MessageBox.Show("No html-map file available. Please check application directory for file buildingLocator.index.html");
-            //}
+            try
+            {
+                System.Diagnostics.Process.Start(this.direc + "\\buildingLocator\\index.html");
+            }
+            catch
+            {
+                MessageBox.Show("No html-map file available. Please check application directory for file buildingLocator.index.html");
+            }
         }
 
         private void bt_update_ifc_Click(object sender, RoutedEventArgs e)
         {
-            var showExport2IFC = new Export2IFC(ifcModels.Text);
+            var showExport2IFC = new Export2IFC(this.direc, ifcModels.Text, NameFromPath(ifcModels.Text));
             showExport2IFC.Show();
+        }
 
+        private string NameFromPath(string filePath)
+        {
+            var splits = filePath.Split('\\');
+
+            return splits[splits.Length - 1];
+        }
+
+        private void bt_change_direc_Click(object sender, RoutedEventArgs e)
+        {
+            using(var fbd = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                fbd.RootFolder = Environment.SpecialFolder.Desktop;
+                fbd.Description = "Select folder";
+
+                fbd.ShowNewFolderButton = false;
+
+                var result = fbd.ShowDialog();
+
+                if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    tb_direc.Text = fbd.SelectedPath;
+                    this.direc = fbd.SelectedPath;
+                }
+            }
+
+            // Copy from the current directory, include subdirectories.
+            DirectoryCopy(@".\IfcGeoRefChecker", this.direc + "\\IfcGeoRefChecker\\", true);
+        }
+
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+            DirectoryInfo dirDest = new DirectoryInfo(destDirName);
+
+            if(!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if(!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] filesSource = dir.GetFiles();
+
+            FileInfo[] filesDest = dirDest.GetFiles();
+
+            foreach(FileInfo file in filesSource)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if(copySubDirs)
+            {
+                foreach(DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
         }
     }
 }
