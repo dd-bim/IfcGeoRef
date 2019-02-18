@@ -9,10 +9,15 @@ namespace IfcGeoRefChecker.IO
     public class IfcReader
     {
         private IfcStore model;
-        
+
         public IfcReader(IfcStore model)
         {
             this.model = model;
+        }
+
+        public List<IIfcProject> ProjReader()
+        {
+            return model.Instances.OfType<IIfcProject>().ToList();
         }
 
         public List<IIfcSite> SiteReader()
@@ -30,8 +35,41 @@ namespace IfcGeoRefChecker.IO
             var allCtx = model.Instances.OfType<IIfcGeometricRepresentationContext>();
 
             var noSubCtx = allCtx.Where(ctx => ctx.ExpressType.ToString() != "IfcGeometricRepresentationSubContext"); //avoid subs (unneccessary overhead)
-            
+
             return noSubCtx.ToList();
+        }
+
+        public List<IIfcGeometricRepresentationContext> ContextReader(IIfcProject proj)
+        {
+            var allCtx =  proj.RepresentationContexts.OfType<IIfcGeometricRepresentationContext>();
+
+            var noSubCtx = allCtx.Where(ctx => ctx.ExpressType.ToString() != "IfcGeometricRepresentationSubContext"); //avoid subs (unneccessary overhead)
+
+            return noSubCtx.ToList();
+        }
+
+        public List<IIfcMapConversion> MapReader(IIfcGeometricRepresentationContext ctx)
+        {
+            var map = model.Instances.OfType<IIfcMapConversion>().Where(m => m.SourceCRS == ctx).ToList();
+
+            return map;
+        }
+
+
+        public List<IIfcPropertySet> PSetReaderCRS()
+        {
+            var pset = model.Instances.OfType<IIfcPropertySet>()
+                .Where(p => p.Name.ToString().Contains("ProjectedCRS"));
+
+            return pset.ToList();
+        }
+
+        public List<IIfcPropertySet> PSetReaderMap()
+        {
+            var pset = model.Instances.OfType<IIfcPropertySet>()
+                .Where(p => p.Name.ToString().Contains("MapConversion"));
+
+            return pset.ToList();
         }
 
         public string LengthUnitReader()
@@ -68,7 +106,5 @@ namespace IfcGeoRefChecker.IO
 
             return walls;
         }
-
-    
     }
 }

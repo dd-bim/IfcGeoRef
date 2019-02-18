@@ -63,8 +63,8 @@ namespace IfcGeoRefChecker
             {
                 foreach(var l40 in jsonMap.LoGeoRef40)
                 {
-                    l40.ProjectLocation[0] = ConvertUnit(lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l40.ProjectLocation[1] = ConvertUnit(lev50map.Translation_Northings, jsonMap.LengthUnit);
+                    l40.ProjectLocation[0] = ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
+                    l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
 
                     l40.TrueNorthXY[0] = lev50map.RotationXY[1];
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
@@ -77,8 +77,8 @@ namespace IfcGeoRefChecker
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit(lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l30.ObjectLocationXYZ[1] += ConvertUnit(lev50map.Translation_Northings, jsonMap.LengthUnit);
+                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
+                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
 
                     l30.ObjectRotationX[0] = lev50map.RotationXY[0];
                     l30.ObjectRotationX[1] = lev50map.RotationXY[1];
@@ -92,8 +92,8 @@ namespace IfcGeoRefChecker
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit(lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l30.ObjectLocationXYZ[1] += ConvertUnit(lev50map.Translation_Northings, jsonMap.LengthUnit);
+                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
+                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
                 }
 
                 foreach(var l40 in jsonMap.LoGeoRef40)

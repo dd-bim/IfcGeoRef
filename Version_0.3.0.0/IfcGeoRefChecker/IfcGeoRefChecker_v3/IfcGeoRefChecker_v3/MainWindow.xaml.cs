@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using Newtonsoft.Json;
+using Serilog;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 
@@ -30,6 +31,13 @@ namespace IfcGeoRefChecker
         {
             try
             {
+                Log.Logger = new LoggerConfiguration()
+                    .WriteTo.File(@"D:\\1_CityBIM\\1_Programmierung\\City2BIM\\City2BIM_Revit\\log.txt", rollingInterval: RollingInterval.Day)
+                    //.MinimumLevel.Debug()
+                    .CreateLogger();
+
+                Log.Information("Start of IfcGeoRefChecker");
+
                 Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
                 InitializeComponent();
@@ -42,10 +50,96 @@ namespace IfcGeoRefChecker
 
             catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Error occured while initializing program. \r\n" + "Error message: " + ex.Message);
+                Log.Error("Start of IfcGeoRefChecker failed. Error message: " + ex);
+                MessageBox.Show("Error occured while initializing program. \r\n" + "Error message: " + ex.Message);
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Change directory functionality
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for change of directory (needed for write permissions later on)
+        /// </summary>
+        private void bt_change_direc_Click(object sender, RoutedEventArgs e)
+        {
+            using(var fbd = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                fbd.RootFolder = Environment.SpecialFolder.Desktop;
+                fbd.Description = "Select folder";
+
+                fbd.ShowNewFolderButton = false;
+
+                Log.Information("sadasdd");
+
+                var result = fbd.ShowDialog();
+
+                if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    tb_direc.Text = fbd.SelectedPath;
+                    this.direc = fbd.SelectedPath;
+                }
+            }
+
+            // Copy from the current directory, include subdirectories.
+            DirectoryCopy(@".\IfcGeoRefChecker", this.direc + "\\IfcGeoRefChecker\\", true);
+        }
+
+        /// <summary>
+        /// Creates a copy of defined folder in new directory with all subfolders and files
+        /// </summary>
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+            DirectoryInfo dirDest = new DirectoryInfo(destDirName);
+
+            if(!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if(!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] filesSource = dir.GetFiles();
+
+            FileInfo[] filesDest = dirDest.GetFiles();
+
+            foreach(FileInfo file in filesSource)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if(copySubDirs)
+            {
+                foreach(DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Info / Terms of Use reference
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for displaying of Info & Terms of Use
+        /// </summary>
         private void BtInfo_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -59,6 +153,14 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Import of IFC-files
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for Import & Checking functionality
+        /// </summary>
         private void Bt_Import(object sender, RoutedEventArgs e)
         {
             try
@@ -134,6 +236,14 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Checking function
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Main method for checking funtionality
+        /// </summary>
         private void CheckGeoRef()
         {
             try
@@ -147,9 +257,32 @@ namespace IfcGeoRefChecker
 
                 foreach(var kvpModel in this.ModelList)
                 {
-                    var jsonout = new IO.JsonOutput();
+                    var checker = new Appl.GeoRefChecker(kvpModel.Value);
+
+                    var jsonCheck = JsonConvert.SerializeObject(checker, Formatting.Indented);
 
                     var file = kvpModel.Key;
+
+                    //var jsonObj = jsonout.CreateJSON(model);
+                    JsonObjects.Add(file, jsonCheck);
+
+                    if(check_log.IsChecked == true)
+                    {
+                        output.WriteLogfile(checker, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
+                        bt_log.IsEnabled = true;
+                    }
+
+                    if(check_json.IsChecked == true)
+                    {
+                        var js = new IO.JsonOutput();
+
+                        js.WriteJSONfile(jsonCheck, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
+                        bt_json.IsEnabled = true;
+                    }
+
+                    //var jsonout = new IO.JsonOutput();
+
+                    //var file = kvpModel.Key;
                     var model = kvpModel.Value;
 
                     if(ifcModels.Items.Contains(file) == false)
@@ -162,143 +295,173 @@ namespace IfcGeoRefChecker
 
                     logOutput.Add("Project Length Unit:" + unit + "\r\n");
 
-                    var reader = new IO.IfcReader(model);
+                    //    var reader = new IO.IfcReader(model);
 
-                    var boolList10 = new List<bool>();
-                    var boolList20 = new List<bool>();
-                    var boolList30 = new List<bool>();
-                    var boolList40 = new List<bool>();
-                    var boolList50 = new List<bool>();
+                    //    var boolList10 = new List<bool>();
+                    //    var boolList20 = new List<bool>();
+                    //    var boolList30 = new List<bool>();
+                    //    var boolList40 = new List<bool>();
+                    //    var boolList50 = new List<bool>();
 
-                    for(var i = 0; i < reader.BldgReader().Count; i++)
-                    {
-                        var bNo = reader.BldgReader()[i].GetHashCode();
-                        var bNa = reader.BldgReader()[i].GetType().Name;
+                    //    for(var i = 0; i < reader.BldgReader().Count; i++)
+                    //    {
+                    //        var bNo = reader.BldgReader()[i].GetHashCode();
+                    //        var bNa = reader.BldgReader()[i].GetType().Name;
 
-                        //var georef10 = new Appl.Level10(model, bNo, bNa);
-                        var georef10 = new Appl.Level10(reader.BldgReader()[i]/*model, bNo, bNa*/);
-                        georef10.GetLevel10(reader.BldgReader()[i]);
+                    //        //var georef10 = new Appl.Level10(model, bNo, bNa);
+                    //        var georef10 = new Appl.Level10(reader.BldgReader()[i]/*model, bNo, bNa*/);
+                    //        georef10.GetLevel10(reader.BldgReader()[i]);
 
-                        jsonout.GetGeoRefElements10(georef10);
-                        boolList10.Add(georef10.GeoRef10);
-                        logOutput.Add(georef10.LogOutput());
-                    }
+                    //        jsonout.GetGeoRefElements10(georef10);
+                    //        boolList10.Add(georef10.GeoRef10);
+                    //        logOutput.Add(georef10.LogOutput());
+                    //    }
 
-                    for(var i = 0; i < reader.SiteReader().Count; i++)
-                    {
-                        var sNo = reader.SiteReader()[i].GetHashCode();
-                        var sNa = reader.SiteReader()[i].GetType().Name;
+                    //    for(var i = 0; i < reader.SiteReader().Count; i++)
+                    //    {
+                    //        var sNo = reader.SiteReader()[i].GetHashCode();
+                    //        var sNa = reader.SiteReader()[i].GetType().Name;
 
-                        var georef10 = new Appl.Level10(reader.SiteReader()[i]/*model, sNo, sNa*/);
+                    //        var georef10 = new Appl.Level10(reader.SiteReader()[i]/*model, sNo, sNa*/);
 
-                        georef10.GetLevel10(reader.SiteReader()[i]);
-                        jsonout.GetGeoRefElements10(georef10);
-                        boolList10.Add(georef10.GeoRef10);
-                        logOutput.Add(georef10.LogOutput());
+                    //        georef10.GetLevel10(reader.SiteReader()[i]);
+                    //        jsonout.GetGeoRefElements10(georef10);
+                    //        boolList10.Add(georef10.GeoRef10);
+                    //        logOutput.Add(georef10.LogOutput());
 
-                        var georef20 = new Appl.Level20(model, sNo);
-                        georef20.GetLevel20();
-                        jsonout.GetGeoRefElements20(georef20);
-                        boolList20.Add(georef20.GeoRef20);
-                        logOutput.Add(georef20.LogOutput());
-                    }
+                    //        var georef20 = new Appl.Level20(model, sNo);
+                    //        georef20.GetLevel20();
+                    //        jsonout.GetGeoRefElements20(georef20);
+                    //        boolList20.Add(georef20.GeoRef20);
+                    //        logOutput.Add(georef20.LogOutput());
+                    //    }
 
-                    for(var i = 0; i < reader.UpperPlcmProdReader().Count; i++)
-                    {
-                        var pNo = reader.UpperPlcmProdReader()[i].GetHashCode();
-                        var pNa = reader.UpperPlcmProdReader()[i].GetType().Name;
+                    //    for(var i = 0; i < reader.UpperPlcmProdReader().Count; i++)
+                    //    {
+                    //        var pNo = reader.UpperPlcmProdReader()[i].GetHashCode();
+                    //        var pNa = reader.UpperPlcmProdReader()[i].GetType().Name;
 
-                        var georef30 = new Appl.Level30(model, pNo, pNa);
-                        georef30.GetLevel30();
-                        jsonout.GetGeoRefElements30(georef30);
-                        boolList30.Add(georef30.GeoRef30);
-                        logOutput.Add(georef30.LogOutput());
-                    }
+                    //        var georef30 = new Appl.Level30(model, pNo, pNa);
+                    //        georef30.GetLevel30();
+                    //        jsonout.GetGeoRefElements30(georef30);
+                    //        boolList30.Add(georef30.GeoRef30);
+                    //        logOutput.Add(georef30.LogOutput());
+                    //    }
 
-                    for(var i = 0; i < reader.ContextReader().Count; i++)
-                    {
-                        var ctxNo = reader.ContextReader()[i].GetHashCode();
+                    //    for(var i = 0; i < reader.ContextReader().Count; i++)
+                    //    {
+                    //        var ctxNo = reader.ContextReader()[i].GetHashCode();
 
-                        var georef40 = new Appl.Level40(model, ctxNo);
-                        georef40.GetLevel40();
-                        jsonout.GetGeoRefElements40(georef40);
-                        boolList40.Add(georef40.GeoRef40);
-                        logOutput.Add(georef40.LogOutput());
+                    //        var georef40 = new Appl.Level40(model, ctxNo);
+                    //        georef40.GetLevel40();
+                    //        jsonout.GetGeoRefElements40(georef40);
+                    //        boolList40.Add(georef40.GeoRef40);
+                    //        logOutput.Add(georef40.LogOutput());
 
-                        var georef50 = new Appl.Level50(model, ctxNo);
-                        georef50.GetLevel50();
-                        jsonout.GetGeoRefElements50(georef50);
-                        boolList50.Add(georef50.GeoRef50);
-                        logOutput.Add(georef50.LogOutput());
-                    }
+                    //        if(model.SchemaVersion.ToString() != "Ifc2X3")
+                    //        {
+                    //            var georef50 = new Appl.Level50(model, ctxNo);
+                    //            georef50.GetLevel50();
+                    //            jsonout.GetGeoRefElements50(georef50);
+                    //            boolList50.Add(georef50.GeoRef50);
+                    //            logOutput.Add(georef50.LogOutput());
+                    //        }
+                    //    }
 
-                    if(boolList10.Contains(true))
-                    {
-                        dictBool.Add(file + "georef10", true);
-                    }
-                    else
-                    {
-                        dictBool.Add(file + "georef10", false);
-                    }
+                    //    if(model.SchemaVersion.ToString() == "Ifc2X3")
+                    //    {
+                    //        if(reader.PSetReaderMap().Count > 0 && reader.PSetReaderCRS().Count > 0)
+                    //        {
+                    //            var mapPset = reader.PSetReaderMap().First();
+                    //            var crsPset = reader.PSetReaderCRS().First();
 
-                    if(boolList20.Contains(true))
-                    {
-                        dictBool.Add(file + "georef20", true);
-                    }
-                    else
-                    {
-                        dictBool.Add(file + "georef20", false);
-                    }
+                    //            var georef50Pset = new Appl.Level50(mapPset, crsPset);
+                    //            jsonout.GetGeoRefElements50(georef50Pset);
+                    //            boolList50.Add(georef50Pset.GeoRef50);
+                    //            logOutput.Add(georef50Pset.LogOutput());
+                    //        }
+                    //    }
 
-                    if(boolList30.Contains(true))
-                    {
-                        dictBool.Add(file + "georef30", true);
-                    }
-                    else
-                    {
-                        dictBool.Add(file + "georef30", false);
-                    }
+                    //    //for(var i = 0; i < reader.PSetReaderMap().Count; i++)
+                    //    //{
+                    //    //    var pNo = reader.BldgReader()[i].GetHashCode();
+                    //    //    var pNa = reader.BldgReader()[i].GetType().Name;
 
-                    if(boolList40.Contains(true))
-                    {
-                        dictBool.Add(file + "georef40", true);
-                    }
-                    else
-                    {
-                        dictBool.Add(file + "georef40", false);
-                    }
+                    //    //    var georef50 = new Appl.Level50(model,ctxNo);
+                    //    //    georef50.GetLevel50();
+                    //    //    jsonout.GetGeoRefElements50(georef50);
+                    //    //    boolList50.Add(georef50.GeoRef50);
+                    //    //    logOutput.Add(georef50.LogOutput());
+                    //    //}
 
-                    if(boolList50.Contains(true))
-                    {
-                        dictBool.Add(file + "georef50", true);
-                    }
-                    else
-                    {
-                        dictBool.Add(file + "georef50", false);
-                    }
+                    //    if(boolList10.Contains(true))
+                    //    {
+                    //        dictBool.Add(file + "georef10", true);
+                    //    }
+                    //    else
+                    //    {
+                    //        dictBool.Add(file + "georef10", false);
+                    //    }
 
-                    this.Dict.Add(file, dictBool);
+                    //    if(boolList20.Contains(true))
+                    //    {
+                    //        dictBool.Add(file + "georef20", true);
+                    //    }
+                    //    else
+                    //    {
+                    //        dictBool.Add(file + "georef20", false);
+                    //    }
 
-                    var jsonObj = jsonout.CreateJSON(model);
-                    JsonObjects.Add(file, jsonObj);
+                    //    if(boolList30.Contains(true))
+                    //    {
+                    //        dictBool.Add(file + "georef30", true);
+                    //    }
+                    //    else
+                    //    {
+                    //        dictBool.Add(file + "georef30", false);
+                    //    }
 
-                    if(check_log.IsChecked == true)
-                    {
-                        output.WriteLogfile(logOutput, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
-                        bt_log.IsEnabled = true;
-                    }
+                    //    if(boolList40.Contains(true))
+                    //    {
+                    //        dictBool.Add(file + "georef40", true);
+                    //    }
+                    //    else
+                    //    {
+                    //        dictBool.Add(file + "georef40", false);
+                    //    }
 
-                    if(check_json.IsChecked == true)
-                    {
-                        jsonout.WriteJSONfile(jsonObj, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
-                        bt_json.IsEnabled = true;
-                    }
+                    //    if(boolList50.Contains(true))
+                    //    {
+                    //        dictBool.Add(file + "georef50", true);
+                    //    }
+                    //    else
+                    //    {
+                    //        dictBool.Add(file + "georef50", false);
+                    //    }
 
-                    logOutput.Clear();
+                    //    this.Dict.Add(file, dictBool);
+
+                    //    var jsonObj = jsonout.CreateJSON(model);
+                    //    JsonObjects.Add(file, jsonObj);
+
+                    //    if(check_log.IsChecked == true)
+                    //    {
+                    //        output.WriteLogfile(logOutput, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
+                    //        bt_log.IsEnabled = true;
+                    //    }
+
+                    //    if(check_json.IsChecked == true)
+                    //    {
+                    //        jsonout.WriteJSONfile(jsonObj, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
+                    //        bt_json.IsEnabled = true;
+                    //    }
+
+                    //    logOutput.Clear();
+                    //}
+                    //ReadBool();
+
+                    lb_checkMsg.Content = this.ModelList.Count + " file(s) checked.";
                 }
-                ReadBool();
-
-                lb_checkMsg.Content = this.ModelList.Count + " file(s) checked.";
             }
             catch(Exception ex)
             {
@@ -306,12 +469,23 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Short results (true / false) regarding GeoRef concept
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Selection of imported Models
+        /// </summary>
         private void ifcModels_SelectionChanged(object sender, SelectionChangedEventArgs e)
 
         {
             ReadBool();
         }
 
+        /// <summary>
+        /// Reading of short results regarding model selection
+        /// </summary>
         public void ReadBool()
         {
             try
@@ -358,11 +532,18 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Display of log and json file
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for displaying of Log-file
+        /// </summary>
         private void bt_log_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-               
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".txt");
             }
             catch
@@ -371,6 +552,9 @@ namespace IfcGeoRefChecker
             }
         }
 
+        /// <summary>
+        /// Button for displaying of Json-file
+        /// </summary>
         private void bt_json_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -386,6 +570,14 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Compare funtionality
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for starting of Compare funtionality
+        /// </summary>
         private void bt_comparer_Click(object sender, RoutedEventArgs e)
         {
             if(this.ModelList != null && this.ModelList.Count > 1)
@@ -399,11 +591,29 @@ namespace IfcGeoRefChecker
             }
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Termination
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for termination of program
+        /// </summary>
         private void bt_quit_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Application.Current.Shutdown();
+
+            //this.Close();
         }
 
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Link to documentation
+        //--------------------------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Button for opening of documentation HTML-file
+        /// </summary>
         private void bt_help_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -416,14 +626,14 @@ namespace IfcGeoRefChecker
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-        }
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        // Update functionality
+        //--------------------------------------------------------------------------------------------------------------------------------------
 
-        private void check_log_Checked(object sender, RoutedEventArgs e)
-        {
-        }
-
+        /// <summary>
+        /// Button for starting of manually updating Georef
+        /// </summary>
         private void bt_update_man_Click(object sender, RoutedEventArgs e)
         {
             JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
@@ -453,6 +663,9 @@ namespace IfcGeoRefChecker
             //    }
         }
 
+        /// <summary>
+        /// Button for starting of updating Georef via map browser window
+        /// </summary>
         private void bt_update_map_Click(object sender, RoutedEventArgs e)
         {
             GroundWallObjects.TryGetValue(ifcModels.Text, out var groundWalls);
@@ -476,6 +689,9 @@ namespace IfcGeoRefChecker
             }
         }
 
+        /// <summary>
+        /// Button for starting of updating IFC-file
+        /// </summary>
         private void bt_update_ifc_Click(object sender, RoutedEventArgs e)
         {
             var showExport2IFC = new Export2IFC(this.direc, ifcModels.Text, NameFromPath(ifcModels.Text));
@@ -487,70 +703,6 @@ namespace IfcGeoRefChecker
             var splits = filePath.Split('\\');
 
             return splits[splits.Length - 1];
-        }
-
-        private void bt_change_direc_Click(object sender, RoutedEventArgs e)
-        {
-            using(var fbd = new System.Windows.Forms.FolderBrowserDialog())
-            {
-                fbd.RootFolder = Environment.SpecialFolder.Desktop;
-                fbd.Description = "Select folder";
-
-                fbd.ShowNewFolderButton = false;
-
-                var result = fbd.ShowDialog();
-
-                if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    tb_direc.Text = fbd.SelectedPath;
-                    this.direc = fbd.SelectedPath;
-                }
-            }
-
-            // Copy from the current directory, include subdirectories.
-            DirectoryCopy(@".\IfcGeoRefChecker", this.direc + "\\IfcGeoRefChecker\\", true);
-        }
-
-        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
-        {
-            // Get the subdirectories for the specified directory.
-            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
-            DirectoryInfo dirDest = new DirectoryInfo(destDirName);
-
-            if(!dir.Exists)
-            {
-                throw new DirectoryNotFoundException(
-                    "Source directory does not exist or could not be found: "
-                    + sourceDirName);
-            }
-
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
-            if(!Directory.Exists(destDirName))
-            {
-                Directory.CreateDirectory(destDirName);
-            }
-
-            // Get the files in the directory and copy them to the new location.
-            FileInfo[] filesSource = dir.GetFiles();
-
-            FileInfo[] filesDest = dirDest.GetFiles();
-
-            foreach(FileInfo file in filesSource)
-            {
-                string temppath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(temppath, true);
-            }
-
-            // If copying subdirectories, copy them and their contents to new location.
-            if(copySubDirs)
-            {
-                foreach(DirectoryInfo subdir in dirs)
-                {
-                    string temppath = Path.Combine(destDirName, subdir.Name);
-                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
-                }
-            }
         }
     }
 }

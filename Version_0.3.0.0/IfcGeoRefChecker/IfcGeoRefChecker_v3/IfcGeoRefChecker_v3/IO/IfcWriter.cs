@@ -78,8 +78,8 @@ namespace IfcGeoRefChecker.IO
                         var refObj = GetRefObj(model, lev20.Reference_Object[0]);
                         var creation = GetCreationDate(refObj);
 
-                        var dmsLat = new Appl.Calc().DDtoCompound(lev20.Latitude);
-                        var dmsLon = new Appl.Calc().DDtoCompound(lev20.Longitude);
+                        var dmsLat = new Appl.Calc().DDtoCompound((double)lev20.Latitude);
+                        var dmsLon = new Appl.Calc().DDtoCompound((double)lev20.Longitude);
 
                         var listLat = new List<long>
                             {
@@ -322,23 +322,23 @@ namespace IfcGeoRefChecker.IO
 
                                     pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                         {
-                                            p.Name = "Easthings";
+                                            p.Name = "Eastings";
                                             p.Description = "The translation in X between the two coordinate systems";
-                                            p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure(lev50.Translation_Eastings);
+                                            p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Eastings);
                                             p.Unit = unit;
                                         }));
                                     pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                     {
                                         p.Name = "Northings";
                                         p.Description = "The translation in Y between the two coordinate systems";
-                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure(lev50.Translation_Northings);
+                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Northings);
                                         p.Unit = unit;
                                     }));
                                     pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                     {
                                         p.Name = "OrthogonalHeight";
                                         p.Description = "The translation in Z between the two coordinate systems";
-                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure(lev50.Translation_Orth_Height);
+                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Orth_Height);
                                         p.Unit = unit;
                                     }));
                                     pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
@@ -385,9 +385,9 @@ namespace IfcGeoRefChecker.IO
                                 });
                             }
 
-                            mapConv.Eastings = lev50.Translation_Eastings;
-                            mapConv.Northings = lev50.Translation_Northings;
-                            mapConv.OrthogonalHeight = lev50.Translation_Orth_Height;
+                            mapConv.Eastings = (double)lev50.Translation_Eastings;
+                            mapConv.Northings = (double)lev50.Translation_Northings;
+                            mapConv.OrthogonalHeight = (double)lev50.Translation_Orth_Height;
                             mapConv.XAxisAbscissa = lev50.RotationXY[0];
                             mapConv.XAxisOrdinate = lev50.RotationXY[1];
                             mapConv.Scale = lev50.Scale;

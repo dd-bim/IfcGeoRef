@@ -11,8 +11,9 @@
             <ColumnDefinition Width="416" />
             <ColumnDefinition Width="184" />
         </Grid.ColumnDefinitions>
-        <CheckBox Name="check_log" IsChecked="True" Grid.Column="1" Content="Export Log file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,180,36,0" Width="106" Height="15" Checked="check_log_Checked" />
         <Image x:Name="DD_BIM_pic" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Height="40" Margin="8,10,16,0" Width="160" Source="img/DD-BIM-LOGO.png" Stretch="UniformToFill" />
+        <CheckBox Name="check_log" IsChecked="True" Grid.Column="1" Content="Export Log file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,180,36,0" Width="106" Height="15" />
+        <CheckBox x:Name="check_json" Grid.Column="1" Content="Export JSON file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,200,36,0" Width="106" Height="15" />
         <Button Content="Info/Terms of Use" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="28,67,36,0" Width="120" Click="BtInfo_Click" Height="30" />
         <Button Content="Check IFC-file(s)..." Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="28,140,36,0" Width="120" Height="30" Click="Bt_Import" RenderTransformOrigin="0.45,1.8" />
         <Button Content="--> GeoRefComparer" Grid.Column="1" HorizontalAlignment="Center" Margin="28,246,36,0" VerticalAlignment="Top" Width="120" Height="30" Click="bt_comparer_Click" />
@@ -102,6 +103,5 @@
                 <Button x:Name="bt_update_ifc" Content="Export Updates to IFC" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="45,10,0,0" Width="129" Height="30" Click="bt_update_ifc_Click" />
             </Grid>
         </GroupBox>
-        <CheckBox x:Name="check_json" Grid.Column="1" Content="Export JSON file" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,200,36,0" Width="106" Height="15" Checked="check_log_Checked" />
     </Grid>
 </Window>
