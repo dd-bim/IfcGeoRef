@@ -192,12 +192,11 @@ namespace IfcGeoRefChecker.Appl
             System.Diagnostics.Process.Start(path);
         }
 
-        public void FillGeoref(string name, string model)
+        public void FillGeoref(string name, string jsonModel)
         {
             try
             {
-                var json = new IO.JsonOutput();
-                json.PopulateJson(model);
+                var json = new GeoRefChecker(jsonModel);
 
                 this.siteAddress = (from l10Site in json.LoGeoRef10
                                     where l10Site.Reference_Object[1].Equals("IfcSite")
@@ -295,7 +294,7 @@ namespace IfcGeoRefChecker.Appl
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error occured while comparing Ifc-files at file: " + name + "\r\nError message: " + ex.Message);
+                MessageBox.Show("Error occured while reading Ifc-files at file: " + name + "\r\nError message: " + ex.Message);
             }
         }
     }

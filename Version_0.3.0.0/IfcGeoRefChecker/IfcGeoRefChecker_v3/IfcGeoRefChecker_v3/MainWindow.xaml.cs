@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using Newtonsoft.Json;
 using Serilog;
-using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker
@@ -17,15 +16,9 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Dictionary<string, IfcStore> ModelList;
-
-        private Dictionary<string, Dictionary<string, bool>> Dict;
-
+        private Dictionary<string, Appl.GeoRefChecker> CheckObjList;
         private string direc = Environment.CurrentDirectory;
-
-        private Dictionary<string, string> JsonObjects = new Dictionary<string, string>();
-        private Dictionary<string, string> ModelUnit = new Dictionary<string, string>();
-        private Dictionary<string, IEnumerable<IIfcBuildingElement>> GroundWallObjects = new Dictionary<string, IEnumerable<IIfcBuildingElement>>();
+        private Dictionary<string, IList<IIfcBuildingElement>> GroundWallObjects;
 
         public MainWindow()
         {
@@ -165,28 +158,45 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                if(this.ModelList == null)
+                if(this.CheckObjList == null)  //default at start of program
                 {
-                    this.ModelList = new IO.IfcImport().ImportModels;
+                    var importObj = new IO.IfcImport();
+
+                    this.CheckObjList = importObj.CheckObjs; // new IO.IfcImport().ImportModels;
+                    this.GroundWallObjects = importObj.GroundWallObjects;
+
                 }
                 else
                 {
-                    var addList = new IO.IfcImport().ImportModels;
+                    var addedObj = new IO.IfcImport();
+
+                    var addCheckObjs = addedObj.CheckObjs;
+                    var addGroundWalls = addedObj.GroundWallObjects;
 
                     try
                     {
-                        foreach(var kp in addList)
+                        foreach(var kp in addCheckObjs)
                         {
-                            this.ModelList.Add(kp.Key, kp.Value);
+                            this.CheckObjList.Add(kp.Key, kp.Value);
+                        }
+
+                        foreach(var kp in addGroundWalls)
+                        {
+                            this.GroundWallObjects.Add(kp.Key, kp.Value);
                         }
                     }
-                    catch
+                    catch(ArgumentException aex)
                     {
-                        System.Windows.MessageBox.Show("It is not supported to import IfcModels with the same file name. Please rename Ifc-file and try again.");
+                        System.Windows.MessageBox.Show("It is not supported to import the same IfcModel again or with the same file name. Please rename Ifc-file and try again." + aex);
+                    }
+
+                    catch(Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Error while importing additional models." + ex);
                     }
                 }
 
-                foreach(string file in this.ModelList.Keys)
+                foreach(string file in this.CheckObjList.Keys)
                 {
                     if(importFiles.Items.Contains(file))
                     {
@@ -196,9 +206,29 @@ namespace IfcGeoRefChecker
                     {
                         importFiles.Items.Add(file);
                     }
+
+                    if(ifcModels.Items.Contains(file) == false)
+                    {
+                        ifcModels.Items.Add(file);
+                    }
                 }
 
-                lb_importMsg.Content = this.ModelList.Count + " file(s) loaded";
+                lb_importMsg.Content = this.CheckObjList.Count + " file(s) loaded";
+
+                foreach(var checkObj in this.CheckObjList)
+                {
+                    if(check_log.IsChecked == true)
+                    {
+                        var log = new IO.LogOutput(checkObj.Value, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(checkObj.Key), checkObj.Key);
+                        bt_log.IsEnabled = true;
+                    }
+
+                    if(check_json.IsChecked == true)
+                    {
+                        var js = new IO.JsonOutput(checkObj.Value, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(checkObj.Key));
+                        bt_json.IsEnabled = true;
+                    }
+                }
             }
 
             catch(Exception ex)
@@ -206,267 +236,6 @@ namespace IfcGeoRefChecker
                 System.Windows.MessageBox.Show("Error occured while Import. \r\n " + "Error message: " + ex.Message);
             }
             finally { }
-
-            try
-            {
-                CheckGeoRef();
-            }
-            catch
-            {
-                System.Windows.MessageBox.Show("Error occured while Checking!");
-            }
-
-            foreach(var m in ModelList)
-            {
-                try
-                {
-                    var reader = new IO.IfcReader(m.Value);
-                    var bldgs = reader.BldgReader();
-                    var groundWalls = reader.GroundFloorWallReader(bldgs[0]);   //nur Wände des ersten Gebäudes derzeit in scope
-
-                    this.GroundWallObjects.Add(m.Key, groundWalls);
-
-                    m.Value.Close();
-                }
-                catch
-                {
-                    System.Windows.MessageBox.Show("Error occured while detection of groundwalls and/or Closing!");
-                    m.Value.Close();
-                }
-            }
-        }
-
-        //--------------------------------------------------------------------------------------------------------------------------------------
-        //--------------------------------------------------------------------------------------------------------------------------------------
-        // Checking function
-        //--------------------------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Main method for checking funtionality
-        /// </summary>
-        private void CheckGeoRef()
-        {
-            try
-            {
-                this.Dict = new Dictionary<string, Dictionary<string, bool>>();
-                var dictBool = new Dictionary<string, bool>();
-
-                var logOutput = new List<string>();
-
-                var output = new IO.LogOutput();
-
-                foreach(var kvpModel in this.ModelList)
-                {
-                    var checker = new Appl.GeoRefChecker(kvpModel.Value);
-
-                    var jsonCheck = JsonConvert.SerializeObject(checker, Formatting.Indented);
-
-                    var file = kvpModel.Key;
-
-                    //var jsonObj = jsonout.CreateJSON(model);
-                    JsonObjects.Add(file, jsonCheck);
-
-                    if(check_log.IsChecked == true)
-                    {
-                        output.WriteLogfile(checker, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
-                        bt_log.IsEnabled = true;
-                    }
-
-                    if(check_json.IsChecked == true)
-                    {
-                        var js = new IO.JsonOutput();
-
-                        js.WriteJSONfile(jsonCheck, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
-                        bt_json.IsEnabled = true;
-                    }
-
-                    //var jsonout = new IO.JsonOutput();
-
-                    //var file = kvpModel.Key;
-                    var model = kvpModel.Value;
-
-                    if(ifcModels.Items.Contains(file) == false)
-                    {
-                        ifcModels.Items.Add(file);
-                    }
-
-                    var unit = new IO.IfcReader(model).LengthUnitReader();
-                    this.ModelUnit.Add(file, unit);
-
-                    logOutput.Add("Project Length Unit:" + unit + "\r\n");
-
-                    //    var reader = new IO.IfcReader(model);
-
-                    //    var boolList10 = new List<bool>();
-                    //    var boolList20 = new List<bool>();
-                    //    var boolList30 = new List<bool>();
-                    //    var boolList40 = new List<bool>();
-                    //    var boolList50 = new List<bool>();
-
-                    //    for(var i = 0; i < reader.BldgReader().Count; i++)
-                    //    {
-                    //        var bNo = reader.BldgReader()[i].GetHashCode();
-                    //        var bNa = reader.BldgReader()[i].GetType().Name;
-
-                    //        //var georef10 = new Appl.Level10(model, bNo, bNa);
-                    //        var georef10 = new Appl.Level10(reader.BldgReader()[i]/*model, bNo, bNa*/);
-                    //        georef10.GetLevel10(reader.BldgReader()[i]);
-
-                    //        jsonout.GetGeoRefElements10(georef10);
-                    //        boolList10.Add(georef10.GeoRef10);
-                    //        logOutput.Add(georef10.LogOutput());
-                    //    }
-
-                    //    for(var i = 0; i < reader.SiteReader().Count; i++)
-                    //    {
-                    //        var sNo = reader.SiteReader()[i].GetHashCode();
-                    //        var sNa = reader.SiteReader()[i].GetType().Name;
-
-                    //        var georef10 = new Appl.Level10(reader.SiteReader()[i]/*model, sNo, sNa*/);
-
-                    //        georef10.GetLevel10(reader.SiteReader()[i]);
-                    //        jsonout.GetGeoRefElements10(georef10);
-                    //        boolList10.Add(georef10.GeoRef10);
-                    //        logOutput.Add(georef10.LogOutput());
-
-                    //        var georef20 = new Appl.Level20(model, sNo);
-                    //        georef20.GetLevel20();
-                    //        jsonout.GetGeoRefElements20(georef20);
-                    //        boolList20.Add(georef20.GeoRef20);
-                    //        logOutput.Add(georef20.LogOutput());
-                    //    }
-
-                    //    for(var i = 0; i < reader.UpperPlcmProdReader().Count; i++)
-                    //    {
-                    //        var pNo = reader.UpperPlcmProdReader()[i].GetHashCode();
-                    //        var pNa = reader.UpperPlcmProdReader()[i].GetType().Name;
-
-                    //        var georef30 = new Appl.Level30(model, pNo, pNa);
-                    //        georef30.GetLevel30();
-                    //        jsonout.GetGeoRefElements30(georef30);
-                    //        boolList30.Add(georef30.GeoRef30);
-                    //        logOutput.Add(georef30.LogOutput());
-                    //    }
-
-                    //    for(var i = 0; i < reader.ContextReader().Count; i++)
-                    //    {
-                    //        var ctxNo = reader.ContextReader()[i].GetHashCode();
-
-                    //        var georef40 = new Appl.Level40(model, ctxNo);
-                    //        georef40.GetLevel40();
-                    //        jsonout.GetGeoRefElements40(georef40);
-                    //        boolList40.Add(georef40.GeoRef40);
-                    //        logOutput.Add(georef40.LogOutput());
-
-                    //        if(model.SchemaVersion.ToString() != "Ifc2X3")
-                    //        {
-                    //            var georef50 = new Appl.Level50(model, ctxNo);
-                    //            georef50.GetLevel50();
-                    //            jsonout.GetGeoRefElements50(georef50);
-                    //            boolList50.Add(georef50.GeoRef50);
-                    //            logOutput.Add(georef50.LogOutput());
-                    //        }
-                    //    }
-
-                    //    if(model.SchemaVersion.ToString() == "Ifc2X3")
-                    //    {
-                    //        if(reader.PSetReaderMap().Count > 0 && reader.PSetReaderCRS().Count > 0)
-                    //        {
-                    //            var mapPset = reader.PSetReaderMap().First();
-                    //            var crsPset = reader.PSetReaderCRS().First();
-
-                    //            var georef50Pset = new Appl.Level50(mapPset, crsPset);
-                    //            jsonout.GetGeoRefElements50(georef50Pset);
-                    //            boolList50.Add(georef50Pset.GeoRef50);
-                    //            logOutput.Add(georef50Pset.LogOutput());
-                    //        }
-                    //    }
-
-                    //    //for(var i = 0; i < reader.PSetReaderMap().Count; i++)
-                    //    //{
-                    //    //    var pNo = reader.BldgReader()[i].GetHashCode();
-                    //    //    var pNa = reader.BldgReader()[i].GetType().Name;
-
-                    //    //    var georef50 = new Appl.Level50(model,ctxNo);
-                    //    //    georef50.GetLevel50();
-                    //    //    jsonout.GetGeoRefElements50(georef50);
-                    //    //    boolList50.Add(georef50.GeoRef50);
-                    //    //    logOutput.Add(georef50.LogOutput());
-                    //    //}
-
-                    //    if(boolList10.Contains(true))
-                    //    {
-                    //        dictBool.Add(file + "georef10", true);
-                    //    }
-                    //    else
-                    //    {
-                    //        dictBool.Add(file + "georef10", false);
-                    //    }
-
-                    //    if(boolList20.Contains(true))
-                    //    {
-                    //        dictBool.Add(file + "georef20", true);
-                    //    }
-                    //    else
-                    //    {
-                    //        dictBool.Add(file + "georef20", false);
-                    //    }
-
-                    //    if(boolList30.Contains(true))
-                    //    {
-                    //        dictBool.Add(file + "georef30", true);
-                    //    }
-                    //    else
-                    //    {
-                    //        dictBool.Add(file + "georef30", false);
-                    //    }
-
-                    //    if(boolList40.Contains(true))
-                    //    {
-                    //        dictBool.Add(file + "georef40", true);
-                    //    }
-                    //    else
-                    //    {
-                    //        dictBool.Add(file + "georef40", false);
-                    //    }
-
-                    //    if(boolList50.Contains(true))
-                    //    {
-                    //        dictBool.Add(file + "georef50", true);
-                    //    }
-                    //    else
-                    //    {
-                    //        dictBool.Add(file + "georef50", false);
-                    //    }
-
-                    //    this.Dict.Add(file, dictBool);
-
-                    //    var jsonObj = jsonout.CreateJSON(model);
-                    //    JsonObjects.Add(file, jsonObj);
-
-                    //    if(check_log.IsChecked == true)
-                    //    {
-                    //        output.WriteLogfile(logOutput, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file), file);
-                    //        bt_log.IsEnabled = true;
-                    //    }
-
-                    //    if(check_json.IsChecked == true)
-                    //    {
-                    //        jsonout.WriteJSONfile(jsonObj, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(file));
-                    //        bt_json.IsEnabled = true;
-                    //    }
-
-                    //    logOutput.Clear();
-                    //}
-                    //ReadBool();
-
-                    lb_checkMsg.Content = this.ModelList.Count + " file(s) checked.";
-                }
-            }
-            catch(Exception ex)
-            {
-                System.Windows.MessageBox.Show("Error occured while checking GeoRef. \r\n Error message: " + ex.Message);
-            }
         }
 
         //--------------------------------------------------------------------------------------------------------------------------------------
@@ -480,56 +249,33 @@ namespace IfcGeoRefChecker
         private void ifcModels_SelectionChanged(object sender, SelectionChangedEventArgs e)
 
         {
-            ReadBool();
-        }
+            CheckObjList.TryGetValue(ifcModels.SelectedItem.ToString(), out var currentObj);
 
-        /// <summary>
-        /// Reading of short results regarding model selection
-        /// </summary>
-        public void ReadBool()
-        {
-            try
-            {
-                foreach(var keyModel in this.Dict)
-                {
-                    var file = keyModel.Key;
+            var ctL10 = (from l in currentObj.LoGeoRef10
+                         where l.GeoRef10
+                         select l).Count();
 
-                    if(this.ifcModels.SelectedItem.ToString() == file)
-                    {
-                        foreach(var dec in keyModel.Value)
-                        {
-                            if(dec.Key.Contains(file + "georef10"))
-                            {
-                                bool10.Content = dec.Value;
-                            }
+            var ctL20 = (from l in currentObj.LoGeoRef20
+                         where l.GeoRef20
+                         select l).Count();
 
-                            if(dec.Key.Contains(file + "georef20"))
-                            {
-                                bool20.Content = dec.Value;
-                            }
+            var ctL30 = (from l in currentObj.LoGeoRef30
+                         where l.GeoRef30
+                         select l).Count();
 
-                            if(dec.Key.Contains(file + "georef30"))
-                            {
-                                bool30.Content = dec.Value;
-                            }
+            var ctL40 = (from l in currentObj.LoGeoRef40
+                         where l.GeoRef40
+                         select l).Count();
 
-                            if(dec.Key.Contains(file + "georef40"))
-                            {
-                                bool40.Content = dec.Value;
-                            }
+            var ctL50 = (from l in currentObj.LoGeoRef50
+                         where l.GeoRef50
+                         select l).Count();
 
-                            if(dec.Key.Contains(file + "georef50"))
-                            {
-                                bool50.Content = dec.Value;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                System.Windows.MessageBox.Show("Error occured, unable to read Georef decision.");
-            }
+            bool10.Content = (ctL10 > 0) ? true : false;
+            bool20.Content = (ctL20 > 0) ? true : false;
+            bool30.Content = (ctL30 > 0) ? true : false;
+            bool40.Content = (ctL40 > 0) ? true : false;
+            bool50.Content = (ctL50 > 0) ? true : false;
         }
 
         //--------------------------------------------------------------------------------------------------------------------------------------
@@ -580,9 +326,9 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_comparer_Click(object sender, RoutedEventArgs e)
         {
-            if(this.ModelList != null && this.ModelList.Count > 1)
+            if(this.CheckObjList != null && this.CheckObjList.Count > 1)
             {
-                var comp = new Compare(this.direc, this.JsonObjects);
+                var comp = new Compare(this.direc, this.CheckObjList);
                 comp.Show();
             }
             else
@@ -636,31 +382,13 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_update_man_Click(object sender, RoutedEventArgs e)
         {
-            JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
+            CheckObjList.TryGetValue(ifcModels.Text, out var checkObj);
 
-            var jsonout = new IO.JsonOutput();
             var jsonPath = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + NameFromPath(ifcModels.Text);
-
-            jsonout.WriteJSONfile(jsObj, jsonPath);
+            var jsonout = new IO.JsonOutput(checkObj, jsonPath);
 
             var manExp = new UpdateMan(jsonPath);
             manExp.Show();
-
-            //    try
-            //    {
-            //        JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
-
-            //        var showResultsJs = new Results(ifcModels.Text, jsObj);
-            //        showResultsJs.Show();
-
-            //        //var showResults = new Results(this.ModelList[ifcModels.Text], ifcModels.Text);
-            //        //showResults.Show();
-            //    }
-
-            //    catch(Exception ex)
-            //    {
-            //        MessageBox.Show("Error occured. Unable to open IFCGeoRefUpdater. \r\n Error message: " + ex.Message);
-            //    }
         }
 
         /// <summary>
@@ -669,19 +397,21 @@ namespace IfcGeoRefChecker
         private void bt_update_map_Click(object sender, RoutedEventArgs e)
         {
             GroundWallObjects.TryGetValue(ifcModels.Text, out var groundWalls);
-            JsonObjects.TryGetValue(ifcModels.Text, out var jsObj);
-            ModelUnit.TryGetValue(ifcModels.Text, out var unit);
+            CheckObjList.TryGetValue(ifcModels.Text, out var checkObj);
+
+            var unit = checkObj.LengthUnit;
+
+            var a = groundWalls.Count();
 
             var wkt = new Appl.BldgFootprintExtraxtor().CalcBuildingFootprint(groundWalls, unit);
 
-            var jsonWkt = new IO.JsonOutput();
-            var jsonString = jsonWkt.AddWKTtoJSON(wkt, jsObj);
+            checkObj.WKTRep = wkt;
 
-            jsonWkt.WriteJSONfile(jsonString, this.direc + "\\json\\" + ifcModels.Text + "_wkt");
+            var jsonWkt = new IO.JsonOutput(checkObj, this.direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\map");
 
             try
             {
-                System.Diagnostics.Process.Start(this.direc + "\\buildingLocator\\index.html");
+                System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\buildingLocator\\index.html");
             }
             catch
             {

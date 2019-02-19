@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
+using Newtonsoft.Json;
 
 namespace IfcGeoRefChecker
 {
@@ -15,20 +16,21 @@ namespace IfcGeoRefChecker
 
         private Dictionary<string, string> jsonDict = new Dictionary<string, string>();
 
-        public Compare(string direc, Dictionary<string, string> jsonDict)
+        public Compare(string direc, Dictionary<string, Appl.GeoRefChecker> checkDict)
         {
             this.direc = direc;
-            this.jsonDict = jsonDict;
 
             InitializeComponent();
 
-            foreach(var js in jsonDict.Keys)
+            foreach(var obj in checkDict)
             {
-                //var splits = js.Split('\\');
-                //var name = splits[splits.Length - 1];
+                cb_compRef.Items.Add(obj.Key);
 
-                cb_compRef.Items.Add(js);
+                var jsonObj = JsonConvert.SerializeObject(obj.Value, Formatting.Indented);
+
+                this.jsonDict.Add(obj.Key, jsonObj);
             }
+
         }
 
         private void cb_compRef_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

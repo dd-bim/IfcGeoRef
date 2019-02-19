@@ -16,7 +16,9 @@ namespace IfcGeoRefChecker
         private string direc;
         private string ifcPath;
 
-        private IO.JsonOutput json = new IO.JsonOutput();
+        //private IO.JsonOutput json = new IO.JsonOutput();
+        private Appl.GeoRefChecker json;
+
 
         private Appl.Level10 lev10Bldg;
         private Appl.Level10 lev10Site;
@@ -29,7 +31,9 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                json.PopulateJson(jsonObj);
+                this.json = new Appl.GeoRefChecker(jsonObj);
+
+                //json.PopulateJson(jsonObj);
                 this.ifcVersion = json.IFCSchema;
                 this.fileName = fileName;
                 this.direc = direc;

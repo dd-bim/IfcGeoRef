@@ -18,13 +18,13 @@ namespace IfcGeoRefChecker.Appl
 
         public IList<string> Instance_Object { get; set; } = new List<string>();
 
-        public double? Translation_Eastings { get; set; }
+        public double Translation_Eastings { get; set; }
 
-        public double? Translation_Northings { get; set; }
+        public double Translation_Northings { get; set; }
 
-        public double? Translation_Orth_Height { get; set; }
+        public double Translation_Orth_Height { get; set; }
 
-        public IList<double> RotationXY { get; set; } = new List<double>();
+        public IList<double> RotationXY { get; set; } = new List<double>() { 0, 1 };
 
         public double Scale { get; set; }
 

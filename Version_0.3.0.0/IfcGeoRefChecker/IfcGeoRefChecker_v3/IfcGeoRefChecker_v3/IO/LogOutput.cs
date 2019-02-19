@@ -7,7 +7,7 @@ namespace IfcGeoRefChecker.IO
 {
     public class LogOutput
     {
-        public void WriteLogfile(Appl.GeoRefChecker checkObj, string fileDirec, string file)
+        public LogOutput(Appl.GeoRefChecker checkObj, string fileDirec, string file)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 

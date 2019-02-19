@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xbim.Common;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
@@ -26,6 +27,70 @@ namespace IfcGeoRefChecker.Appl
         public List<Level50> LoGeoRef50 { get; set; } = new List<Level50>();
 
         private IO.IfcReader obj;
+
+        public GeoRefChecker(string jsonString)
+        {
+            try
+            {
+                JObject jsonObj = JObject.Parse(jsonString);
+
+                this.GlobalID = jsonObj["GlobalID"].ToString();
+                this.IFCSchema = jsonObj["IFCSchema"].ToString();
+                this.TimeCheck = jsonObj["TimeCheck"].ToString();
+                this.TimeCreation = jsonObj["TimeCreation"].ToString();
+
+                this.LengthUnit = jsonObj["LengthUnit"].ToString();
+
+                var lev10 = jsonObj["LoGeoRef10"].Children();
+
+                foreach(var res in lev10)
+                {
+                    var l10 = new Level10();
+                    JsonConvert.PopulateObject(res.ToString(), l10);
+                    this.LoGeoRef10.Add(l10);
+                }
+
+                var lev20 = jsonObj["LoGeoRef20"].Children();
+
+                foreach(var res in lev20)
+                {
+                    var l20 = new Level20();
+                    JsonConvert.PopulateObject(res.ToString(), l20);
+                    this.LoGeoRef20.Add(l20);
+                }
+
+                var lev30 = jsonObj["LoGeoRef30"].Children();
+
+                foreach(var res in lev30)
+                {
+                    var l30 = new Level30();
+                    JsonConvert.PopulateObject(res.ToString(), l30);
+                    this.LoGeoRef30.Add(l30);
+                }
+
+                var lev40 = jsonObj["LoGeoRef40"].Children();
+
+                foreach(var res in lev40)
+                {
+                    var l40 = new Level40();
+                    JsonConvert.PopulateObject(res.ToString(), l40);
+                    this.LoGeoRef40.Add(l40);
+                }
+
+                var lev50 = jsonObj["LoGeoRef50"].Children();
+
+                foreach(var res in lev50)
+                {
+                    var l50 = new Level50();
+                    JsonConvert.PopulateObject(res.ToString(), l50);
+                    this.LoGeoRef50.Add(l50);
+                }
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(e.ToString());
+            }
+        }
 
         public GeoRefChecker(IfcStore model)
         {
@@ -63,7 +128,7 @@ namespace IfcGeoRefChecker.Appl
                 var psetMap = obj.PSetReaderMap();
                 var psetCrs = obj.PSetReaderCRS();
 
-                if (psetMap.Count > 0 && psetCrs.Count > 0)
+                if(psetMap.Count > 0 && psetCrs.Count > 0)
                 {
                     this.LoGeoRef50.Add(GetLevel50(psetMap.First(), psetCrs.First()));
                 }
@@ -74,7 +139,6 @@ namespace IfcGeoRefChecker.Appl
                     l50f.Reference_Object = GetInfo(proj);
                     this.LoGeoRef50.Add(l50f);
                 }
-                    
             }
 
             var jsonObj = JsonConvert.SerializeObject(this, Formatting.Indented);
@@ -186,12 +250,7 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
-                l20.Reference_Object = new List<string>
-                    {
-                        {"#" + site.GetHashCode() },
-                        {site.GetType().Name },
-                        {site.GlobalId }
-                    };
+                l20.Reference_Object = GetInfo(site);
 
                 if(site.RefLatitude.HasValue || site.RefLongitude.HasValue)
                 {
@@ -227,18 +286,9 @@ namespace IfcGeoRefChecker.Appl
                 var elemPlcm = (IIfcLocalPlacement)elem.ObjectPlacement;
                 var plcm3D = (IIfcAxis2Placement3D)elemPlcm.RelativePlacement;
 
-                l30.Reference_Object = new List<string>
-                    {
-                        {"#" + elem.GetHashCode() },
-                        {elem.GetType().Name },
-                        {elem.GlobalId }
-                    };
+                l30.Reference_Object = GetInfo(elem);
 
-                l30.Instance_Object = new List<string>
-                    {
-                        {"#" + plcm3D.GetHashCode() },
-                        {plcm3D.GetType().Name }
-                    };
+                l30.Instance_Object = GetInfo(plcm3D);
 
                 var plcm = new PlacementXYZ(plcm3D);
 
@@ -261,20 +311,11 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
-                l40.Reference_Object = new List<string>
-                    {
-                        {"#" + proj.GetHashCode() },
-                        {proj.GetType().Name },
-                        {proj.GlobalId }
-                    };
+                l40.Reference_Object = GetInfo(proj);
 
                 var prjCtx = obj.ContextReader(proj).First();
 
-                l40.Instance_Object = new List<string>
-                    {
-                        {"#" + prjCtx.GetHashCode() },
-                        {prjCtx.GetType().Name }
-                    };
+                l40.Instance_Object = GetInfo(prjCtx);
 
                 //variable for the WorldCoordinatesystem attribute
                 var plcm = prjCtx.WorldCoordinateSystem;
@@ -325,34 +366,36 @@ namespace IfcGeoRefChecker.Appl
 
                 var prjCtx = obj.ContextReader(proj).First();
 
-                var mapCvs = obj.MapReader(prjCtx).First();
+                var mapCvs = obj.MapReader(prjCtx);
 
-                l50.Instance_Object = GetInfo(mapCvs);
-
-                if(mapCvs != null)
+                if(mapCvs.Count > 0)
                 {
+                    var map = mapCvs.First();
+
+                    l50.Instance_Object = GetInfo(map);
+
                     l50.RotationXY = new List<double>();
 
-                    l50.Translation_Eastings = mapCvs.Eastings;
-                    l50.Translation_Northings = mapCvs.Northings;
-                    l50.Translation_Orth_Height = mapCvs.OrthogonalHeight;
+                    l50.Translation_Eastings = map.Eastings;
+                    l50.Translation_Northings = map.Northings;
+                    l50.Translation_Orth_Height = map.OrthogonalHeight;
 
-                    if(mapCvs.XAxisAbscissa.HasValue && mapCvs.XAxisOrdinate.HasValue)
+                    if(map.XAxisAbscissa.HasValue && map.XAxisOrdinate.HasValue)
                     {
-                        l50.RotationXY.Add(mapCvs.XAxisOrdinate.Value);
-                        l50.RotationXY.Add(mapCvs.XAxisAbscissa.Value);
+                        l50.RotationXY[0] = map.XAxisOrdinate.Value;
+                        l50.RotationXY[1] = map.XAxisAbscissa.Value;
                     }
-                    else
-                    {
-                        //if omitted, values for no rotation (angle = 0) applied (consider difference to True North)
+                    //else
+                    //{
+                    //    //if omitted, values for no rotation (angle = 0) applied (consider difference to True North)
 
-                        l50.RotationXY.Add(0);
-                        l50.RotationXY.Add(1);
-                    }
+                    //    l50.RotationXY.Add(0);
+                    //    l50.RotationXY.Add(1);
+                    //}
 
-                    l50.Scale = (mapCvs.Scale.HasValue) ? mapCvs.Scale.Value : 1;
+                    l50.Scale = (map.Scale.HasValue) ? map.Scale.Value : 1;
 
-                    var mapCRS = (IIfcProjectedCRS)mapCvs.TargetCRS;
+                    var mapCRS = (IIfcProjectedCRS)map.TargetCRS;
 
                     if(mapCRS != null)
                     {

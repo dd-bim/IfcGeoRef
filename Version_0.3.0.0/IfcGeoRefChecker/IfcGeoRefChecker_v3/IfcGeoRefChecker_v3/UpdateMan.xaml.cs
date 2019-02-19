@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Windows;
-using Newtonsoft.Json;
 
 namespace IfcGeoRefChecker
 {
@@ -10,7 +9,9 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class UpdateMan : Window
     {
-        private IO.JsonOutput jsonMap;
+        //private IO.JsonOutput jsonMap;
+        private Appl.GeoRefChecker jsonMap;
+
         private string direc;
 
         public UpdateMan(string direc)
@@ -21,8 +22,10 @@ namespace IfcGeoRefChecker
 
             var jsonObj = File.ReadAllText(path);
 
-            this.jsonMap = new IO.JsonOutput();
-            jsonMap.PopulateJson(jsonObj);
+            //this.jsonMap = new IO.JsonOutput();
+            //jsonMap.PopulateJson(jsonObj);
+
+            this.jsonMap = new Appl.GeoRefChecker(jsonObj);
 
             InitializeComponent();
         }
@@ -71,10 +74,7 @@ namespace IfcGeoRefChecker
             lev50proj.RotationXY[0] = vector.X;
             lev50proj.RotationXY[1] = vector.Y;
 
-            var jsonUpdMan = JsonConvert.SerializeObject(this.jsonMap, Formatting.Indented);
-
-            var write = new IO.JsonOutput();
-            write.WriteJSONfile(jsonUpdMan, this.direc + "_map");
+            var write = new IO.JsonOutput(this.jsonMap, this.direc + "_map");
 
             this.Close();
         }

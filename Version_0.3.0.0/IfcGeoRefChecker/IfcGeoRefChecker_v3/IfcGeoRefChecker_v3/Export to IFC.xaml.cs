@@ -14,7 +14,9 @@ namespace IfcGeoRefChecker
         private string fileName;
         private string direc;
 
-        private IO.JsonOutput jsonMap;
+        private Appl.GeoRefChecker jsonMap;
+
+        //private IO.JsonOutput jsonMap;
 
         public Export2IFC(string direc, string filePath, string fileName)
         {
@@ -24,8 +26,10 @@ namespace IfcGeoRefChecker
 
             var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + fileName + "_map.json");
 
-            this.jsonMap = new IO.JsonOutput();
-            jsonMap.PopulateJson(jsonObj);
+
+
+            this.jsonMap = new Appl.GeoRefChecker(jsonObj);
+            //jsonMap.PopulateJson(jsonObj);
 
             InitializeComponent();
 

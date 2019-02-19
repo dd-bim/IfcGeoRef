@@ -14,8 +14,10 @@ namespace IfcGeoRefChecker.IO
 
         public IfcWriter(string newDirec, string ifcPath, string fileName, string jsonObj)
         {
-            var json = new JsonOutput();
-            json.PopulateJson(jsonObj);
+            var json = new Appl.GeoRefChecker(jsonObj);
+
+            //var json = new JsonOutput();
+            //json.PopulateJson(jsonObj);
 
             var editor = new XbimEditorCredentials
             {

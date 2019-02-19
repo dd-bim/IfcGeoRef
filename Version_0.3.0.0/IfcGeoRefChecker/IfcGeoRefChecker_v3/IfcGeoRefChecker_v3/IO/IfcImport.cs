@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using Xbim.Ifc;
+using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.IO
 {
     public class IfcImport
     {
-        public Dictionary<string, IfcStore> ImportModels { get; set; }
+        public Dictionary<string, Appl.GeoRefChecker> CheckObjs { get; set; } = new Dictionary<string, Appl.GeoRefChecker>();
+        public Dictionary<string, IList<IIfcBuildingElement>> GroundWallObjects { get; set; } = new Dictionary<string, IList<IIfcBuildingElement>>();
 
-        public List<string> FilePath { get; set; }
-
-        private string fileName;
+    private string fileName;
 
         public IfcImport()
         {
@@ -25,13 +26,9 @@ namespace IfcGeoRefChecker.IO
 
                 fd.ShowDialog();
 
-                this.ImportModels = new Dictionary<string, IfcStore>();
-
                 for(int i = 0; i < fd.FileNames.Length; i++)
                 {
                     this.fileName = Path.ChangeExtension(fd.FileNames[i], null);
-
-                    //this.fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
 
                     var editor = new XbimEditorCredentials
                     {
@@ -44,8 +41,19 @@ namespace IfcGeoRefChecker.IO
 
                     try
                     {
-                        var model = IfcStore.Open(fd.FileNames[i], editor);
-                        this.ImportModels.Add(fileName, model);
+                        using(var model = IfcStore.Open(fd.FileNames[i], editor))
+                        {
+                            //this.ImportModels.Add(fileName, model);
+
+                            var checkObj = new Appl.GeoRefChecker(model);
+                            this.CheckObjs.Add(fileName, checkObj);
+
+                            var reader = new IfcReader(model);
+                            var bldgs = reader.BldgReader();
+                            var groundWalls = reader.GroundFloorWallReader(bldgs[0]).ToList();   //nur Wände des ersten Gebäudes derzeit in scope
+
+                            this.GroundWallObjects.Add(fileName, groundWalls);
+                        }
                     }
                     catch(Exception e)
                     {

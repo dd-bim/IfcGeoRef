@@ -25,13 +25,27 @@ namespace IfcGeoRefChecker.Appl
         {
             if(other == null)
                 return false;
-            if(string.Equals(AddressLines[0], other.AddressLines[0]) == true &&
-                string.Equals(AddressLines[1], other.AddressLines[1]) == true &&
-                string.Equals(AddressLines[2], other.AddressLines[2]) == true &&
-                   string.Equals(Postalcode, other.Postalcode) == true &&
-                   string.Equals(Town, other.Town) == true &&
-                   string.Equals(Region, other.Region) == true &&
-                   string.Equals(Country, other.Country) == true)
+
+            var a = AddressLines.Count;
+            var b = other.AddressLines.Count;
+            if(a == b)
+            {
+                for(int i = 0; i < a; i++)
+                {
+                    if(!string.Equals(AddressLines[i], other.AddressLines[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+            if(string.Equals(Postalcode, other.Postalcode) &&
+                   string.Equals(Town, other.Town) &&
+                   string.Equals(Region, other.Region) &&
+                   string.Equals(Country, other.Country))
             {
                 return true;
             }
