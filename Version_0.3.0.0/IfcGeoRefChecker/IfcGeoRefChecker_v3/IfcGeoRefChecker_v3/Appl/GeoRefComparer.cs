@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using Serilog;
 
 namespace IfcGeoRefChecker.Appl
 {
@@ -34,6 +35,8 @@ namespace IfcGeoRefChecker.Appl
         public void CompareIFC()
         {
             FillGeoref(refFile, refModel);
+
+            Log.Information("comp");
 
             var refSiteAddress = siteAddress;
             var refBldgAddress = bldgAddress;

@@ -16,7 +16,7 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Dictionary<string, Appl.GeoRefChecker> CheckObjList;
+        private Dictionary<string, Appl.GeoRefChecker> CheckObjList = new Dictionary<string, Appl.GeoRefChecker>();
         private string direc = Environment.CurrentDirectory;
         private Dictionary<string, IList<IIfcBuildingElement>> GroundWallObjects;
 
@@ -25,7 +25,7 @@ namespace IfcGeoRefChecker
             try
             {
                 Log.Logger = new LoggerConfiguration()
-                    .WriteTo.File(@"D:\\1_CityBIM\\1_Programmierung\\City2BIM\\City2BIM_Revit\\log.txt", rollingInterval: RollingInterval.Day)
+                    .WriteTo.File(@"C:\\Users\\goerne\\Desktop\\logtest\\log_georefchecker.txt", rollingInterval: RollingInterval.Day)
                     //.MinimumLevel.Debug()
                     .CreateLogger();
 
@@ -44,7 +44,6 @@ namespace IfcGeoRefChecker
             catch(Exception ex)
             {
                 Log.Error("Start of IfcGeoRefChecker failed. Error message: " + ex);
-                MessageBox.Show("Error occured while initializing program. \r\n" + "Error message: " + ex.Message);
             }
         }
 
@@ -58,26 +57,53 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_change_direc_Click(object sender, RoutedEventArgs e)
         {
-            using(var fbd = new System.Windows.Forms.FolderBrowserDialog())
+            try
             {
-                fbd.RootFolder = Environment.SpecialFolder.Desktop;
-                fbd.Description = "Select folder";
-
-                fbd.ShowNewFolderButton = false;
-
-                Log.Information("sadasdd");
-
-                var result = fbd.ShowDialog();
-
-                if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                using(var fbd = new System.Windows.Forms.FolderBrowserDialog())
                 {
-                    tb_direc.Text = fbd.SelectedPath;
-                    this.direc = fbd.SelectedPath;
+                    Log.Information("Start of changing directory. Dialogue opened.");
+
+                    fbd.RootFolder = Environment.SpecialFolder.Desktop;
+                    fbd.Description = "Select folder";
+
+                    fbd.ShowNewFolderButton = true;
+
+                    var result = fbd.ShowDialog();
+
+                    if(result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    {
+                        this.direc = fbd.SelectedPath;
+                        Log.Information("Directory changed to " + this.direc);
+                    }
+                    else
+                    {
+                        Log.Information("Directory not changed.");
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                Log.Error("Not able to change directory. Error: " + ex);
+                Log.Information("Program will use the default path (install folder).");
+            }
+            try
+            {
+                if(!tb_direc.Text.Equals(this.direc))
+                {
+                    tb_direc.Text = this.direc;
 
-            // Copy from the current directory, include subdirectories.
-            DirectoryCopy(@".\IfcGeoRefChecker", this.direc + "\\IfcGeoRefChecker\\", true);
+                    Log.Information("Copy required program files to new directory.");
+
+                    // Copy from the current directory, include subdirectories.
+                    DirectoryCopy(@".\IfcGeoRefChecker", this.direc + "\\IfcGeoRefChecker\\", true);
+                }
+            }
+            catch(Exception ex)
+            {
+                Log.Error("Not able to copy files and subfolders to new directory. Error: " + ex);
+                this.direc = Environment.CurrentDirectory;
+                Log.Information("Program will use the default path (install folder).");
+            }
         }
 
         /// <summary>
@@ -137,12 +163,13 @@ namespace IfcGeoRefChecker
         {
             try
             {
+                Log.Information("Open Terms of Use window.");
                 var info = new Info();
                 info.Show();
             }
             catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Error occured while showing Information/License window. \r\n" + "Error message: " + ex.Message);
+                Log.Error("Not able to open Terms of Use window. Error: " + ex);
             }
         }
 
@@ -158,13 +185,15 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                if(this.CheckObjList == null)  //default at start of program
+                Log.Information("Start of Checking Georef...");
+                Log.Debug("Files loaded: " + this.CheckObjList.Count);
+
+                if(this.CheckObjList.Count == 0)  //default at start of program
                 {
                     var importObj = new IO.IfcImport();
 
-                    this.CheckObjList = importObj.CheckObjs; // new IO.IfcImport().ImportModels;
+                    this.CheckObjList = importObj.CheckObjs;
                     this.GroundWallObjects = importObj.GroundWallObjects;
-
                 }
                 else
                 {
@@ -187,12 +216,9 @@ namespace IfcGeoRefChecker
                     }
                     catch(ArgumentException aex)
                     {
-                        System.Windows.MessageBox.Show("It is not supported to import the same IfcModel again or with the same file name. Please rename Ifc-file and try again." + aex);
-                    }
-
-                    catch(Exception ex)
-                    {
-                        System.Windows.MessageBox.Show("Error while importing additional models." + ex);
+                        var exStr = "Ifc-file already imported.";
+                        Log.Error(exStr + aex.Message);
+                        MessageBox.Show(exStr);
                     }
                 }
 
@@ -217,25 +243,48 @@ namespace IfcGeoRefChecker
 
                 foreach(var checkObj in this.CheckObjList)
                 {
+                    var path = direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(checkObj.Key);
+
                     if(check_log.IsChecked == true)
                     {
-                        var log = new IO.LogOutput(checkObj.Value, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(checkObj.Key), checkObj.Key);
-                        bt_log.IsEnabled = true;
+                        try
+                        {
+                            Log.Information("Export checking-log...");
+
+                            var log = new IO.LogOutput(checkObj.Value, path, checkObj.Key);
+                            bt_log.IsEnabled = true;
+
+                            Log.Information("Export successful to: " + path);
+                        }
+                        catch(IOException exIO)
+                        {
+                            Log.Error("Not able to export log. Error: " + exIO);
+                        }
                     }
 
                     if(check_json.IsChecked == true)
                     {
-                        var js = new IO.JsonOutput(checkObj.Value, direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(checkObj.Key));
-                        bt_json.IsEnabled = true;
+                        try
+                        {
+                            Log.Information("Export JSON-file...");
+
+                            var js = new IO.JsonOutput(checkObj.Value, path);
+                            bt_json.IsEnabled = true;
+
+                            Log.Information("Export successful to: " + path);
+                        }
+                        catch(IOException exIO)
+                        {
+                            Log.Error("Not able to export json. Error: " + exIO);
+                        }
                     }
                 }
             }
-
             catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Error occured while Import. \r\n " + "Error message: " + ex.Message);
+                Log.Error("Unknown error occured. Error: " + ex.Message);
+                MessageBox.Show("Unknown error occured. Error: " + ex.Message);
             }
-            finally { }
         }
 
         //--------------------------------------------------------------------------------------------------------------------------------------
@@ -247,35 +296,43 @@ namespace IfcGeoRefChecker
         /// Selection of imported Models
         /// </summary>
         private void ifcModels_SelectionChanged(object sender, SelectionChangedEventArgs e)
-
         {
-            CheckObjList.TryGetValue(ifcModels.SelectedItem.ToString(), out var currentObj);
+            try
+            {
+                CheckObjList.TryGetValue(ifcModels.SelectedItem.ToString(), out var currentObj);
 
-            var ctL10 = (from l in currentObj.LoGeoRef10
-                         where l.GeoRef10
-                         select l).Count();
+                var ctL10 = (from l in currentObj.LoGeoRef10
+                             where l.GeoRef10
+                             select l).Count();
 
-            var ctL20 = (from l in currentObj.LoGeoRef20
-                         where l.GeoRef20
-                         select l).Count();
+                var ctL20 = (from l in currentObj.LoGeoRef20
+                             where l.GeoRef20
+                             select l).Count();
 
-            var ctL30 = (from l in currentObj.LoGeoRef30
-                         where l.GeoRef30
-                         select l).Count();
+                var ctL30 = (from l in currentObj.LoGeoRef30
+                             where l.GeoRef30
+                             select l).Count();
 
-            var ctL40 = (from l in currentObj.LoGeoRef40
-                         where l.GeoRef40
-                         select l).Count();
+                var ctL40 = (from l in currentObj.LoGeoRef40
+                             where l.GeoRef40
+                             select l).Count();
 
-            var ctL50 = (from l in currentObj.LoGeoRef50
-                         where l.GeoRef50
-                         select l).Count();
+                var ctL50 = (from l in currentObj.LoGeoRef50
+                             where l.GeoRef50
+                             select l).Count();
 
-            bool10.Content = (ctL10 > 0) ? true : false;
-            bool20.Content = (ctL20 > 0) ? true : false;
-            bool30.Content = (ctL30 > 0) ? true : false;
-            bool40.Content = (ctL40 > 0) ? true : false;
-            bool50.Content = (ctL50 > 0) ? true : false;
+                bool10.Content = (ctL10 > 0) ? true : false;
+                bool20.Content = (ctL20 > 0) ? true : false;
+                bool30.Content = (ctL30 > 0) ? true : false;
+                bool40.Content = (ctL40 > 0) ? true : false;
+                bool50.Content = (ctL50 > 0) ? true : false;
+
+                Log.Information("Selected model in GUI changed.");
+            }
+            catch
+            {
+                Log.Error("Not able to read short results for selected model.");
+            }
         }
 
         //--------------------------------------------------------------------------------------------------------------------------------------
@@ -291,10 +348,12 @@ namespace IfcGeoRefChecker
             try
             {
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".txt");
+                Log.Information("Checking log opened.");
             }
-            catch
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file.");
+                Log.Error("Not able to open log-file. Error: " + ex);
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file." + ex);
             }
         }
 
@@ -305,14 +364,12 @@ namespace IfcGeoRefChecker
         {
             try
             {
-                //var pos = this.ModelList[ifcModels.Text].Header.FileName.Name.LastIndexOf("\\");
-                //var directory = this.ModelList[ifcModels.Text].Header.FileName.Name.Substring(0, pos + 1);
-
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".json");
             }
-            catch
+            catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file");
+                Log.Error("Not able to open JSON-file. Error: " + ex);
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file." + ex);
             }
         }
 

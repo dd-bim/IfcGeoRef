@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using Serilog;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 
@@ -13,12 +13,14 @@ namespace IfcGeoRefChecker.IO
         public Dictionary<string, Appl.GeoRefChecker> CheckObjs { get; set; } = new Dictionary<string, Appl.GeoRefChecker>();
         public Dictionary<string, IList<IIfcBuildingElement>> GroundWallObjects { get; set; } = new Dictionary<string, IList<IIfcBuildingElement>>();
 
-    private string fileName;
+        private string fileName;
 
         public IfcImport()
         {
             try
             {
+                Log.Information("Start of file import.");
+
                 var fd = new Microsoft.Win32.OpenFileDialog();
 
                 fd.Filter = "IFC-files (*.ifc)|*.ifc|All Files (*.*)|*.*";
@@ -26,27 +28,24 @@ namespace IfcGeoRefChecker.IO
 
                 fd.ShowDialog();
 
+                Log.Debug("Selected files for Import: " + fd.FileNames.Length);
+
                 for(int i = 0; i < fd.FileNames.Length; i++)
                 {
                     this.fileName = Path.ChangeExtension(fd.FileNames[i], null);
 
-                    var editor = new XbimEditorCredentials
-                    {
-                        ApplicationDevelopersName = "HTW Dresden",
-                        ApplicationFullName = "IfcGeoRefChecker",
-                        ApplicationIdentifier = "IfcGeoRef",
-                        ApplicationVersion = "0.2.0.0",
-                        EditorsFamilyName = Environment.UserName,
-                    };
-
                     try
                     {
-                        using(var model = IfcStore.Open(fd.FileNames[i], editor))
+                        Log.Information("Import of " + fd.FileNames[i]);
+
+                        using(var model = IfcStore.Open(fd.FileNames[i]))
                         {
-                            //this.ImportModels.Add(fileName, model);
+                            Log.Information("Start GeoRef-Check for " + fd.FileNames[i]);
 
                             var checkObj = new Appl.GeoRefChecker(model);
                             this.CheckObjs.Add(fileName, checkObj);
+
+                            Log.Information("Start calculating of ground floor walls for " + fd.FileNames[i]);
 
                             var reader = new IfcReader(model);
                             var bldgs = reader.BldgReader();
@@ -55,25 +54,21 @@ namespace IfcGeoRefChecker.IO
                             this.GroundWallObjects.Add(fileName, groundWalls);
                         }
                     }
-                    catch(Exception e)
+                    catch(FileLoadException exL)
                     {
-                        MessageBox.Show("Failed to import " + fileName + ".ifc \r\nError message: " + e.Message +
-    "\r\n \r\n Xbim is not able to import the selected IfcModel." +
-    "\r\n Please check your IfcFile for bad syntax errors.");
+                        var exStr = "Import of " + fd.FileNames[i] + " failed. Error: " + exL.Message;
+
+                        Log.Error(exStr);
+                        MessageBox.Show(exStr);
+                        Log.Information(fd.FileNames[i] + " will be ignored.");
                     }
                 }
             }
-            catch
+            catch (IOException exIO)
             {
+                Log.Error("Not able to open file dialog. Error: " + exIO);
+                MessageBox.Show("Not able to open file dialog. Error: " + exIO);
             }
         }
-
-        //public void CloseIfcStore(List<IfcStore> ifcModels)
-        //{
-        //    foreach(var m in ifcModels)
-        //    {
-        //        m.Close();
-        //    }
-        //}
     }
 }
