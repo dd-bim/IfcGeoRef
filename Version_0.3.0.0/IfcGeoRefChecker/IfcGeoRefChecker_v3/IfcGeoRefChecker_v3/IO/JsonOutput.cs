@@ -8,7 +8,7 @@ namespace IfcGeoRefChecker.IO
 {
     public class JsonOutput
     {
-        public JsonOutput(Appl.GeoRefChecker checkObj, string file/*, string direc*/)
+        public JsonOutput(Appl.GeoRefChecker checkObj, string file)
         {
             var jsonObj = JsonConvert.SerializeObject(checkObj, Formatting.Indented);
 

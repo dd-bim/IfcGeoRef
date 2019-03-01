@@ -22,11 +22,11 @@
                 <Button Content="edit IFC" HorizontalAlignment="Left" Margin="406,230,0,0" VerticalAlignment="Top" Width="66" RenderTransformOrigin="0.28,0.2" Click="edit_manually_Click"/>
             </Grid>
         </GroupBox>
-        <Label Content="Read new data from: " HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
-        <Label Name="lb_jsonmap" Grid.Row="0" Content="" Background="WhiteSmoke" HorizontalAlignment="Center" VerticalAlignment="Center" Width="366" Margin="21,31,152,293" Height="34"/>
+        <Label Content="Export new data to: " HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="lb_jsonmap" HorizontalScrollBarVisibility="Visible" IsReadOnly="True" Background="WhiteSmoke" HorizontalAlignment="Left" VerticalAlignment="Center" BorderBrush="Transparent" Width="366" Margin="21,11,152,293" Height="43"/>
         <CheckBox Content="Use of BuildingAddress also for SiteAddress (see LoGeoRef 10)" Name="check_10" IsChecked="True" HorizontalAlignment="Left" Margin="61,254,0,0" VerticalAlignment="Top" Checked="check_10_Checked" Unchecked="check_10_Unchecked"/>
         <CheckBox Content="Add an absolute height:" Name="check_height" HorizontalAlignment="Left" Margin="61,280,0,0" VerticalAlignment="Top" Checked="check_height_Checked"/>
-        <Button Content="Export to IFC" HorizontalAlignment="Left" Margin="402,10,0,0" VerticalAlignment="Top" Width="124" RenderTransformOrigin="0.5,0.5" Height="35" Click="final_export_Click">
+        <Button Content="Export to IFC" HorizontalAlignment="Left" Margin="402,30,0,0" VerticalAlignment="Top" Width="124" RenderTransformOrigin="0.5,0.5" Height="35" Click="final_export_Click">
             <Button.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

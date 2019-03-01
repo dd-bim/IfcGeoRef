@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Newtonsoft.Json;
@@ -18,7 +19,6 @@ namespace IfcGeoRefChecker
 
         //private IO.JsonOutput json = new IO.JsonOutput();
         private Appl.GeoRefChecker json;
-
 
         private Appl.Level10 lev10Bldg;
         private Appl.Level10 lev10Site;
@@ -59,9 +59,26 @@ namespace IfcGeoRefChecker
                 lb_entity_type_10.Content = lev10Bldg.Reference_Object[1];
                 lb_entity_id_10.Content = lev10Bldg.Reference_Object[2];
 
-                tb_adr0.Text = lev10Bldg.AddressLines[0];
-                tb_adr1.Text = lev10Bldg.AddressLines[1];
-                tb_adr2.Text = lev10Bldg.AddressLines[2];
+                if(lev10Bldg.AddressLines != null)
+                {
+                    var k = lev10Bldg.AddressLines.Count;
+
+                    switch(k)
+                    {
+                        case 1:
+                            tb_adr0.Text = lev10Bldg.AddressLines[0];
+                            break;
+
+                        case 2:
+                            tb_adr1.Text = lev10Bldg.AddressLines[1];
+                            goto case 1;
+
+                        case 3:
+                            tb_adr2.Text = lev10Bldg.AddressLines[2];
+                            goto case 2;
+                    }
+                }
+
                 tb_country.Text = lev10Bldg.Country;
                 tb_region.Text = lev10Bldg.Region;
                 tb_plz.Text = lev10Bldg.Postalcode;
@@ -148,9 +165,17 @@ namespace IfcGeoRefChecker
         {
             var convHelper = new Appl.Calc();
 
-            lev10Bldg.AddressLines[0] = tb_adr0.Text;
-            lev10Bldg.AddressLines[1] = tb_adr1.Text;
-            lev10Bldg.AddressLines[2] = tb_adr2.Text;
+            lev10Bldg.AddressLines.Clear();
+
+            if(!tb_adr0.Text.Equals(""))
+                lev10Bldg.AddressLines.Add(tb_adr0.Text);
+
+            if(!tb_adr1.Text.Equals(""))
+                lev10Bldg.AddressLines.Add(tb_adr1.Text);
+
+            if(!tb_adr2.Text.Equals(""))
+                lev10Bldg.AddressLines.Add(tb_adr2.Text);
+
             lev10Bldg.Country = tb_country.Text;
             lev10Bldg.Region = tb_region.Text;
             lev10Bldg.Postalcode = tb_plz.Text;
@@ -206,9 +231,13 @@ namespace IfcGeoRefChecker
 
         private void check_10_Checked(object sender, RoutedEventArgs e)
         {
-            lev10Site.AddressLines[0] = lev10Bldg.AddressLines[0];
-            lev10Site.AddressLines[1] = lev10Bldg.AddressLines[1];
-            lev10Site.AddressLines[2] = lev10Bldg.AddressLines[2];
+            lev10Site.AddressLines = new List<string>(lev10Bldg.AddressLines.Count);
+
+            for(var i = 0; i < (lev10Bldg.AddressLines.Count-1); i++)
+            {
+                lev10Site.AddressLines[i] = lev10Bldg.AddressLines[i];
+            }
+
             lev10Site.Postalcode = lev10Bldg.Postalcode;
             lev10Site.Town = lev10Bldg.Town;
             lev10Site.Region = lev10Bldg.Region;
@@ -217,9 +246,7 @@ namespace IfcGeoRefChecker
 
         private void check_10_Unchecked(object sender, RoutedEventArgs e)
         {
-            lev10Site.AddressLines[0] = null;
-            lev10Site.AddressLines[1] = null;
-            lev10Site.AddressLines[2] = null;
+            lev10Site.AddressLines = null;
             lev10Site.Postalcode = null;
             lev10Site.Town = null;
             lev10Site.Region = null;

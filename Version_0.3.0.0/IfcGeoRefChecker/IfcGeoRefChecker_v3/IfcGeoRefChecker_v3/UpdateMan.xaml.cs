@@ -155,8 +155,10 @@ namespace IfcGeoRefChecker
 
                     lev50proj.RotationXY = new List<double>();
 
-                    lev50proj.RotationXY[0] = vector.X;
-                    lev50proj.RotationXY[1] = vector.Y;
+                    lev50proj.RotationXY = new List<double>();
+
+                    lev50proj.RotationXY.Add(vector.X);
+                    lev50proj.RotationXY.Add(vector.Y);
                 }
 
                 var write = new IO.JsonOutput(this.jsonMap, this.direc + "update");

@@ -26,14 +26,11 @@ namespace IfcGeoRefChecker
 
             var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\update.json");
 
-
-
             this.jsonMap = new Appl.GeoRefChecker(jsonObj);
-            //jsonMap.PopulateJson(jsonObj);
 
             InitializeComponent();
 
-            //lb_jsonmap.Content = fileName + "_map.json";
+            lb_jsonmap.Text = direc + "\\IfcGeoRefChecker\\export\\" + fileName + "_updated.ifc";
         }
 
         private void getJsonContent()
@@ -90,7 +87,6 @@ namespace IfcGeoRefChecker
 
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
-
             }
             else if(radio_mix.IsChecked == true)
             {
@@ -108,7 +104,6 @@ namespace IfcGeoRefChecker
 
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
-
             }
 
             if(check_height.IsChecked == true)
@@ -202,7 +197,7 @@ namespace IfcGeoRefChecker
 
             lev10Site.AddressLines.Clear();
 
-            foreach (var addLine in lev10Bldg.AddressLines)
+            foreach(var addLine in lev10Bldg.AddressLines)
             {
                 lev10Site.AddressLines.Add(addLine);
             }
