@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
-using IfcGeoRefChecker.Appl;
-using Microsoft.Win32;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Xbim.Ifc;
-using Xbim.Ifc4.Interfaces;
+using Serilog;
 
 namespace IfcGeoRefChecker.IO
 {
@@ -15,18 +10,23 @@ namespace IfcGeoRefChecker.IO
     {
         public JsonOutput(Appl.GeoRefChecker checkObj, string file/*, string direc*/)
         {
-            var jsonObj= JsonConvert.SerializeObject(checkObj, Formatting.Indented);
+            var jsonObj = JsonConvert.SerializeObject(checkObj, Formatting.Indented);
 
             using(var writeJson = File.CreateText((/*direc + "\\" + */file + ".json")))
             {
                 try
                 {
                     writeJson.WriteLine(jsonObj);
+
+                    Log.Information("JSON-file successfully exported.");
                 }
 
                 catch(Exception ex)
                 {
-                    MessageBox.Show($"Error occured while writing JSON-file. \r\n Message: {ex.Message}");
+                    var str = $"Error occured while writing JSON-file. \r\n Message: {ex.Message}";
+
+                    Log.Error(str);
+                    MessageBox.Show(str);
                 }
             }
         }

@@ -107,40 +107,5 @@ namespace IfcGeoRefChecker.Appl
                 }
             }
         }
-
-        //public void UpdatePlacementXYZ(IfcStore model)
-        //{
-        //    var schema = model.SchemaVersion.ToString();
-
-        //    if(plcm is IIfcAxis2Placement3D)
-        //    {
-        //        if(schema == "Ifc2X3")
-        //        {
-        //            plcm3D.Location = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcCartesianPoint>(p => p.SetXYZ(this.LocationXYZ[0], this.LocationXYZ[1], this.LocationXYZ[2]));
-        //            plcm3D.RefDirection = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(this.RotationX[0], this.RotationX[1], this.RotationX[2]));
-        //            plcm3D.Axis = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(this.RotationZ[0], this.RotationZ[1], this.RotationZ[2]));
-        //        }
-        //        else
-        //        {
-        //            plcm3D.Location = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcCartesianPoint>(p => p.SetXYZ(this.LocationXYZ[0], this.LocationXYZ[1], this.LocationXYZ[2]));
-        //            plcm3D.RefDirection = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcDirection>(d => d.SetXYZ(this.RotationX[0], this.RotationX[1], this.RotationX[2]));
-        //            plcm3D.Axis = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcDirection>(d => d.SetXYZ(this.RotationZ[0], this.RotationZ[1], this.RotationZ[2]));
-        //        }
-        //    }
-
-        //    if(plcm is IIfcAxis2Placement2D)
-        //    {
-        //        if(schema == "Ifc2X3")
-        //        {
-        //            plcm2D.Location = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcCartesianPoint>(p => p.SetXY(this.LocationXYZ[0], this.LocationXYZ[1]));
-        //            plcm2D.RefDirection = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(this.RotationX[0], this.RotationX[1]));
-        //        }
-        //        else
-        //        {
-        //            plcm2D.Location = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcCartesianPoint>(p => p.SetXY(this.LocationXYZ[0], this.LocationXYZ[1]));
-        //            plcm2D.RefDirection = model.Instances.New<Xbim.Ifc4.GeometryResource.IfcDirection>(d => d.SetXY(this.RotationX[0], this.RotationX[1]));
-        //        }
-        //    }
-        //}
     }
 }

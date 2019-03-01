@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using Xbim.Common;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
@@ -28,8 +29,13 @@ namespace IfcGeoRefChecker.Appl
 
         private IO.IfcReader obj;
 
+        /// <summary>
+        /// Creates Checker object from JSON
+        /// </summary>
         public GeoRefChecker(string jsonString)
         {
+            Log.Information("GeoRefChecker: Deserialization of JSON-string initialized...");
+
             try
             {
                 JObject jsonObj = JObject.Parse(jsonString);
@@ -85,63 +91,81 @@ namespace IfcGeoRefChecker.Appl
                     JsonConvert.PopulateObject(res.ToString(), l50);
                     this.LoGeoRef50.Add(l50);
                 }
+
+                Log.Information("GeoRefChecker: Deserialization of JSON - string successful.");
             }
             catch(Exception e)
             {
-                MessageBox.Show(e.ToString());
+                var str = "GeoRefChecker: Error occured while deserialization of JSON-file Error: ." + e.Message;
+
+                Log.Error(str);
+                MessageBox.Show(str);
             }
         }
 
+        /// <summary>
+        /// Creates Checker object from IFC-file
+        /// </summary>
         public GeoRefChecker(IfcStore model)
         {
-            this.obj = new IO.IfcReader(model);
-
-            var bldg = obj.BldgReader().First();
-            var site = obj.SiteReader().First();
-            var proj = obj.ProjReader().First();
-            var prods = obj.UpperPlcmProdReader();
-
-            this.GlobalID = proj.GlobalId;
-            this.IFCSchema = model.SchemaVersion.ToString();
-            this.TimeCreation = model.Header.TimeStamp;
-            this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
-            this.LengthUnit = obj.LengthUnitReader();
-
-            this.LoGeoRef10.Add(GetLevel10(bldg));
-            this.LoGeoRef10.Add(GetLevel10(site));
-
-            this.LoGeoRef20.Add(GetLevel20(site));
-
-            foreach(var prod in prods)
+            try
             {
-                this.LoGeoRef30.Add(GetLevel30(prod));
-            }
+                Log.Information("GeoRefChecker: Checking of IFC-file initialized...");
 
-            this.LoGeoRef40.Add(GetLevel40(proj));
+                this.obj = new IO.IfcReader(model);
 
-            if(model.SchemaVersion.ToString() != "Ifc2X3")
-            {
-                this.LoGeoRef50.Add(GetLevel50(proj));
-            }
-            else
-            {
-                var psetMap = obj.PSetReaderMap();
-                var psetCrs = obj.PSetReaderCRS();
+                var bldg = obj.BldgReader();
+                var site = obj.SiteReader();
+                var proj = obj.ProjReader();
+                var prods = obj.UpperPlcmProdReader();
 
-                if(psetMap.Count > 0 && psetCrs.Count > 0)
+                this.GlobalID = proj.GlobalId;
+                this.IFCSchema = model.SchemaVersion.ToString();
+                this.TimeCreation = model.Header.TimeStamp;
+                this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
+                this.LengthUnit = obj.LengthUnitReader();
+
+                this.LoGeoRef10.Add(GetLevel10(bldg));
+                this.LoGeoRef10.Add(GetLevel10(site));
+
+                this.LoGeoRef20.Add(GetLevel20(site));
+
+                foreach(var prod in prods)
                 {
-                    this.LoGeoRef50.Add(GetLevel50(psetMap.First(), psetCrs.First()));
+                    this.LoGeoRef30.Add(GetLevel30(prod));
+                }
+
+                this.LoGeoRef40.Add(GetLevel40(proj));
+
+                if(model.SchemaVersion.ToString() != "Ifc2X3")
+                {
+                    this.LoGeoRef50.Add(GetLevel50(proj));
                 }
                 else
                 {
-                    var l50f = new Level50();
-                    l50f.GeoRef50 = false;
-                    l50f.Reference_Object = GetInfo(proj);
-                    this.LoGeoRef50.Add(l50f);
+                    var psetMap = obj.PSetReaderMap();
+                    var psetCrs = obj.PSetReaderCRS();
+
+                    if(psetMap != null && psetCrs != null)
+                    {
+                        this.LoGeoRef50.Add(GetLevel50(psetMap, psetCrs));
+                    }
+                    else
+                    {
+                        var l50f = new Level50();
+                        l50f.GeoRef50 = false;
+                        l50f.Reference_Object = GetInfo(proj);
+                        this.LoGeoRef50.Add(l50f);
+                    }
                 }
             }
+            catch(Exception e)
+            {
+                var str = "GeoRefChecker: Error occured while checking of IFC-file Error: ." + e.Message;
 
-            var jsonObj = JsonConvert.SerializeObject(this, Formatting.Indented);
+                Log.Error(str);
+                MessageBox.Show(str);
+            }
         }
 
         public Level10 GetLevel10(IIfcSpatialStructureElement spatialElement)
@@ -150,6 +174,8 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 10 attributes started...");
+
                 IIfcPostalAddress address = null;
 
                 if(spatialElement is IIfcSite)
@@ -163,23 +189,11 @@ namespace IfcGeoRefChecker.Appl
 
                 l10.Reference_Object = GetInfo(spatialElement);
 
-                //l10.Reference_Object = new List<string>
-                //    {
-                //        {"#" + spatialElement.GetHashCode()},
-                //        {spatialElement.ExpressType.ToString()},
-                //        {spatialElement.GlobalId},
-                //    };
-
                 if(address != null)
                 {
                     l10.GeoRef10 = true;
 
                     l10.Instance_Object = GetInfo(address);
-
-                    //l10.Instance_Object[0] = "#" + address.GetHashCode();
-                    //l10.Instance_Object[1] = address.GetType().Name;
-
-                    //l10.AddressLines.Clear();
 
                     var alines = address.AddressLines;
 
@@ -195,32 +209,6 @@ namespace IfcGeoRefChecker.Appl
                         l10.AddressLines.Add("n/a");
                     }
 
-                    //    l10.AddressLines.Add("n/a");
-                    //    l10.AddressLines.Add("n/a");
-                    //    l10.AddressLines.Add("n/a");
-                    //}
-
-                    //if(address.AddressLines.Count == 1)
-                    //{
-                    //    l10.AddressLines.Add(address.AddressLines[0]);
-                    //    l10.AddressLines.Add("n/a");
-                    //    l10.AddressLines.Add("n/a");
-                    //}
-
-                    //if(address.AddressLines.Count == 2)
-                    //{
-                    //    l10.AddressLines.Add(address.AddressLines[0]);
-                    //    l10.AddressLines.Add(address.AddressLines[1]);
-                    //    l10.AddressLines.Add("n/a");
-                    //}
-
-                    //if(address.AddressLines.Count >= 3)
-                    //{
-                    //    l10.AddressLines.Add(address.AddressLines[0]);
-                    //    l10.AddressLines.Add(address.AddressLines[1]);
-                    //    l10.AddressLines.Add(address.AddressLines[2]);
-                    //}
-
                     l10.Postalcode = (address.PostalCode.HasValue) ? address.PostalCode.ToString() : "n/a";
                     l10.Town = (address.Town.HasValue) ? address.Town.ToString() : "n/a";
                     l10.Region = (address.Region.HasValue) ? address.Region.ToString() : "n/a";
@@ -228,17 +216,15 @@ namespace IfcGeoRefChecker.Appl
                 }
                 else
                 {
-                    //l10.AddressLines.Add("n/a");
-                    //l10.AddressLines.Add("n/a");
-                    //l10.AddressLines.Add("n/a");
-
                     l10.GeoRef10 = false;
                 }
+
+                Log.Information("GeoRefChecker: Reading Level 10 attributes successful.");
             }
 
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef10 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef10 attribute values. \r\nError message: " + e.Message);
             }
 
             return l10;
@@ -250,6 +236,8 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 20 attributes started...");
+
                 l20.Reference_Object = GetInfo(site);
 
                 if(site.RefLatitude.HasValue || site.RefLongitude.HasValue)
@@ -268,10 +256,12 @@ namespace IfcGeoRefChecker.Appl
                 }
 
                 l20.Elevation = site.RefElevation.Value;
+
+                Log.Information("GeoRefChecker: Reading Level 20 attributes successful.");
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef20 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef20 attribute values. \r\nError message: " + e.Message);
             }
 
             return l20;
@@ -283,6 +273,8 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 30 attributes started...");
+
                 var elemPlcm = (IIfcLocalPlacement)elem.ObjectPlacement;
                 var plcm3D = (IIfcAxis2Placement3D)elemPlcm.RelativePlacement;
 
@@ -296,10 +288,12 @@ namespace IfcGeoRefChecker.Appl
                 l30.ObjectLocationXYZ = plcm.LocationXYZ;
                 l30.ObjectRotationX = plcm.RotationX;
                 l30.ObjectRotationZ = plcm.RotationZ;
+
+                Log.Information("GeoRefChecker: Reading Level 30 attributes successful.");
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef30 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef30 attribute values. \r\nError message: " + e.Message);
             }
 
             return l30;
@@ -311,6 +305,8 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 40 attributes started...");
+
                 l40.Reference_Object = GetInfo(proj);
 
                 var prjCtx = obj.ContextReader(proj).First();
@@ -347,10 +343,12 @@ namespace IfcGeoRefChecker.Appl
                     l40.TrueNorthXY.Add(0);
                     l40.TrueNorthXY.Add(1);
                 }
+
+                Log.Information("GeoRefChecker: Reading Level 40 attributes successful.");
             }
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef40 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef40 attribute values. \r\nError message: " + e.Message);
             }
 
             return l40;
@@ -362,16 +360,16 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 50 attributes via MapConversion started...");
+
                 l50.Reference_Object = GetInfo(proj);
 
                 var prjCtx = obj.ContextReader(proj).First();
 
-                var mapCvs = obj.MapReader(prjCtx);
+                var map = obj.MapReader(prjCtx);
 
-                if(mapCvs.Count > 0)
+                if(map != null)
                 {
-                    var map = mapCvs.First();
-
                     l50.Instance_Object = GetInfo(map);
 
                     l50.RotationXY = new List<double>();
@@ -413,11 +411,13 @@ namespace IfcGeoRefChecker.Appl
                 {
                     l50.GeoRef50 = false;
                 }
+
+                Log.Information("GeoRefChecker: Reading Level 50 attributes successful.");
             }
 
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
             }
 
             return l50;
@@ -429,6 +429,8 @@ namespace IfcGeoRefChecker.Appl
 
             try
             {
+                Log.Information("GeoRefChecker: Reading Level 50 attributes via PropertySets started...");
+
                 l50.Translation_Eastings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Eastings").Single()) as IfcPropertySingleValue).NominalValue);
 
                 l50.Translation_Northings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Northings").Single()) as IfcPropertySingleValue).NominalValue);
@@ -447,11 +449,13 @@ namespace IfcGeoRefChecker.Appl
                 l50.CRS_Vertical_Datum = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "VerticalDatum").Single()) as IfcPropertySingleValue).NominalValue;
                 l50.CRS_Projection_Name = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "MapProjection").Single()) as IfcPropertySingleValue).NominalValue;
                 l50.CRS_Projection_Zone = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "MapZone").Single()) as IfcPropertySingleValue).NominalValue;
+
+                Log.Information("GeoRefChecker: Reading Level 50 attributes successful.");
             }
 
             catch(Exception e)
             {
-                MessageBox.Show("Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
+                Log.Error("GeoRefChecker: Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
             }
 
             return l50;

@@ -5,13 +5,13 @@ using System.Windows;
 using BimGisCad.Representation.Geometry;
 using BimGisCad.Representation.Geometry.Elementary;
 using MIConvexHull;
+using Serilog;
 using Xbim.Ifc4.Interfaces;
 
 namespace IfcGeoRefChecker.Appl
 {
     public class BldgFootprintExtraxtor
     {
-
         //absolutes Bauwerkssystem (i.d.R. nicht global):
         private Axis2Placement3D siteSystem;                                   //globales Placement der Wand (ohne Geometrie-Koords)
 
@@ -31,24 +31,24 @@ namespace IfcGeoRefChecker.Appl
         private BboxIFC bbox;
         private IList<RayBundle> bundleList = new List<RayBundle>();
 
+        /// <summary>
+        /// Calculate the outer building perimeter out of an set of walls
+        /// </summary>
         public string CalcBuildingFootprint(IEnumerable<IIfcBuildingElement> walls, string unit)
         {
             string WKTstring = "empty";
 
             try
             {
+                Log.Information("Footprint Extractor: Start...");
+
                 //Schleife für alle Wände:
-
                 var k = 0;
-
-                MessageBox.Show(walls.Count().ToString());
 
                 foreach(var singleWall in walls)
                 {
                     try
                     {
-                        k++;
-
                         //Ermitteln der Werte für Local Placement
                         var plcmt = singleWall.ObjectPlacement;
 
@@ -101,9 +101,14 @@ namespace IfcGeoRefChecker.Appl
                     }
                     catch
                     {
-                        MessageBox.Show("error occured " + k);
+                        k++;
                     }
                 }
+
+                if(k == 0)
+                    Log.Information("Footprint Extractor: No errors while reading Body or Axis geometry from walls detected.");
+                else
+                    Log.Warning("Footprint Extractor: " + k + " errors while reading Body or Axis geometry from walls detected.");
 
                 //Ausgabe:
                 //--------------------------------------------------------------------------
@@ -149,7 +154,6 @@ namespace IfcGeoRefChecker.Appl
                 {
                     var poly = new LinePoints(realIntersecPts[i], realIntersecPts[i + 1]);
                 }
-
             }
             catch(Exception ex)
             {

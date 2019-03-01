@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Windows;
+using Serilog;
 
 namespace IfcGeoRefChecker.IO
 {
@@ -46,11 +48,17 @@ namespace IfcGeoRefChecker.IO
                     {
                         writeLog.WriteLine(LogLevel50(lev));
                     }
+
+                    Log.Information("GeoRef Log-file successfully exported.");
+
                 }
 
                 catch(Exception ex)
                 {
-                    writeLog.WriteLine($"Error occured while writing Logfile. \r\n Message: {ex.Message}");
+                    var str = $"Error occured while writing Logfile. \r\n Message: {ex.Message}";
+
+                    Log.Error(str);
+                    MessageBox.Show(str);
                 }
             };
         }

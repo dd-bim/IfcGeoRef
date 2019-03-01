@@ -48,8 +48,8 @@ namespace IfcGeoRefChecker.IO
                             Log.Information("Start calculating of ground floor walls for " + fd.FileNames[i]);
 
                             var reader = new IfcReader(model);
-                            var bldgs = reader.BldgReader();
-                            var groundWalls = reader.GroundFloorWallReader(bldgs[0]).ToList();   //nur Wände des ersten Gebäudes derzeit in scope
+                            var bldg = reader.BldgReader();
+                            var groundWalls = reader.GroundFloorWallReader(bldg).ToList();   //nur Wände des ersten Gebäudes derzeit in scope
 
                             this.GroundWallObjects.Add(fileName, groundWalls);
                         }

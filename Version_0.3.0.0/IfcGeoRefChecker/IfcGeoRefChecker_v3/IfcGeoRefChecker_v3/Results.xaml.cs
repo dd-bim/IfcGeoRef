@@ -201,7 +201,7 @@ namespace IfcGeoRefChecker
 
             var jsonUpdMan = JsonConvert.SerializeObject(json, Formatting.Indented);
 
-            var write = new IO.IfcWriter(direc + "\\ifc\\", ifcPath, fileName, jsonUpdMan);
+            var write = new IO.IfcWriter(direc + "\\IfcGeoRefChecker\\export\\", ifcPath, fileName, jsonUpdMan);
         }
 
         private void check_10_Checked(object sender, RoutedEventArgs e)

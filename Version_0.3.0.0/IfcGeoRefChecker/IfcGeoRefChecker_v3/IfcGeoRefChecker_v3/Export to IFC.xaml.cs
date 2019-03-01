@@ -24,7 +24,7 @@ namespace IfcGeoRefChecker
             this.filePath = filePath;
             this.fileName = fileName;
 
-            var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + fileName + "_map.json");
+            var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\update.json");
 
 
 
@@ -33,7 +33,7 @@ namespace IfcGeoRefChecker
 
             InitializeComponent();
 
-            lb_jsonmap.Content = fileName + "_map.json";
+            //lb_jsonmap.Content = fileName + "_map.json";
         }
 
         private void getJsonContent()
@@ -156,7 +156,7 @@ namespace IfcGeoRefChecker
 
             var jsonUpd = JsonConvert.SerializeObject(jsonMap, Formatting.Indented);
 
-            var write = new IO.IfcWriter(direc + "\\ifc\\", filePath, fileName, jsonUpd);
+            var write = new IO.IfcWriter(direc + "\\IfcGeoRefChecker\\export\\", filePath, fileName, jsonUpd);
         }
 
         private void check_height_Checked(object sender, RoutedEventArgs e)
@@ -200,9 +200,13 @@ namespace IfcGeoRefChecker
                              where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
                              select l10Bldg).Single();
 
-            lev10Site.AddressLines[0] = lev10Bldg.AddressLines[0];
-            lev10Site.AddressLines[1] = lev10Bldg.AddressLines[1];
-            lev10Site.AddressLines[2] = lev10Bldg.AddressLines[2];
+            lev10Site.AddressLines.Clear();
+
+            foreach (var addLine in lev10Bldg.AddressLines)
+            {
+                lev10Site.AddressLines.Add(addLine);
+            }
+
             lev10Site.Postalcode = lev10Bldg.Postalcode;
             lev10Site.Town = lev10Bldg.Town;
             lev10Site.Region = lev10Bldg.Region;

@@ -350,7 +350,7 @@ namespace IfcGeoRefChecker
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".txt");
                 Log.Information("Checking log opened.");
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 Log.Error("Not able to open log-file. Error: " + ex);
                 MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file." + ex);
@@ -365,11 +365,12 @@ namespace IfcGeoRefChecker
             try
             {
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\export\\" + NameFromPath(ifcModels.Text) + ".json");
+                Log.Information("Checking json opened.");
             }
             catch(Exception ex)
             {
                 Log.Error("Not able to open JSON-file. Error: " + ex);
-                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file." + ex);
+                MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file." + ex.Message);
             }
         }
 
@@ -383,14 +384,24 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_comparer_Click(object sender, RoutedEventArgs e)
         {
-            if(this.CheckObjList != null && this.CheckObjList.Count > 1)
+            try
             {
-                var comp = new Compare(this.direc, this.CheckObjList);
-                comp.Show();
+                if(this.CheckObjList != null && this.CheckObjList.Count > 1)
+                {
+                    var comp = new Compare(this.direc, this.CheckObjList);
+                    comp.Show();
+
+                    Log.Information("GeoRefComparer started.");
+                }
+                else
+                {
+                    Log.Information("Starting GeoRefComparer not possible. Not enough models imported.");
+                    MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
+                }
             }
-            else
+            catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
+                Log.Error("Starting GeoRefComparer failed. Error: " + ex.Message);
             }
         }
 
@@ -404,9 +415,8 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_quit_Click(object sender, RoutedEventArgs e)
         {
+            Log.Information("Application terminated.");
             Application.Current.Shutdown();
-
-            //this.Close();
         }
 
         //--------------------------------------------------------------------------------------------------------------------------------------
@@ -422,10 +432,12 @@ namespace IfcGeoRefChecker
             try
             {
                 System.Diagnostics.Process.Start(@"Documentation.html");
+                Log.Information("Documentation HTML opened.");
             }
-            catch
+            catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("No help file available. Please check application directory for file Documentation.html");
+                Log.Error("Not able to open Documentation. Error: " + ex.Message);
+                MessageBox.Show("Error occured. Please check directory for Documentation HTML-file." + ex.Message);
             }
         }
 
@@ -439,13 +451,31 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_update_man_Click(object sender, RoutedEventArgs e)
         {
-            CheckObjList.TryGetValue(ifcModels.Text, out var checkObj);
+            try
+            {
+                Log.Information("Manual updating started...");
 
-            var jsonPath = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\" + NameFromPath(ifcModels.Text);
-            var jsonout = new IO.JsonOutput(checkObj, jsonPath);
+                CheckObjList.TryGetValue(ifcModels.Text, out var checkObj);
 
-            var manExp = new UpdateMan(jsonPath);
-            manExp.Show();
+                Log.Information("Write JSON-check file to local 'buildingLocator\\json' directory...");
+
+                var jsonPath = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\check";
+                var jsonout = new IO.JsonOutput(checkObj, jsonPath);
+
+                Log.Information("Done.");
+
+                var jsonFolder = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\";
+
+                var manExp = new UpdateMan(jsonFolder);
+                manExp.Show();
+            }
+            catch(Exception ex)
+            {
+                var str = "Not able to start manual update process. Maybe necessary JSON-Export to local directory failed. Please check local directory! Error: " + ex.Message;
+
+                Log.Error(str);
+                MessageBox.Show(str);
+            }
         }
 
         /// <summary>
@@ -453,26 +483,42 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_update_map_Click(object sender, RoutedEventArgs e)
         {
+            Log.Information("Updating via map started...");
+
             GroundWallObjects.TryGetValue(ifcModels.Text, out var groundWalls);
             CheckObjList.TryGetValue(ifcModels.Text, out var checkObj);
 
-            var unit = checkObj.LengthUnit;
+            Log.Information("Calculate building perimeter...");
 
+            var unit = checkObj.LengthUnit;
             var a = groundWalls.Count();
 
             var wkt = new Appl.BldgFootprintExtraxtor().CalcBuildingFootprint(groundWalls, unit);
 
+            Log.Information("Calculation finished.");
+
+            Log.Information("Write JSON-check file with WKTZ-string for perimeter to local 'buildingLocator\\json' directory...");
+
             checkObj.WKTRep = wkt;
 
-            var jsonWkt = new IO.JsonOutput(checkObj, this.direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\map");
+            var jsonWkt = new IO.JsonOutput(checkObj, this.direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\check");
+
+            Log.Information("Done.");
 
             try
             {
+                Log.Information("Opening of HTML-Site for updating via map...");
+
                 System.Diagnostics.Process.Start(this.direc + "\\IfcGeoRefChecker\\buildingLocator\\index.html");
+
+                Log.Information("Done.");
             }
-            catch
+            catch(Exception ex)
             {
-                MessageBox.Show("No html-map file available. Please check application directory for file buildingLocator.index.html");
+                var str = "No html-map file available. Please check local directory 'buildingLocator' for 'index.html'. Error: " + ex;
+
+                Log.Error(str);
+                MessageBox.Show(str);
             }
         }
 
@@ -481,8 +527,20 @@ namespace IfcGeoRefChecker
         /// </summary>
         private void bt_update_ifc_Click(object sender, RoutedEventArgs e)
         {
-            var showExport2IFC = new Export2IFC(this.direc, ifcModels.Text, NameFromPath(ifcModels.Text));
-            showExport2IFC.Show();
+            try
+            {
+                Log.Information("Open export window...");
+
+                var showExport2IFC = new Export2IFC(this.direc, ifcModels.Text, NameFromPath(ifcModels.Text));
+                showExport2IFC.Show();
+            }
+            catch(Exception ex)
+            {
+                var str = "Not able to open Export window. Error: " + ex;
+
+                Log.Error(str);
+                MessageBox.Show(str);
+            }
         }
 
         private string NameFromPath(string filePath)
