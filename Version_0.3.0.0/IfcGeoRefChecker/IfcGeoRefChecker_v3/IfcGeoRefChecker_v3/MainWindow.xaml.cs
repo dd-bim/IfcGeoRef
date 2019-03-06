@@ -25,7 +25,7 @@ namespace IfcGeoRefChecker
             try
             {
                 Log.Logger = new LoggerConfiguration()
-                    .WriteTo.File(@"C:\\Users\\goerne\\Desktop\\logtest\\log_georefchecker.txt", rollingInterval: RollingInterval.Day)
+                    .WriteTo.File(Environment.CurrentDirectory, rollingInterval: RollingInterval.Day)
                     //.MinimumLevel.Debug()
                     .CreateLogger();
 
