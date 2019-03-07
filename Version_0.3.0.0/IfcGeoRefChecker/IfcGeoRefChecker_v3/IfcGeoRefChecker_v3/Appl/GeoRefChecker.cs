@@ -372,16 +372,16 @@ namespace IfcGeoRefChecker.Appl
                 {
                     l50.Instance_Object = GetInfo(map);
 
-                    l50.RotationXY = new List<double>();
-
                     l50.Translation_Eastings = map.Eastings;
                     l50.Translation_Northings = map.Northings;
                     l50.Translation_Orth_Height = map.OrthogonalHeight;
 
                     if(map.XAxisAbscissa.HasValue && map.XAxisOrdinate.HasValue)
                     {
-                        l50.RotationXY[0] = map.XAxisOrdinate.Value;
-                        l50.RotationXY[1] = map.XAxisAbscissa.Value;
+                        l50.RotationXY = new List<double>();
+
+                        l50.RotationXY.Add(map.XAxisOrdinate.Value);
+                        l50.RotationXY.Add(map.XAxisAbscissa.Value);
                     }
                     //else
                     //{

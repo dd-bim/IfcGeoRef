@@ -1,106 +1,349 @@
-<html>
+<!doctype html>
+<html class="h-100">
   <head>
     <title>Building Locator</title>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" type="text/css">
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      /*Create two equal columns that float next to each other */
-      .column {
-        float: left;
-        width: 50%;
-        padding: 10px;
-        height: 80%;
-      }
-
-      /*Clear floats after the columns */
-      .row::after {
-        content: "";
-        display: table;
-        clear: both;
-      }
     </style>
     <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
   </head>
-  <body>
-    <h1>HTW DD Building Locator</h1>
-    <div class="column" id="map" style="width: 50%"></div>
-    <div class="column" id="controls">
-      <textarea id="input">POLYGON((0 0, 300 0, 300 90, 240 90, 240 45, 0 45, 0 0))</textarea>
-      <button id="drawWKT">WKT zeichnen</button>
-      <button id="savePosition">save Position</button>
-      <textarea id="output">result</textarea>
-      <div id="basePointWGS84">ProjektBasisPunkt in WGS 84: </div>
-      <fieldset>
-        <input type="radio" id="rd-3857" name="Projection"  value="3857"> <label for="rd-3857">EPSG: 3857 (Web-Mercator)</label><br>
-        <input type="radio" id="rd-4326" name="Projection" value="4326"> <label for="rd-4326">EPSG: 4326 (WGS84 LatLon)</label><br>
-        <input type="radio" id="rd-25832" name="Projection" value="25832"> <label for="rd-25832" value="25832">EPSG: 25832 (UTM Zone 32N)</label><br>
-        <input type="radio" id="rd-25833" name="Projection" value="25833" checked="checked"> <label for="rd-25833" value="25833">EPSG: 25833 (UTM Zone 33N)</label><br>
-      </fieldset>
-      <fieldset>
-        <input type="radio" id="move" name="EditControl" value="move" checked="checked"> <label for="none"> verschieben</label> <br>
-        <input type="radio" id="rotate" name="EditControl" value="rotate"> <label for="none"> drehen</label> <br>
-      </fieldset>
-      <fieldset>
-        <button id="delete" >Auswahl löschen</button>
-        <button id="getAddress">Adresse ermitteln</button>
-        <button id="saveFile">JSON-Datei herunterladen</button>
-        <div id="status"></div>
-        <div id="myPosition"></div>
-      </fieldset>
-      <fieldset>
-        <input type="file" id="files">
-        <output id="list"></output>
-      </fieldset>
-      <table>
-        <tr>
-          <td>Land</td>
-          <td>
-            <textarea id="country"></textarea>
-          </td>
-          <td>Level50 Status</td>
-          <td id="level50Status"></td>
-        </tr>
-        <tr>
-          <td>Region</td>
-          <td>
-            <textarea id="region"></textarea>
-          </td>
-          <td>Eastings</td>
-          <td id="eastings"></td>
-        </tr>
-        <tr>
-          <td>Stadt</td>
-          <td>
-            <textarea id="city"></textarea>
-          </td>
-          <td>Northings</td>
-          <td id="northings"></td>
-        </tr>
-        <tr>
-          <td>PLZ</td>
-          <td>
-            <textarea id="postCode"></textarea>
-          </td>
-          <td>RotationXY</td>
-          <td id="rotation50"></td>
-        </tr>
-        <tr>
-          <td>Straße</td>
-          <td>
-            <textarea id="road"></textarea>
-          </td>
-        </tr>
-        <tr>
-          <td>Hausnummer</td>
-          <td>
-            <textarea	id="houseNumber"></textarea>
-          </td>
-        </tr>
-      </table>
+  <body class="h-100">
+    <div class="containter-fluid h-100">
+      
+      <div class="row h-100">
+        <div class="col-md-6" id="map">
+          <div class="bl-toolbar">
+            <div class="btn-group btn-group-toggle">
+                <label class="btn btn-secondary active">
+                  <input type="radio" value="move" name="EditControl" id="move" autocomplete="off" checked> move
+                </label>
+                <label class="btn btn-secondary">
+                  <input type="radio" value="rotate" name="EditControl" id="rotate" autocomplete="off"> rotate
+                </label>
+            </div>
+            <div class="btn btn-secondary" id="delete">delete</div>
+            <div class="btn btn-secondary" id="zoomToFeature">Zoom to Feature</div>
+          </div>
+          <div id="myPosition"></div>
+        </div>
+        <div class="col-md-6" id="controls">
+          <h1>HTW Dresden Building Locator</h1>
+          <div id="accordion">
+          
+            <!--File Input Dialog-->
+            <div class="card">
+              <div class="card-header" id="ca-file-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link" data-toggle="collapse" data-target="#ca-file" aria-expanded="true" aria-controls="ca-file">
+                    1. Select File
+                  </button>
+                </h5>
+              </div>
+
+              <div id="ca-file" class="collapse show" aria-labelledby="ca-file-header" data-parent="#accordion">
+                <div class="card-body">
+                  
+                  <div class="custom-file">
+                    <input type="file" id="files" class="custom-file-input">
+                    <label class="custom-file-label" for="files">Choose File</label>
+                    <output id="list"></output>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!--Show File Content-->
+            <div class="card">
+              <div class="card-header" id="ca-content-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-content" aria-expanded="false" aria-controls="ca-content">
+                    2. Show Existing Georef Information
+                  </button>
+                </h5>
+              </div>
+              <div id="ca-content" class="collapse" aria-labelledby="ca-content-header" data-parent="#accordion">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                      <li class="nav-item">
+                        <a class="nav-link active" id="lv10-tab" data-toggle="tab" href="#lv10" role="tab" aria-controls="lv10" aria-selected="true">Level10</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" id="lv20-tab" data-toggle="tab" href="#lv20" role="tab" aria-controls="lv20" aria-selected="true">Level20</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" id="lv30-tab" data-toggle="tab" href="#lv30" role="tab" aria-controls="lv30" aria-selected="true">Level30</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" id="lv40-tab" data-toggle="tab" href="#lv40" role="tab" aria-controls="lv40" aria-selected="true">Level40</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" id="lv50-tab" data-toggle="tab" href="#lv50" role="tab" aria-controls="lv50" aria-selected="true">Level50</a>
+                      </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                      <div class="tab-pane fade show active" id="lv10" role="tabpanel" aria-labelledby="lv10-tab">
+                        <h5>Level 10</h5>
+                      </div>
+                      <div class="tab-pane fade" id="lv20" role="tabpanel" aria-labelledby="lv20-tab">
+                        <h5>Level 20</h5>
+                      </div>
+                      <div class="tab-pane fade" id="lv30" role="tabpanel" aria-labelledby="lv30-tab">
+                        <h5>Level 30</h5>
+                      </div>
+                      <div class="tab-pane fade" id="lv40" role="tabpanel" aria-labelledby="lv40-tab">
+                        <h5>Level 40</h5>
+                      </div>
+                      <div class="tab-pane fade" id="lv50" role="tabpanel" aria-labelledby="lv50-tab">
+                        <h5>Level 50</h5>
+                        <div class="form-group row">
+                          <label for="level50Status" readonly class="col-sm-2 col-form-label">Level 50 Status</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="level50Status">
+                          </div>
+                          <label for="level50EPSG" readonly class="col-sm-2 col-form-label">EPSG-Code</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="level50EPSG">
+                          </div>
+                          <label for="eastings" class="col-sm-2 col-form-label">Eastings</label>
+                          <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext" id="eastings">
+                          </div>
+                          <label for="northings" class="col-sm-2 col-form-label">Northings</label>
+                          <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext" id="northings">
+                          </div>
+                          <label for="rotation50" class="col-sm-2 col-form-label">RotationXY</label>
+                          <div class="col-sm-10">
+                            <input type="text" readonly class="form-control-plaintext" id="rotation50">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!--Map Projection Menu-->
+            <div class="card">
+                <div class="card-header" id="ca-proj-header">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-proj" aria-expanded="false" aria-controls="ca-proj">
+                      3. Select Map Projection
+                    </button>
+                  </h5>
+                </div>
+                <div id="ca-proj" class="collapse" aria-labelledby="ca-proj-header" data-parent="#accordion">
+                  <div class="card-body">
+                    
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <label class="input-group-text" for="inputGroupSelect01">Map Projection</label>
+                      </div>
+                      <select class="custom-select" id="projSelect">
+                        <option selected value="25833">EPSG: 25833 (UTM Zone 33N)</option>
+                        <option value="25832">EPSG: 25832 (UTM Zone 32N)</option>
+                        <option value="4326">EPSG: 4326 (WGS84 LatLon)</option>
+                        <option value="3857">EPSG: 3857 (Web-Mercator)</option>
+                      </select>
+                      </div>
+                  </div>
+                </div>
+            </div>
+          
+            <!--Draw Building in Map-->
+            <div class="card">
+              <div class="card-header" id="ca-draw-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-draw" aria-expanded="false" aria-controls="ca-draw">
+                    4. Position Building
+                  </button>
+                </h5>
+              </div>
+              <div id="ca-draw" class="collapse" aria-labelledby="ca-draw-header" data-parent="#accordion">
+                <div class="card-body">
+                  <form>
+                    <div class="form-group row">
+                      <label for="wktRep" class="col-form-label col-sm-3">WKT Representation</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" id="wktRepIn" placeholder="wktRep">
+                      </div>
+                    </div>
+                  </form>
+                  <div class="row">
+                      <div class="col-sm-10">
+                        <button  class="btn btn-primary" id="drawWKT">Draw Building</button>
+                      </div>
+                  </div>                  
+                </div>
+              </div>
+            </div>
+
+
+            <!--Query Adress via Nominatim-->
+            <div class="card">
+              <div class="card-header" id="ca-adr-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-adr" aria-expanded="false" aria-controls="ca-adr">
+                    5. Query Building Address
+                  </button>
+                </h5>
+              </div>
+              <div id="ca-adr" class="collapse" aria-labelledby="ca-adr-header" data-parent="#accordion">
+                <div class="card-body">
+                  <form>
+                    <div class="form-row">
+                      <div class="form-group col-md-6">
+                        <label for="country">Country</label>
+                        <input type="text" class="form-control" id="country" placeholder="Country">
+                      </div>
+                      <div class="form-group col-md-6">
+                        <label for="region">Region</label>
+                        <input type="text" class="form-control" id="region" placeholder="Region">
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group col-md-6">
+                        <label for="zip">ZIP-Code</label>
+                        <input type="text" class="form-control" id="zip" placeholder="ZIP-Code">
+                      </div>
+                      <div class="form-group col-md-6">
+                        <label for="city">City</label>
+                        <input type="text" class="form-control" id="city" placeholder="City">
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group col-md-6">
+                        <label for="street">Street</label>
+                        <input type="text" class="form-control" id="street" placeholder="Street">
+                      </div>
+                      <div class="form-group col-md-6">
+                        <label for="number">Number</label>
+                        <input type="text" class="form-control" id="number" placeholder="Number">
+                      </div>
+                    </div>                  
+                  </form>
+                  <div class="row">
+                      <div class="col-sm-10">
+                        <button  class="btn btn-primary" id="queryOSM">Query Building Address</button>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <!--Save Postion and Download File-->
+            <div class="card">
+              <div class="card-header" id="ca-save-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-save" aria-expanded="false" aria-controls="ca-save">
+                    6. Save Position and Download File
+                  </button>
+                </h5>
+              </div>
+              <div id="ca-save" class="collapse" aria-labelledby="ca-save-header" data-parent="#accordion">
+                <div class="card-body">
+                  <button type="button" class="btn btn-primary" id="savePosition">Save Settings to File</button>
+                  <button type="button" class="btn btn-warning" id="saveFile">Download JSON-File</button>
+                </div>
+              </div>
+            </div>            
+
+            <!--Template for new Entry-->
+            <!--<div class="card">
+              <div class="card-header" id="ca-proj-header">
+                <h5 class="mb-0">
+                  <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#ca-proj" aria-expanded="false" aria-controls="ca-proj">
+                    2. Select Map Projection
+                  </button>
+                </h5>
+              </div>
+              <div id="ca-proj" class="collapse" aria-labelledby="ca-proj-header" data-parent="#accordion">
+                <div class="card-body">
+                </div>
+              </div>
+            </div>-->
+
+          
+          
+          
+          
+          <!--<textarea id="input">POLYGON((0 0, 300 0, 300 90, 240 90, 240 45, 0 45, 0 0))</textarea>
+          <button id="drawWKT">WKT zeichnen</button>
+          <button id="savePosition">save Position</button>
+          <textarea id="output">result</textarea>
+          <div id="basePointWGS84">ProjektBasisPunkt in WGS 84: </div>
+
+          <fieldset>
+            <button id="getAddress">Adresse ermitteln</button>
+            <button id="saveFile">JSON-Datei herunterladen</button>
+            <div id="status"></div>
+            
+          </fieldset>
+          
+          <table>
+            <tr>
+              <td>Land</td>
+              <td>
+                <textarea id="country"></textarea>
+              </td>
+              <td>Level50 Status</td>
+              <td id="level50Status"></td>
+            </tr>
+            <tr>
+              <td>Region</td>
+              <td>
+                <textarea id="region"></textarea>
+              </td>
+              <td>Eastings</td>
+              <td id="eastings"></td>
+            </tr>
+            <tr>
+              <td>Stadt</td>
+              <td>
+                <textarea id="city"></textarea>
+              </td>
+              <td>Northings</td>
+              <td id="northings"></td>
+            </tr>
+            <tr>
+              <td>PLZ</td>
+              <td>
+                <textarea id="postCode"></textarea>
+              </td>
+              <td>RotationXY</td>
+              <td id="rotation50"></td>
+            </tr>
+            <tr>
+              <td>Straße</td>
+              <td>
+                <textarea id="road"></textarea>
+              </td>
+            </tr>
+            <tr>
+              <td>Hausnummer</td>
+              <td>
+                <textarea	id="houseNumber"></textarea>
+              </td>
+            </tr>
+          </table> -->
+        </div>
+      </div>
     </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script src="js/bundle.js"></script>
   </body>
 </html>

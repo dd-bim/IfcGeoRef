@@ -25,7 +25,7 @@ namespace IfcGeoRefChecker
             try
             {
                 Log.Logger = new LoggerConfiguration()
-                    .WriteTo.File(Environment.CurrentDirectory, rollingInterval: RollingInterval.Day)
+                    .WriteTo.File(this.direc, rollingInterval: RollingInterval.Day)
                     //.MinimumLevel.Debug()
                     .CreateLogger();
 
@@ -238,6 +238,7 @@ namespace IfcGeoRefChecker
                         ifcModels.Items.Add(file);
                     }
                 }
+                lb_checkMsg.Content = this.CheckObjList.Count + " file(s) checked";
 
                 lb_importMsg.Content = this.CheckObjList.Count + " file(s) loaded";
 

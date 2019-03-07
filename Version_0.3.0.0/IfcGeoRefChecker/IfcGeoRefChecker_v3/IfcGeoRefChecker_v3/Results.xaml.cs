@@ -231,11 +231,12 @@ namespace IfcGeoRefChecker
 
         private void check_10_Checked(object sender, RoutedEventArgs e)
         {
-            lev10Site.AddressLines = new List<string>(lev10Bldg.AddressLines.Count);
+            if (lev10Bldg.AddressLines != null)
+                lev10Site.AddressLines = new List<string>(lev10Bldg.AddressLines.Count);
 
             for(var i = 0; i < (lev10Bldg.AddressLines.Count-1); i++)
             {
-                lev10Site.AddressLines[i] = lev10Bldg.AddressLines[i];
+                lev10Site.AddressLines.Add(lev10Bldg.AddressLines[i]);
             }
 
             lev10Site.Postalcode = lev10Bldg.Postalcode;

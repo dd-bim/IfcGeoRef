@@ -221,9 +221,11 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev50 in json.LoGeoRef50)
                             {
-                                var refObj = GetRefCtx(model, lev50.Instance_Object[0]);
+                                //var refObj = GetRefCtx(model, lev50.Instance_Object[0]);
 
-                                var project = model.Instances.OfType<IIfcProject>().Where(c => c.RepresentationContexts.Contains((refObj as IIfcGeometricRepresentationContext))).Single();
+                                var project = model.Instances.OfType<IIfcProject>().SingleOrDefault();
+
+                                var refCtx = project.RepresentationContexts.Where(c => c is IIfcGeometricRepresentationContext).Where(ct => ct.ContextType == "Model").SingleOrDefault();
 
                                 var creation = GetCreationDate(project);
 
@@ -404,9 +406,11 @@ namespace IfcGeoRefChecker.IO
 
                                     pSetMapConv.RelatedObjects.Add((Xbim.Ifc2x3.Kernel.IfcObject)project);
                                 }
-                                else if(json.IFCSchema != "Ifc2X3" && lev50.Translation_Eastings != 0 && lev50.Translation_Northings != 0)
+                                if(json.IFCSchema != "Ifc2X3" && lev50.Translation_Eastings != 0 && lev50.Translation_Northings != 0)
                                 {
-                                    var mapConv = model.Instances.OfType<IIfcMapConversion>().Where(c => c.SourceCRS is IfcGeometricRepresentationContext).Single();
+                                    //var mapConv = model.Instances.OfType<IIfcMapConversion>().Where(c => c.SourceCRS is IfcGeometricRepresentationContext).Single();
+
+                                    var mapConv = GetRefMap(model, lev50.Instance_Object[0]);
 
                                     var mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
 
@@ -416,7 +420,7 @@ namespace IfcGeoRefChecker.IO
                                     {
                                         mapConv = model.Instances.New<IfcMapConversion>(m =>
                                         {
-                                            m.SourceCRS = (refObj as IIfcGeometricRepresentationContext);
+                                            m.SourceCRS = (refCtx as IIfcGeometricRepresentationContext);
                                             m.TargetCRS = model.Instances.New<IfcProjectedCRS>();
 
                                             mapCRS = (IfcProjectedCRS)m.TargetCRS;
@@ -493,6 +497,16 @@ namespace IfcGeoRefChecker.IO
             var refCtx = (IIfcGeometricRepresentationContext)model.Instances.Where(o => ("#" + o.GetHashCode()).Equals(refNo)).Single();
 
             return refCtx;
+        }
+
+        /// <summary>
+        /// Find correct conversion in IfcStore
+        /// </summary>
+        private IIfcMapConversion GetRefMap(IfcStore model, string refNo)
+        {
+            var refMap = (IIfcMapConversion)model.Instances.Where(o => ("#" + o.GetHashCode()).Equals(refNo)).Single();
+
+            return refMap;
         }
 
         /// <summary>

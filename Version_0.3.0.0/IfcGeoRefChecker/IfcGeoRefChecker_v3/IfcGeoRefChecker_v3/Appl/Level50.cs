@@ -24,7 +24,7 @@ namespace IfcGeoRefChecker.Appl
 
         public double Translation_Orth_Height { get; set; }
 
-        public IList<double> RotationXY { get; set; } = new List<double>() { 0, 1 };
+        public IList<double> RotationXY { get; set; } /*= new List<double>() { 0, 1 };*/
 
         public double Scale { get; set; }
 

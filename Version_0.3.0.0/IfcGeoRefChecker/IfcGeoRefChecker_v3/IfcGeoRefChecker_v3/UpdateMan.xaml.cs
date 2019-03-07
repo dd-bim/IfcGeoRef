@@ -60,6 +60,12 @@ namespace IfcGeoRefChecker
                     }
                 }
 
+                tb_plz.Text = lev10Bldg.Postalcode;
+                tb_town.Text = lev10Bldg.Town;
+                tb_region.Text = lev10Bldg.Region;
+                tb_country.Text = lev10Bldg.Country;
+
+
                 //-------------
 
                 var lev20site = (from l20site in jsonMap.LoGeoRef20
