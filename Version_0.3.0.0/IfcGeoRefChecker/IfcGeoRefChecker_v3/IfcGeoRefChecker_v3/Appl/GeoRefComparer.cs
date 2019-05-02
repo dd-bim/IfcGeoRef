@@ -55,12 +55,12 @@ namespace IfcGeoRefChecker.Appl
 
                     FillGeoref(compModel.Key, compModel.Value);
 
+                    Log.Information("GeoRefComparer: Comparison of reference with comparison model started...");
+
+                    bool eq10site, eq10bldg, eq20site, eq30site, eq40proj, eq50proj;
+
                     try
                     {
-                        Log.Information("GeoRefComparer: Comparison of reference with comparison model started...");
-
-                        bool eq10site, eq10bldg, eq20site, eq30site, eq40proj, eq50proj;
-
                         if(refSiteAddress == null || siteAddress == null)
                         {
                             eq10site = false;
@@ -126,8 +126,14 @@ namespace IfcGeoRefChecker.Appl
                         {
                             eq50proj = refProjCRS.Equals(projCRS);
                         }
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Error("GeoRefComparer: Error occured while comparing GeoRef levels: " + ex.Message);
+                        continue;
+                    }
 
-                        Dictionary<string, bool> equality = new Dictionary<string, bool>
+                    Dictionary<string, bool> equality = new Dictionary<string, bool>
                             {
                                 { "GeoRef10 (IfcSite address) ", eq10site },
                                 { "GeoRef10 (IfcBuilding address) ", eq10bldg },
@@ -136,35 +142,29 @@ namespace IfcGeoRefChecker.Appl
                                 { "GeoRef40 (IfcProject WCS/True North) ", eq40proj },
                                 { "GeoRef50 (IfcProject Map Conversion) ", eq50proj }
                             };
-                        string a = "\r\nComparison to " + compModel.Key + ":";
+                    string a = "\r\nComparison to " + compModel.Key + ":";
 
-                        if(equality.ContainsValue(false))
-                        {
-                            a += "\r\n The georeferencing of the files is NOT equal.";
-
-                            var keys = from entry in equality
-                                       where entry.Value == false
-                                       select entry.Key;
-
-                            foreach(var key in keys)
-                            {
-                                a += "\r\n  A difference was detected at " + key;
-                            }
-                        }
-                        else
-                        {
-                            a += "\r\n The georeferencing of the files is exactly equal.";
-                        }
-
-                        logList.Add(a);
-
-                        Log.Information("GeoRefComparer: Comparison with " + compModel.Key + " sucessfully finished.");
-                    }
-
-                    catch(Exception ex)
+                    if(equality.ContainsValue(false))
                     {
-                        Log.Error("GeoRefComparer: Error occured while comparing file: " + compModel.Key + "\r\nError message: " + ex.Message);
+                        a += "\r\n The georeferencing of the files is NOT equal.";
+
+                        var keys = from entry in equality
+                                   where entry.Value == false
+                                   select entry.Key;
+
+                        foreach(var key in keys)
+                        {
+                            a += "\r\n  A difference was detected at " + key;
+                        }
                     }
+                    else
+                    {
+                        a += "\r\n The georeferencing of the files is exactly equal.";
+                    }
+
+                    logList.Add(a);
+
+                    Log.Information("GeoRefComparer: Comparison with " + compModel.Key + " sucessfully finished.");
                 }
 
                 WriteCompareLog();
@@ -258,7 +258,6 @@ namespace IfcGeoRefChecker.Appl
                                 select l50).Single();
 
                 Log.Information("GeoRefComparer: Get GeoRef attributes successful.");
-
             }
             catch(Exception ex)
             {

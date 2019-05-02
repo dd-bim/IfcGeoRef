@@ -48,27 +48,20 @@ namespace IfcGeoRefChecker.Appl
                 string.Equals(CRS_Projection_Name, other.CRS_Projection_Name) &&
                 string.Equals(CRS_Projection_Zone, other.CRS_Projection_Zone))
             {
-                if((RotationXY == null && other.RotationXY == null) || (RotationXY[0] == other.RotationXY[0] && RotationXY[1] == other.RotationXY[1]))
+                if(RotationXY == null && other.RotationXY == null)      //in beiden Rotation nicht gesetzt --> Rotation ist gleich (null) --> true
                 {
                     return true;
                 }
-                else
+                else if(RotationXY == null || other.RotationXY == null) //in einem der beiden Rotation nicht gesetzt --> Rotation ist ungleich (null) --> false
+                {
                     return false;
-
-                //if(RotationXY == null && other.RotationXY != null)
-                //{
-                //    return false;
-                //}
-                //else if(RotationXY != null && other.RotationXY == null)
-                //{
-                //    return false;
-                //}
-                //else if(RotationXY[0] == other.RotationXY[0] && RotationXY[1] == other.RotationXY[1])
-                //{
-                //    return true;
-                //}
-                //else
-                //    return false;
+                }
+                else if(RotationXY[0] == other.RotationXY[0] && RotationXY[1] == other.RotationXY[1])
+                {                                                       //NULL-prüfung bestanden --> Untersuchung der Werte --> beide gleich --> true
+                    return true;
+                }
+                else
+                    return false;                                       //wenn Werte nicht gleich --> false
             }
             else
             {
