@@ -130,18 +130,28 @@ namespace IfcGeoRefChecker.Appl
 
                 this.LoGeoRef20.Add(GetLevel20(site));
 
-                foreach(var prod in prods)
+                if(prods.Contains(site))
                 {
-                    this.LoGeoRef30.Add(GetLevel30(prod));
+                    this.LoGeoRef30.Add(GetLevel30(site));          //global placement investigation only for elements which can be seriously georeferenced (site -> default)
                 }
+
+                if(prods.Contains(bldg))
+                {
+                    this.LoGeoRef30.Add(GetLevel30(bldg));          //global placement investigation only for elements which can be seriously georeferenced (bldg -> possible)
+                }
+
+                //foreach(var prod in prods)
+                //{
+                //    this.LoGeoRef30.Add(GetLevel30(prod));
+                //}                                                 //DEPRECATED: other products than bldg or site will not be handled but will be later considered when editing file
 
                 this.LoGeoRef40.Add(GetLevel40(proj));
 
-                if(model.SchemaVersion.ToString() != "Ifc2X3")
+                if(model.SchemaVersion.ToString() != "Ifc2X3")      //für Versionen ab IFC4
                 {
                     this.LoGeoRef50.Add(GetLevel50(proj));
                 }
-                else
+                else                                                //für Versionen IFC2x3: Investigation of applied PropertySets for georeferencing
                 {
                     var psetMap = obj.PSetReaderMap();
                     var psetCrs = obj.PSetReaderCRS();
@@ -152,10 +162,12 @@ namespace IfcGeoRefChecker.Appl
                     }
                     else
                     {
-                        var l50f = new Level50();
-                        l50f.GeoRef50 = false;
-                        l50f.Reference_Object = GetInfo(proj);
-                        this.LoGeoRef50.Add(l50f);
+                        this.LoGeoRef50.Add(GetLevel50(proj));
+
+                        //var l50f = new Level50();
+                        //l50f.GeoRef50 = false;
+                        //l50f.Reference_Object = GetInfo(proj);
+                        //this.LoGeoRef50.Add(l50f);
                     }
                 }
             }
@@ -168,7 +180,7 @@ namespace IfcGeoRefChecker.Appl
             }
         }
 
-        public Level10 GetLevel10(IIfcSpatialStructureElement spatialElement)
+        private Level10 GetLevel10(IIfcSpatialStructureElement spatialElement)
         {
             var l10 = new Appl.Level10();
 
@@ -230,7 +242,7 @@ namespace IfcGeoRefChecker.Appl
             return l10;
         }
 
-        public Level20 GetLevel20(IIfcSite site)
+        private Level20 GetLevel20(IIfcSite site)
         {
             var l20 = new Level20();
 
@@ -267,7 +279,7 @@ namespace IfcGeoRefChecker.Appl
             return l20;
         }
 
-        public Level30 GetLevel30(IIfcProduct elem)
+        private Level30 GetLevel30(IIfcProduct elem)
         {
             var l30 = new Level30();
 
@@ -299,7 +311,7 @@ namespace IfcGeoRefChecker.Appl
             return l30;
         }
 
-        public Level40 GetLevel40(IIfcProject proj)
+        private Level40 GetLevel40(IIfcProject proj)
         {
             var l40 = new Level40();
 
@@ -309,7 +321,7 @@ namespace IfcGeoRefChecker.Appl
 
                 l40.Reference_Object = GetInfo(proj);
 
-                var prjCtx = obj.ContextReader(proj).First();
+                var prjCtx = obj.ContextReader(proj).Where(a => a.ContextType == "Model").SingleOrDefault();
 
                 l40.Instance_Object = GetInfo(prjCtx);
 
@@ -354,7 +366,7 @@ namespace IfcGeoRefChecker.Appl
             return l40;
         }
 
-        public Level50 GetLevel50(IIfcProject proj)
+        private Level50 GetLevel50(IIfcProject proj)
         {
             var l50 = new Level50();
 
@@ -364,7 +376,7 @@ namespace IfcGeoRefChecker.Appl
 
                 l50.Reference_Object = GetInfo(proj);
 
-                var prjCtx = obj.ContextReader(proj).First();
+                var prjCtx = obj.ContextReader(proj).Where(a => a.ContextType == "Model").SingleOrDefault();
 
                 var map = obj.MapReader(prjCtx);
 
@@ -423,7 +435,7 @@ namespace IfcGeoRefChecker.Appl
             return l50;
         }
 
-        public Level50 GetLevel50(IIfcPropertySet psetMap, IIfcPropertySet psetCrs)
+        private Level50 GetLevel50(IIfcPropertySet psetMap, IIfcPropertySet psetCrs)
         {
             var l50 = new Level50();
 
@@ -431,11 +443,36 @@ namespace IfcGeoRefChecker.Appl
             {
                 Log.Information("GeoRefChecker: Reading Level 50 attributes via PropertySets started...");
 
+                foreach(var pset in psetMap.DefinesOccurrence)
+                {
+                    var relObj = pset.RelatedObjects;
+
+                    if(relObj.Contains(obj.ProjReader()))
+                    {
+                        l50.Reference_Object = GetInfo(obj.ProjReader());
+                        break;
+                    }
+                    else if(relObj.Contains(obj.SiteReader()))
+                    {
+                        l50.Reference_Object = GetInfo(obj.SiteReader());
+                    }
+                    else if(relObj.Contains(obj.BldgReader()))
+                    {
+                        l50.Reference_Object = GetInfo(obj.BldgReader());
+                    }
+                    else
+                        l50.Reference_Object = GetInfo(relObj.FirstOrDefault());
+                }
+
+                l50.Instance_Object = GetInfo(psetMap);
+
                 l50.Translation_Eastings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Eastings").Single()) as IfcPropertySingleValue).NominalValue);
 
                 l50.Translation_Northings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Northings").Single()) as IfcPropertySingleValue).NominalValue);
 
                 l50.Translation_Orth_Height = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "OrthogonalHeight").Single()) as IfcPropertySingleValue).NominalValue);
+
+                l50.RotationXY = new List<double>();
 
                 l50.RotationXY.Add(((IfcReal)((psetMap.HasProperties.Where(p => p.Name == "XAxisAbscissa").Single()) as IfcPropertySingleValue).NominalValue));
 
@@ -461,6 +498,10 @@ namespace IfcGeoRefChecker.Appl
             return l50;
         }
 
+        /// <summary>
+        /// Returns a list with required entity information (STEP-hash number, Entity type).
+        /// For reference objects with own IFC-id (inherited from IfcRoot) also the id will be returned,
+        /// </summary>
         private List<string> GetInfo(IPersistEntity entity)
         {
             var info = new List<string>

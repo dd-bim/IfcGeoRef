@@ -33,39 +33,42 @@ namespace IfcGeoRefChecker
             lb_jsonmap.Text = direc + "\\IfcGeoRefChecker\\export\\" + fileName + "_updated.ifc";
         }
 
-        private void getJsonContent()
+        private void getJsonContent()       //Auslesen der update-JSON in Anbhängigkeit der gewählten Export-Funktion
         {
-            var lev50map = (from l50 in jsonMap.LoGeoRef50
+            var lev50map = (from l50 in jsonMap.LoGeoRef50          //Lesen des ersten GeoRef50-Eintrages (dieser enthält die neue Georef aus dem BuildingLocator)
                             select l50).First();
 
-            var lev50oth = from l50 in jsonMap.LoGeoRef50
-                           where l50 != lev50map
-                           select l50;
+            //var lev50oth = from l50 in jsonMap.LoGeoRef50           //opt.: falls weitere Georef50-Objekte vorhanden sind, werden diese hier gelesen      --> DEPRECATED
+            //               where l50 != lev50map
+            //               select l50;
 
-            foreach(var l50 in lev50oth)
-            {
-                if(radio_50.IsChecked == true)
-                {
-                    l50.CRS_Name = lev50map.CRS_Name;
-                }
-            }
+            //foreach(var l50 in lev50oth)
+            //{
+            //    if(radio_50.IsChecked == true)
+            //    {
+            //        l50.CRS_Name = lev50map.CRS_Name;
+            //    }
+            //}                                                         //DEPRECATED, da projekt nur noch eine Georef50-Instanz enthalten darf
 
-            if(radio_50.IsChecked == true)
-            {
-                foreach(var l50 in lev50oth)
-                {
-                    l50.Translation_Eastings = lev50map.Translation_Eastings;
-                    l50.Translation_Northings = lev50map.Translation_Northings;
+            //if(radio_50.IsChecked == true)
+            //{
+            //    foreach(var l50 in lev50oth)
+            //    {
+            //        l50.Translation_Eastings = lev50map.Translation_Eastings;
+            //        l50.Translation_Northings = lev50map.Translation_Northings;
 
-                    l50.RotationXY = lev50map.RotationXY;
-                }
-            }
-            else if(radio_40.IsChecked == true)
+            //        l50.RotationXY = lev50map.RotationXY;
+            //    }
+            //}
+            //else                                                      //DEPRECATED, da projekt nur noch eine Georef50-Instanz enthalten darf --> radio_50 ist standard-export
+
+
+            if(radio_40.IsChecked == true)                              //Option GeoRef projektbezogen speichern
             {
                 foreach(var l40 in jsonMap.LoGeoRef40)
                 {
-                    l40.ProjectLocation[0] = ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
+                    l40.ProjectLocation[0] = ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);    //Umwandlung zu Projektlängeneinheit, wenn nötig
+                    l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);  
 
                     l40.TrueNorthXY[0] = lev50map.RotationXY[1];
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
@@ -74,12 +77,12 @@ namespace IfcGeoRefChecker
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
             }
-            else if(radio_30.IsChecked == true)
+            else if(radio_30.IsChecked == true)                         //Option GeoRef baustellenbezogen speichern
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
+                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit); //Addition zur eventuellen vorhandenen Projektkoordinate, 
+                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit); //damit keine projektinterne Verschiebung stattfindet
 
                     l30.ObjectRotationX[0] = lev50map.RotationXY[0];
                     l30.ObjectRotationX[1] = lev50map.RotationXY[1];
@@ -88,7 +91,7 @@ namespace IfcGeoRefChecker
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
             }
-            else if(radio_mix.IsChecked == true)
+            else if(radio_mix.IsChecked == true)                    //Option GeoRef-Location baustellenbezogen und Rotation projektbezogen speichern (Revit-konform)               
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {

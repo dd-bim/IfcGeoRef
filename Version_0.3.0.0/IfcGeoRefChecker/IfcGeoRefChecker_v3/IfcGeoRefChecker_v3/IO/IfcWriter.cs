@@ -43,7 +43,7 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev10 in json.LoGeoRef10)
                             {
-                                var refObj = GetRefObj(model, lev10.Reference_Object[0]);
+                                var refObj = GetRefObj(model, lev10.Reference_Object[2]);
                                 var creation = GetCreationDate(refObj);
 
                                 IIfcPostalAddress p;
@@ -90,7 +90,7 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev20 in json.LoGeoRef20)
                             {
-                                var refObj = GetRefObj(model, lev20.Reference_Object[0]);
+                                var refObj = GetRefObj(model, lev20.Reference_Object[2]);
                                 var creation = GetCreationDate(refObj);
 
                                 var dmsLat = new Appl.Calc().DDtoCompound((double)lev20.Latitude);
@@ -130,7 +130,7 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev30 in json.LoGeoRef30)
                             {
-                                var refObj = GetRefObj(model, lev30.Reference_Object[0]);
+                                var refObj = GetRefObj(model, lev30.Reference_Object[2]);
                                 var creation = GetCreationDate(refObj);
 
                                 var elemPlcm = (IIfcLocalPlacement)(refObj as IIfcProduct).ObjectPlacement;
@@ -163,46 +163,50 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev40 in json.LoGeoRef40)
                             {
-                                var refObj = GetRefCtx(model, lev40.Instance_Object[0]);
-
-                                var project = model.Instances.OfType<IIfcProject>().Where(c => c.RepresentationContexts.Contains((refObj as IIfcGeometricRepresentationContext))).Single();
+                                var project = GetRefObj(model, lev40.Instance_Object[2]);
                                 var creation = GetCreationDate(project);
 
-                                var plcm = refObj.WorldCoordinateSystem;
+                                var contexts = (project as IIfcProject).RepresentationContexts;
 
-                                if(json.IFCSchema == "Ifc2X3")
+                                foreach(var context in contexts)
                                 {
-                                    (refObj as IIfcGeometricRepresentationContext).TrueNorth = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(lev40.TrueNorthXY[0], lev40.TrueNorthXY[1]));
+                                    var refObj = context as IIfcGeometricRepresentationContext;
 
-                                    if(plcm is IIfcAxis2Placement3D)
+                                    var plcm = refObj.WorldCoordinateSystem;
+
+                                    if(json.IFCSchema == "Ifc2X3")
                                     {
-                                        (plcm as IIfcAxis2Placement3D).Location = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcCartesianPoint>(p => p.SetXYZ(lev40.ProjectLocation[0], lev40.ProjectLocation[1], lev40.ProjectLocation[2]));
-                                        (plcm as IIfcAxis2Placement3D).RefDirection = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1], lev40.ProjectRotationX[2]));
-                                        (plcm as IIfcAxis2Placement3D).Axis = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationZ[0], lev40.ProjectRotationZ[1], lev40.ProjectRotationZ[2]));
+                                        refObj.TrueNorth = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(lev40.TrueNorthXY[0], lev40.TrueNorthXY[1]));
+
+                                        if(plcm is IIfcAxis2Placement3D)
+                                        {
+                                            (plcm as IIfcAxis2Placement3D).Location = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcCartesianPoint>(p => p.SetXYZ(lev40.ProjectLocation[0], lev40.ProjectLocation[1], lev40.ProjectLocation[2]));
+                                            (plcm as IIfcAxis2Placement3D).RefDirection = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1], lev40.ProjectRotationX[2]));
+                                            (plcm as IIfcAxis2Placement3D).Axis = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationZ[0], lev40.ProjectRotationZ[1], lev40.ProjectRotationZ[2]));
+                                        }
+                                        else
+                                        {
+                                            (plcm as IIfcAxis2Placement2D).Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXY(lev40.ProjectLocation[0], lev40.ProjectLocation[1]));
+                                            (plcm as IIfcAxis2Placement2D).RefDirection = model.Instances.New<IfcDirection>(d => d.SetXY(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1]));
+                                        }
                                     }
-                                    else
+                                    else //IFC4 or higher
                                     {
-                                        (plcm as IIfcAxis2Placement2D).Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXY(lev40.ProjectLocation[0], lev40.ProjectLocation[1]));
-                                        (plcm as IIfcAxis2Placement2D).RefDirection = model.Instances.New<IfcDirection>(d => d.SetXY(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1]));
+                                        refObj.TrueNorth = model.Instances.New<IfcDirection>(d => d.SetXY(lev40.TrueNorthXY[0], lev40.TrueNorthXY[1]));
+
+                                        if(plcm is IIfcAxis2Placement3D)
+                                        {
+                                            (plcm as IIfcAxis2Placement3D).Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXYZ(lev40.ProjectLocation[0], lev40.ProjectLocation[1], lev40.ProjectLocation[2]));
+                                            (plcm as IIfcAxis2Placement3D).RefDirection = model.Instances.New<IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1], lev40.ProjectRotationX[2]));
+                                            (plcm as IIfcAxis2Placement3D).Axis = model.Instances.New<IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationZ[0], lev40.ProjectRotationZ[1], lev40.ProjectRotationZ[2]));
+                                        }
+                                        else
+                                        {
+                                            (plcm as IIfcAxis2Placement2D).Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXY(lev40.ProjectLocation[0], lev40.ProjectLocation[1]));
+                                            (plcm as IIfcAxis2Placement2D).RefDirection = model.Instances.New<IfcDirection>(d => d.SetXY(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1]));
+                                        }
                                     }
                                 }
-                                else
-                                {
-                                    (refObj as IIfcGeometricRepresentationContext).TrueNorth = model.Instances.New<IfcDirection>(d => d.SetXY(lev40.TrueNorthXY[0], lev40.TrueNorthXY[1]));
-
-                                    if(plcm is IIfcAxis2Placement3D)
-                                    {
-                                        (plcm as IIfcAxis2Placement3D).Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXYZ(lev40.ProjectLocation[0], lev40.ProjectLocation[1], lev40.ProjectLocation[2]));
-                                        (plcm as IIfcAxis2Placement3D).RefDirection = model.Instances.New<IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1], lev40.ProjectRotationX[2]));
-                                        (plcm as IIfcAxis2Placement3D).Axis = model.Instances.New<IfcDirection>(d => d.SetXYZ(lev40.ProjectRotationZ[0], lev40.ProjectRotationZ[1], lev40.ProjectRotationZ[2]));
-                                    }
-                                    else
-                                    {
-                                        (plcm as IIfcAxis2Placement2D).Location = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcCartesianPoint>(p => p.SetXY(lev40.ProjectLocation[0], lev40.ProjectLocation[1]));
-                                        (plcm as IIfcAxis2Placement2D).RefDirection = model.Instances.New<Xbim.Ifc2x3.GeometryResource.IfcDirection>(d => d.SetXY(lev40.ProjectRotationX[0], lev40.ProjectRotationX[1]));
-                                    }
-                                }
-
                                 //(refObj as IIfcGeometricRepresentationContext).WorldCoordinateSystem = plcm;
 
                                 var proj = (IIfcObjectDefinition)project;
@@ -229,65 +233,6 @@ namespace IfcGeoRefChecker.IO
 
                                 var creation = GetCreationDate(project);
 
-                                if(json.IFCSchema != "Ifc2X3" && lev50.Translation_Eastings == 0 && lev50.Translation_Northings == 0)
-                                {
-                                    var pSetMapCRS = model.Instances.New<Xbim.Ifc4.Kernel.IfcRelDefinesByProperties>(r =>
-                                    {
-                                        r.RelatingPropertyDefinition = model.Instances.New<Xbim.Ifc4.Kernel.IfcPropertySet>(pSet =>
-                                        {
-                                            pSet.Name = "ePset_ProjectedCRS";
-                                            pSet.Description = "Definition of the coordinate reference system";                                                                   //all collections are always initialized
-
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "Name";
-                                                        p.Description = "Name by which the coordinate reference system is defined, shall be EPSG-Code";
-                                                        p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcLabel(lev50.CRS_Name);
-                                                    }));
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                            {
-                                                p.Name = "Description";
-                                                p.Description = "Informal description";
-                                                p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcText(lev50.CRS_Description);
-                                            }));
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                            {
-                                                p.Name = "GeodeticDatum";
-                                                p.Description = "Name by which this datum is identified. " +
-                                                "The geodetic datum is associated with the coordinate reference system and " +
-                                                "indicates the shape and size of the rotation ellipsoid and this ellipsoid's " +
-                                                "connection and orientation to the actual globe/earth.";
-
-                                                p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcIdentifier(lev50.CRS_Geodetic_Datum);
-                                            }));
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                            {
-                                                p.Name = "VerticalDatum";
-                                                p.Description = "Name by which the vertical datum is identified. " +
-                                                "The vertical datum is associated with the height axis of the " +
-                                                "coordinate reference system and indicates the reference plane and " +
-                                                "fundamental point defining the origin of a height system.";
-
-                                                p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcIdentifier(lev50.CRS_Vertical_Datum);
-                                            }));
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                            {
-                                                p.Name = "MapProjection";
-                                                p.Description = "Name by which the map projection is identified";
-                                                p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcIdentifier(lev50.CRS_Projection_Name);
-                                            }));
-                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc4.PropertyResource.IfcPropertySingleValue>(p =>
-                                            {
-                                                p.Name = "MapZone";
-                                                p.Description = "Name by which the map zone is identified";
-                                                p.NominalValue = new Xbim.Ifc4.MeasureResource.IfcIdentifier(lev50.CRS_Projection_Zone);
-                                            }));
-                                        });
-                                    });
-
-                                    pSetMapCRS.RelatedObjects.Add((Xbim.Ifc4.Kernel.IfcProject)project);
-                                }
-
                                 if(json.IFCSchema == "Ifc2X3")
                                 {
                                     var pSetMapCRS = model.Instances.New<Xbim.Ifc2x3.Kernel.IfcRelDefinesByProperties>(r =>
@@ -298,11 +243,11 @@ namespace IfcGeoRefChecker.IO
                                             pSet.Description = "Definition of the coordinate reference system";                                                                   //all collections are always initialized
 
                                             pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "Name";
-                                                        p.Description = "Name by which the coordinate reference system is defined, shall be EPSG-Code";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLabel(lev50.CRS_Name);
-                                                    }));
+                                            {
+                                                p.Name = "Name";
+                                                p.Description = "Name by which the coordinate reference system is defined, shall be EPSG-Code";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLabel(lev50.CRS_Name);
+                                            }));
                                             pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                             {
                                                 p.Name = "Description";
@@ -312,20 +257,14 @@ namespace IfcGeoRefChecker.IO
                                             pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                             {
                                                 p.Name = "GeodeticDatum";
-                                                p.Description = "Name by which this datum is identified. " +
-                                                "The geodetic datum is associated with the coordinate reference system and " +
-                                                "indicates the shape and size of the rotation ellipsoid and this ellipsoid's " +
-                                                "connection and orientation to the actual globe/earth.";
+                                                p.Description = "Name by which this datum is identified.";
 
                                                 p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcIdentifier(lev50.CRS_Geodetic_Datum);
                                             }));
                                             pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
                                             {
                                                 p.Name = "VerticalDatum";
-                                                p.Description = "Name by which the vertical datum is identified. " +
-                                                "The vertical datum is associated with the height axis of the " +
-                                                "coordinate reference system and indicates the reference plane and " +
-                                                "fundamental point defining the origin of a height system.";
+                                                p.Description = "Name by which the vertical datum is identified.";
 
                                                 p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcIdentifier(lev50.CRS_Vertical_Datum);
                                             }));
@@ -345,10 +284,7 @@ namespace IfcGeoRefChecker.IO
                                     });
 
                                     pSetMapCRS.RelatedObjects.Add((Xbim.Ifc2x3.Kernel.IfcObject)project);
-                                }
 
-                                if(json.IFCSchema == "Ifc2X3" && lev50.Translation_Eastings != 0 && lev50.Translation_Northings != 0)
-                                {
                                     var unit = model.Instances.New<Xbim.Ifc2x3.MeasureResource.IfcSIUnit>();
 
                                     unit.UnitType = Xbim.Ifc2x3.MeasureResource.IfcUnitEnum.LENGTHUNIT;
@@ -358,65 +294,61 @@ namespace IfcGeoRefChecker.IO
                                     {
                                         //r.GlobalId = Guid.NewGuid();
                                         r.RelatingPropertyDefinition = model.Instances.New<Xbim.Ifc2x3.Kernel.IfcPropertySet>(pSet =>
-                                                {
-                                                    pSet.Name = "ePset_MapConversion";
-                                                    pSet.Description = "Specification of the transformation between the local grid coordinate system and a map coordinate system";                                                                   //all collections are always initialized
+                                        {
+                                            pSet.Name = "ePset_MapConversion";
+                                            pSet.Description = "Specification of the transformation between the local grid coordinate system and a map coordinate system";                                                                   //all collections are always initialized
 
-                                                pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                            {
-                                                                p.Name = "Eastings";
-                                                                p.Description = "The translation in X between the two coordinate systems";
-                                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Eastings);
-                                                                p.Unit = unit;
-                                                            }));
-                                                    pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "Northings";
-                                                        p.Description = "The translation in Y between the two coordinate systems";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Northings);
-                                                        p.Unit = unit;
-                                                    }));
-                                                    pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "OrthogonalHeight";
-                                                        p.Description = "The translation in Z between the two coordinate systems";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Orth_Height);
-                                                        p.Unit = unit;
-                                                    }));
-                                                    pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "XAxisAbscissa";
-                                                        p.Description = "The X component of the rotation between the two coordinate systems";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.RotationXY[0]);
-                                                    }));
-                                                    pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "XAxisOrdinate";
-                                                        p.Description = "The Y component of the rotation between the two coordinate systems";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.RotationXY[1]);
-                                                    }));
-                                                    pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
-                                                    {
-                                                        p.Name = "Scale";
-                                                        p.Description = "The scale in X, Y between the two coordinate systems";
-                                                        p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.Scale);
-                                                    }));
-                                                });
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "Eastings";
+                                                p.Description = "The translation in X between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Eastings);
+                                                p.Unit = unit;
+                                            }));
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "Northings";
+                                                p.Description = "The translation in Y between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Northings);
+                                                p.Unit = unit;
+                                            }));
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "OrthogonalHeight";
+                                                p.Description = "The translation in Z between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcLengthMeasure((double)lev50.Translation_Orth_Height);
+                                                p.Unit = unit;
+                                            }));
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "XAxisAbscissa";
+                                                p.Description = "The X component of the rotation between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.RotationXY[0]);
+                                            }));
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "XAxisOrdinate";
+                                                p.Description = "The Y component of the rotation between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.RotationXY[1]);
+                                            }));
+                                            pSet.HasProperties.Add(model.Instances.New<Xbim.Ifc2x3.PropertyResource.IfcPropertySingleValue>(p =>
+                                            {
+                                                p.Name = "Scale";
+                                                p.Description = "The scale in X, Y between the two coordinate systems";
+                                                p.NominalValue = new Xbim.Ifc2x3.MeasureResource.IfcReal(lev50.Scale);
+                                            }));
+                                        });
                                     });
 
                                     pSetMapConv.RelatedObjects.Add((Xbim.Ifc2x3.Kernel.IfcObject)project);
                                 }
-                                if(json.IFCSchema != "Ifc2X3" && lev50.Translation_Eastings != 0 && lev50.Translation_Northings != 0)
+                                else //IFC4
                                 {
-                                    //var mapConv = model.Instances.OfType<IIfcMapConversion>().Where(c => c.SourceCRS is IfcGeometricRepresentationContext).Single();
+                                    //Verzweigung
+                                    IIfcMapConversion mapConv;
+                                    IIfcProjectedCRS mapCRS;
 
-                                    var mapConv = GetRefMap(model, lev50.Instance_Object[0]);
-
-                                    var mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
-
-                                    var mapUnit = mapCRS.MapUnit;
-
-                                    if(mapConv == null)
+                                    if(lev50.Instance_Object == null)       //keine MapConversion bisher vorhanden
                                     {
                                         mapConv = model.Instances.New<IfcMapConversion>(m =>
                                         {
@@ -426,28 +358,43 @@ namespace IfcGeoRefChecker.IO
                                             mapCRS = (IfcProjectedCRS)m.TargetCRS;
                                         });
                                     }
-
-                                    mapConv.Eastings = (double)lev50.Translation_Eastings;
-                                    mapConv.Northings = (double)lev50.Translation_Northings;
-                                    mapConv.OrthogonalHeight = (double)lev50.Translation_Orth_Height;
-                                    mapConv.XAxisAbscissa = lev50.RotationXY[0];
-                                    mapConv.XAxisOrdinate = lev50.RotationXY[1];
-                                    mapConv.Scale = lev50.Scale;
-
-                                    mapCRS.Name = lev50.CRS_Name;
-                                    mapCRS.Description = lev50.CRS_Description;
-                                    mapCRS.GeodeticDatum = lev50.CRS_Geodetic_Datum;
-                                    mapCRS.VerticalDatum = lev50.CRS_Vertical_Datum;
-                                    mapCRS.MapProjection = lev50.CRS_Projection_Name;
-                                    mapCRS.MapZone = lev50.CRS_Projection_Zone;
-
-                                    var unit = model.Instances.New<IfcSIUnit>(u =>
+                                    else                                    //MapConversion vorhanden
                                     {
-                                        u.UnitType = IfcUnitEnum.LENGTHUNIT;
-                                        u.Name = IfcSIUnitName.METRE;
-                                    });
+                                        mapConv = GetRefMap(model, lev50.Instance_Object[0]);
 
-                                    mapCRS.MapUnit = unit;
+                                        mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
+
+                                        if(mapCRS == null)
+                                        {
+                                            mapConv.TargetCRS = model.Instances.New<IfcProjectedCRS>();
+
+                                            mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
+                                        }
+
+                                        var mapUnit = mapCRS.MapUnit;
+
+                                        mapConv.Eastings = (double)lev50.Translation_Eastings;
+                                        mapConv.Northings = (double)lev50.Translation_Northings;
+                                        mapConv.OrthogonalHeight = (double)lev50.Translation_Orth_Height;
+                                        mapConv.XAxisAbscissa = lev50.RotationXY[0];
+                                        mapConv.XAxisOrdinate = lev50.RotationXY[1];
+                                        mapConv.Scale = lev50.Scale;
+
+                                        mapCRS.Name = lev50.CRS_Name;
+                                        mapCRS.Description = lev50.CRS_Description;
+                                        mapCRS.GeodeticDatum = lev50.CRS_Geodetic_Datum;
+                                        mapCRS.VerticalDatum = lev50.CRS_Vertical_Datum;
+                                        mapCRS.MapProjection = lev50.CRS_Projection_Name;
+                                        mapCRS.MapZone = lev50.CRS_Projection_Zone;
+
+                                        var unit = model.Instances.New<IfcSIUnit>(u =>
+                                        {
+                                            u.UnitType = IfcUnitEnum.LENGTHUNIT;
+                                            u.Name = IfcSIUnitName.METRE;
+                                        });
+
+                                        mapCRS.MapUnit = unit;
+                                    }
                                 }
 
                                 var proj = (IIfcObjectDefinition)project;
@@ -482,21 +429,11 @@ namespace IfcGeoRefChecker.IO
         /// <summary>
         /// Find correct IfcObject in IfcStore
         /// </summary>
-        private IIfcObjectDefinition GetRefObj(IfcStore model, string refNo)
+        private IIfcObjectDefinition GetRefObj(IfcStore model, string refId)
         {
-            var refObj = (IIfcObjectDefinition)model.Instances.Where(o => ("#" + o.GetHashCode()).Equals(refNo)).Single();
+            var refObj = (IIfcObjectDefinition)model.Instances.Where(o => (o as IIfcObjectDefinition).GlobalId == refId);
 
             return refObj;
-        }
-
-        /// <summary>
-        /// Find correct context in IfcStore
-        /// </summary>
-        private IIfcGeometricRepresentationContext GetRefCtx(IfcStore model, string refNo)
-        {
-            var refCtx = (IIfcGeometricRepresentationContext)model.Instances.Where(o => ("#" + o.GetHashCode()).Equals(refNo)).Single();
-
-            return refCtx;
         }
 
         /// <summary>

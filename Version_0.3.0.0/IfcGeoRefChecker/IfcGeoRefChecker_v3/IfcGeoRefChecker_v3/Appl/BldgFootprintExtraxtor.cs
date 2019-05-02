@@ -158,7 +158,7 @@ namespace IfcGeoRefChecker.Appl
             catch(Exception ex)
             {
                 MessageBox.Show("Error occured while calculating Building Footprint." + ex);
-
+                
                 WKTstring = "error";
             }
 

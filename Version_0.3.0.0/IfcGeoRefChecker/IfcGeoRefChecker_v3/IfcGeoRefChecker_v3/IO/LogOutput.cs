@@ -50,7 +50,6 @@ namespace IfcGeoRefChecker.IO
                     }
 
                     Log.Information("GeoRef Log-file successfully exported.");
-
                 }
 
                 catch(Exception ex)
@@ -188,13 +187,26 @@ namespace IfcGeoRefChecker.IO
             }
             else
             {
+                double rotX, rotY;
+
+                if(lev.RotationXY == null)
+                {
+                    rotX = 0;
+                    rotY = 1;
+                }
+                else
+                {
+                    rotX = lev.RotationXY[0];
+                    rotY = lev.RotationXY[1];
+                }
+
                 logLevel50 += " Project for which IfcMapConversion applies: " + lev.Reference_Object[0] + "=" + lev.Reference_Object[1]
                 + "\r\n MapConversion element: " + lev.Instance_Object[0] + "=" + lev.Instance_Object[1]
                 + "\r\n  Translation Eastings:" + lev.Translation_Eastings
                 + "\r\n  Translation Northings:" + lev.Translation_Northings
                 + "\r\n  Translation Height:" + lev.Translation_Orth_Height
-                + "\r\n  Rotation X-axis(Abscissa):" + lev.RotationXY[0]
-                + "\r\n  Rotation X-axis(Ordinate):" + lev.RotationXY[1]
+                + "\r\n  Rotation X-axis(Abscissa):" + rotX
+                + "\r\n  Rotation X-axis(Ordinate):" + rotY
                 + "\r\n  Scale:" + lev.Scale
                 + "\r\n CRS element: "
                 + "\r\n  Name:" + lev.CRS_Name

@@ -22,7 +22,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads all IfcProject-Entities (should be one for valid IFC-file)
+        /// Returns the first IfcProject entity. 
+        /// Valid files should only contain one IfcProject.
         /// </summary>
         public IIfcProject ProjReader()
         {
@@ -40,7 +41,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads all IfcSite-Entities (should be one for correct IFC-implementation of exproting BIM-software)
+        /// Returns the first IfcSite entity. 
+        /// Files according IFC implementers agreements should contain only one IfcSite.
         /// </summary>
         public IIfcSite SiteReader()
         {
@@ -58,7 +60,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads all IfcBuilding-Entities (mostly one, sometimes more but not handled in this application)
+        /// Returns the first IfcBuilding entity. 
+        /// More than one IfcBuilding in one file is not in scope yet.
         /// </summary>
         public IIfcBuilding BldgReader()
         {
@@ -76,7 +79,9 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads all IfcGeometricRepresentationContext (should be one 1 (model view) or 2 (model and plan view) for valid IFC-file)
+        /// Returns a list of IfcGeometricRepresentationContext entities. 
+        /// Valid IFC-files should contain at least one context for model view. 
+        /// Optionally there could be another context for plan view.
         /// </summary>
         public List<IIfcGeometricRepresentationContext> ContextReader(IIfcProject proj)
         {
@@ -95,8 +100,10 @@ namespace IfcGeoRefChecker.IO
             return noSubCtx;
         }
 
+
         /// <summary>
-        /// Reads all IfcMapConversion associated to IfcProject via context (should be not more than one 1 for valid IFC-file)
+        /// Returns the first IfcMapConversion entity which is connected to the project`s context. 
+        /// Valid IFC-files reference only one such IfcMapConversion.
         /// </summary>
         public IIfcMapConversion MapReader(IIfcGeometricRepresentationContext ctx)
         {
@@ -111,7 +118,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads PropertySet with ProjectedCRS in its name (maybe present when no IfcProjectedCRS is available)
+        /// Returns the first IfcPropertySet with "ProjectedCRS" in its name.
+        /// If applied, there should be only one such entity. 
         /// </summary>
         public IIfcPropertySet PSetReaderCRS()
         {
@@ -127,7 +135,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads PropertySet with MapConversion in its name (maybe present when no IfcMapConversion is available)
+        /// Returns the first IfcPropertySet with "MapConversion" in its name.
+        /// If applied, there should be only one such entity. 
         /// </summary>
         public IIfcPropertySet PSetReaderMap()
         {
@@ -143,7 +152,7 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads Project Length Unit associsated to the projects unit assignment (sholud be one for valid file)
+        /// Returns the Project Length Unit associsated to the projects unit assignment (sholud be one for valid file)
         /// </summary>
         public string LengthUnitReader()
         {
@@ -164,8 +173,9 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Reads Products with global placement (at least one, mostly IfcSite, is necessary)
-        /// </summary>
+        /// Returns a list of from IfcProduct inherited entities with global placement. 
+        /// Valid IFC-files should contain at least one, the IfcSite entity. 
+         /// </summary>
         public List<IIfcProduct> UpperPlcmProdReader()
         {
             var res = model.Instances.Where<IIfcLocalPlacement>(e => e.PlacementRelTo == null)
