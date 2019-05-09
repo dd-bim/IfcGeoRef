@@ -12,7 +12,7 @@ namespace IfcGeoRefChecker
             InitializeComponent();
 
             block_info.Text =
-                "IFCGeoRefChecker Version 0.3.0.0 (28.02.2019)" +
+                "IFCGeoRefChecker Version 0.3.1.0 (08.05.2019)" +
                 "\r\n" +
                 "\r\nThe IFCGeoRefChecker is a tool for checking, comparing and updating IFC files regarding their georeferencing attributes." +
                 "\r\n" +

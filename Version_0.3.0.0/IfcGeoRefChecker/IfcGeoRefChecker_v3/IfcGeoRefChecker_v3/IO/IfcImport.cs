@@ -12,10 +12,11 @@ namespace IfcGeoRefChecker.IO
     {
         public Dictionary<string, Appl.GeoRefChecker> CheckObjs { get; set; } = new Dictionary<string, Appl.GeoRefChecker>();
         public Dictionary<string, IList<IIfcBuildingElement>> GroundWallObjects { get; set; } = new Dictionary<string, IList<IIfcBuildingElement>>();
+        public Dictionary<string, string> NamePathDict { get; set; } = new Dictionary<string, string>();
 
-        private string fileName;
+        //private string fileName;
 
-        public IfcImport()
+        public IfcImport(string direc)
         {
             try
             {
@@ -23,6 +24,7 @@ namespace IfcGeoRefChecker.IO
 
                 var fd = new Microsoft.Win32.OpenFileDialog();
 
+                fd.InitialDirectory = direc;
                 fd.Filter = "IFC-files (*.ifc)|*.ifc|All Files (*.*)|*.*";
                 fd.Multiselect = true;
 
@@ -32,7 +34,8 @@ namespace IfcGeoRefChecker.IO
 
                 for(int i = 0; i < fd.FileNames.Length; i++)
                 {
-                    this.fileName = Path.ChangeExtension(fd.FileNames[i], null);
+                    var filePath = Path.ChangeExtension(fd.FileNames[i], null);
+                    var fileName = Path.GetFileNameWithoutExtension(fd.FileNames[i]);
 
                     try
                     {
@@ -41,6 +44,8 @@ namespace IfcGeoRefChecker.IO
                         using(var model = IfcStore.Open(fd.FileNames[i]))
                         {
                             Log.Information("Start GeoRef-Check for " + fd.FileNames[i]);
+
+                            this.NamePathDict.Add(fileName, filePath);
 
                             var checkObj = new Appl.GeoRefChecker(model);
                             this.CheckObjs.Add(fileName, checkObj);
@@ -64,7 +69,7 @@ namespace IfcGeoRefChecker.IO
                     }
                 }
             }
-            catch (IOException exIO)
+            catch(IOException exIO)
             {
                 Log.Error("Not able to open file dialog. Error: " + exIO);
                 MessageBox.Show("Not able to open file dialog. Error: " + exIO);

@@ -12,25 +12,37 @@ namespace IfcGeoRefChecker
     {
         private string filePath;
         private string fileName;
-        private string direc;
 
         private Appl.GeoRefChecker jsonMap;
 
         //private IO.JsonOutput jsonMap;
 
-        public Export2IFC(string direc, string filePath, string fileName)
+        public Export2IFC(string filePath, string fileName)
         {
-            this.direc = direc;
+            //this.direc = direc;
             this.filePath = filePath;
             this.fileName = fileName;
 
-            var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\update.json");
+            var fd = new Microsoft.Win32.OpenFileDialog();
+
+            fd.Filter = "json files (*.json)|*.json";
+            fd.Multiselect = true;
+
+            fd.ShowDialog();
+
+            var jsonPath = fd.FileName;
+            var jsonName = fd.SafeFileName;
+
+            var jsonObj = File.ReadAllText(jsonPath);
+
+            //var jsonObj = File.ReadAllText(direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\update.json");
 
             this.jsonMap = new Appl.GeoRefChecker(jsonObj);
 
             InitializeComponent();
 
-            lb_jsonmap.Text = direc + "\\IfcGeoRefChecker\\export\\" + fileName + "_updated.ifc";
+            lb_jsonmap.Text = fileName;
+            lb_jsonmap_json.Text = jsonName;
         }
 
         private void getJsonContent()       //Auslesen der update-JSON in Anbhängigkeit der gewählten Export-Funktion
@@ -62,36 +74,41 @@ namespace IfcGeoRefChecker
             //}
             //else                                                      //DEPRECATED, da projekt nur noch eine Georef50-Instanz enthalten darf --> radio_50 ist standard-export
 
-
             if(radio_40.IsChecked == true)                              //Option GeoRef projektbezogen speichern
             {
                 foreach(var l40 in jsonMap.LoGeoRef40)
                 {
                     l40.ProjectLocation[0] = ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);    //Umwandlung zu Projektlängeneinheit, wenn nötig
-                    l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);  
+                    l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
 
                     l40.TrueNorthXY[0] = lev50map.RotationXY[1];
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
                 }
 
+                lev50map.GeoRef50 = false;
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
+                lev50map.RotationXY[0] = 0;
+                lev50map.RotationXY[1] = 0;
             }
             else if(radio_30.IsChecked == true)                         //Option GeoRef baustellenbezogen speichern
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit); //Addition zur eventuellen vorhandenen Projektkoordinate, 
+                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit); //Addition zur eventuellen vorhandenen Projektkoordinate,
                     l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit); //damit keine projektinterne Verschiebung stattfindet
 
                     l30.ObjectRotationX[0] = lev50map.RotationXY[0];
                     l30.ObjectRotationX[1] = lev50map.RotationXY[1];
                 }
 
+                lev50map.GeoRef50 = false;
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
+                lev50map.RotationXY[0] = 0;
+                lev50map.RotationXY[1] = 0;
             }
-            else if(radio_mix.IsChecked == true)                    //Option GeoRef-Location baustellenbezogen und Rotation projektbezogen speichern (Revit-konform)               
+            else if(radio_mix.IsChecked == true)                    //Option GeoRef-Location baustellenbezogen und Rotation projektbezogen speichern (Revit-konform)
             {
                 foreach(var l30 in jsonMap.LoGeoRef30)
                 {
@@ -105,8 +122,11 @@ namespace IfcGeoRefChecker
                     l40.TrueNorthXY[1] = lev50map.RotationXY[0];
                 }
 
+                lev50map.GeoRef50 = false;
                 lev50map.Translation_Eastings = 0;
                 lev50map.Translation_Northings = 0;
+                lev50map.RotationXY[0] = 0;
+                lev50map.RotationXY[1] = 0;
             }
 
             if(check_height.IsChecked == true)
@@ -144,7 +164,7 @@ namespace IfcGeoRefChecker
 
             var jsonUpd = JsonConvert.SerializeObject(jsonMap, Formatting.Indented);
 
-            var ifcResults = new Results(direc, filePath, this.fileName, jsonUpd);
+            var ifcResults = new Results(this.filePath, this.fileName, jsonUpd);
             ifcResults.Show();
         }
 
@@ -154,7 +174,7 @@ namespace IfcGeoRefChecker
 
             var jsonUpd = JsonConvert.SerializeObject(jsonMap, Formatting.Indented);
 
-            var write = new IO.IfcWriter(direc + "\\IfcGeoRefChecker\\export\\", filePath, fileName, jsonUpd);
+            var write = new IO.IfcWriter(filePath, fileName, jsonUpd);
         }
 
         private void check_height_Checked(object sender, RoutedEventArgs e)

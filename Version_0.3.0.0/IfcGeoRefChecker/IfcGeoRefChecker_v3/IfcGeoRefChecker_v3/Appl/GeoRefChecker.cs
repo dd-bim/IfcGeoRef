@@ -466,36 +466,62 @@ namespace IfcGeoRefChecker.Appl
 
                 l50.Instance_Object = GetInfo(psetMap);
 
-                l50.Translation_Eastings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Eastings").Single()) as IfcPropertySingleValue).NominalValue);
+                
 
-                l50.Translation_Northings = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "Northings").Single()) as IfcPropertySingleValue).NominalValue);
+                var prop = (psetMap.HasProperties.Where(p => p.Name == "Eastings").SingleOrDefault() as IIfcPropertySingleValue);
+                var propVal = prop.NominalValue;
+                var vall = propVal.Value;
 
-                l50.Translation_Orth_Height = ((IfcLengthMeasure)((psetMap.HasProperties.Where(p => p.Name == "OrthogonalHeight").Single()) as IfcPropertySingleValue).NominalValue);
+                var sd = double.TryParse(vall.ToString(), out double asas);
+
+                l50.Translation_Eastings = GetPropertyValueNo(psetMap, "Eastings");
+                l50.Translation_Northings = GetPropertyValueNo(psetMap, "Northings");
+                l50.Translation_Orth_Height = GetPropertyValueNo(psetMap, "OrthogonalHeight");
 
                 l50.RotationXY = new List<double>();
 
-                l50.RotationXY.Add(((IfcReal)((psetMap.HasProperties.Where(p => p.Name == "XAxisAbscissa").Single()) as IfcPropertySingleValue).NominalValue));
+                l50.RotationXY.Add(GetPropertyValueNo(psetMap, "XAxisAbscissa"));
+                l50.RotationXY.Add(GetPropertyValueNo(psetMap, "XAxisOrdinate"));
 
-                l50.RotationXY.Add(((IfcReal)((psetMap.HasProperties.Where(p => p.Name == "XAxisOrdinate").Single()) as IfcPropertySingleValue).NominalValue));
+                l50.Scale = GetPropertyValueNo(psetMap, "Scale");
 
-                l50.Scale = ((IfcReal)((psetMap.HasProperties.Where(p => p.Name == "Scale").Single()) as IfcPropertySingleValue).NominalValue);
+                l50.CRS_Name = GetPropertyValueStr(psetCrs, "Name");
+                l50.CRS_Description = GetPropertyValueStr(psetCrs, "Description");
+                l50.CRS_Geodetic_Datum = GetPropertyValueStr(psetCrs, "GeodeticDatum");
+                l50.CRS_Vertical_Datum = GetPropertyValueStr(psetCrs, "VerticalDatum");
+                l50.CRS_Projection_Name = GetPropertyValueStr(psetCrs, "MapProjection");
+                l50.CRS_Projection_Zone = GetPropertyValueStr(psetCrs, "MapZone");
 
-                l50.CRS_Name = (IfcLabel)((psetCrs.HasProperties.Where(p => p.Name == "Name").Single()) as IfcPropertySingleValue).NominalValue;
-                l50.CRS_Description = (IfcText)((psetCrs.HasProperties.Where(p => p.Name == "Description").Single()) as IfcPropertySingleValue).NominalValue;
-                l50.CRS_Geodetic_Datum = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "GeodeticDatum").Single()) as IfcPropertySingleValue).NominalValue;
-                l50.CRS_Vertical_Datum = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "VerticalDatum").Single()) as IfcPropertySingleValue).NominalValue;
-                l50.CRS_Projection_Name = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "MapProjection").Single()) as IfcPropertySingleValue).NominalValue;
-                l50.CRS_Projection_Zone = (IfcIdentifier)((psetCrs.HasProperties.Where(p => p.Name == "MapZone").Single()) as IfcPropertySingleValue).NominalValue;
 
                 Log.Information("GeoRefChecker: Reading Level 50 attributes successful.");
             }
 
             catch(Exception e)
             {
+                MessageBox.Show(e.Message);
+
                 Log.Error("GeoRefChecker: Error occured while reading LoGeoRef50 attribute values. \r\nError message: " + e.Message);
             }
 
             return l50;
+        }
+
+        private double GetPropertyValueNo(IIfcPropertySet pset, string propName)
+        {
+            var prop = (pset.HasProperties.Where(p => p.Name == propName).SingleOrDefault() as IIfcPropertySingleValue);
+            var propVal = prop.NominalValue.ToString();
+
+            var val = double.TryParse(propVal, out double doubleVal);
+
+            return doubleVal;
+        }
+
+        private string GetPropertyValueStr(IIfcPropertySet pset, string propName)
+        {
+            var prop = (pset.HasProperties.Where(p => p.Name == propName).SingleOrDefault() as IIfcPropertySingleValue);
+            var propVal = prop.NominalValue.ToString();
+
+            return propVal;
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ namespace IfcGeoRefChecker.Appl
         private List<LinePoints> wallLinedClean = new List<LinePoints>();
         private List<LinePoints> cvxLinesClean = new List<LinePoints>();
         private List<LinePoints> extWallLinesClean = new List<LinePoints>();
+        private List<VtxForHull> convexHull = new List<VtxForHull>();
 
         private LinePoints firstLine;
 
@@ -154,15 +155,24 @@ namespace IfcGeoRefChecker.Appl
                 {
                     var poly = new LinePoints(realIntersecPts[i], realIntersecPts[i + 1]);
                 }
+
+                return WKTstring;
             }
             catch(Exception ex)
             {
                 MessageBox.Show("Error occured while calculating Building Footprint." + ex);
-                
-                WKTstring = "error";
-            }
 
-            return WKTstring;
+                WKTstring = "POLYGON((";
+
+                foreach(var cvxPos in this.convexHull)
+                {
+                    WKTstring += string.Format("{0} {1}))", cvxPos.Position[0], cvxPos.Position[1]);
+                }
+
+                WKTstring += string.Format("{0} {1}))", convexHull[0].Position[0], convexHull[0].Position[1]);
+
+                return WKTstring;
+            }
         }
 
         //------------------------------------------------------------------------------------------------------------------------------------------
@@ -170,7 +180,10 @@ namespace IfcGeoRefChecker.Appl
         //-----------------------
         //-----------------------
 
-        public List<LinePoints> ConvertToMeter(List<LinePoints> walls, string unit)
+        /// <summary>
+        /// Calculate the outer building perimeter out of an set of walls
+        /// </summary>
+        private List<LinePoints> ConvertToMeter(List<LinePoints> walls, string unit)
         {
             var wallLined = new List<LinePoints>();
 
@@ -530,11 +543,25 @@ namespace IfcGeoRefChecker.Appl
                     {
                         var polyline = (extrArea as IIfcArbitraryClosedProfileDef).OuterCurve;
 
-                        var ifcPoints = (polyline as IIfcPolyline).Points;
-
-                        foreach(var cartPt in ifcPoints)
+                        if(polyline is IIfcPolyline)
                         {
-                            localPts.Add(Point3.Create(cartPt.X, cartPt.Y, 0));
+                            var ifcPoints = (polyline as IIfcPolyline).Points;
+
+                            foreach(var cartPt in ifcPoints)
+                            {
+                                localPts.Add(Point3.Create(cartPt.X, cartPt.Y, 0));
+                            }
+                        }
+                        else if(polyline is IIfcIndexedPolyCurve)
+                        {
+                            var ifcPoints = (polyline as IIfcIndexedPolyCurve).Points;
+
+                            var coordList2D = (ifcPoints as IIfcCartesianPointList2D).CoordList;
+
+                            foreach(var coord in coordList2D)
+                            {
+                                localPts.Add(Point3.Create(coord[0], coord[1], 0));
+                            }
                         }
                     }
 
@@ -642,33 +669,35 @@ namespace IfcGeoRefChecker.Appl
 
             if(rep is IIfcShapeRepresentation) //nur für Geometrie (!= TopologyRep or StyledRep)
             {
-                var lines = (rep as IIfcShapeRepresentation).Items.OfType<IIfcPolyline>().Single(); //zunächst nur Polylines mit CartesianPoints
-
-                var coords = lines.Points;
-
+                var polyline = (rep as IIfcShapeRepresentation).Items.SingleOrDefault();
                 List<Point2> ptPair = new List<Point2>();
+                //var coords = new List<double>()
 
-                for(var i = 0; i < coords.Count; i++)
+                if(polyline is IIfcPolyline)
                 {
-                    //Console.WriteLine("  -> Coords-Axis: " + coords[i].X + " , " + coords[i].Y);
+                    var coords = (polyline as IIfcPolyline).Points;
 
-                    //transformiere lokale Achskoordinaten in globales System:
-                    var globPt = Axis2Placement3D.ToReference(siteSystem, Point2.Create(coords[i].X, coords[i].Y));
+                    foreach(var coord in coords)
+                        ptPair.Add(CalculateAxisPt(new double[] { coord.X, coord.Y }));
+                }
+                else if(polyline is IIfcIndexedPolyCurve)
+                {
+                    var ifcPoints = (polyline as IIfcIndexedPolyCurve).Points;
 
-                    //Console.WriteLine(globPt.X + " / " + globPt.Y + " / " + globPt.Z);
+                    if(ifcPoints is IIfcCartesianPointList2D)
+                    {
+                        var coords = (ifcPoints as IIfcCartesianPointList2D).CoordList;
 
-                    //erzeuge 2D-Punkt und füge diesen einer 2D-Punktliste hinzu
-                    var pt2D = Point2.Create(globPt.X, globPt.Y);
-                    //absIFCPts.Add(pt2D);
+                        foreach(var coord in coords)
+                            ptPair.Add(CalculateAxisPt(new double[] { coord[0], coord[1] }));
+                    }
+                    if(ifcPoints is IIfcCartesianPointList3D)
+                    {
+                        var coords = (ifcPoints as IIfcCartesianPointList3D).CoordList;
 
-                    //Console.WriteLine("  -> Coords-Axis (global): " + globPt.X + " , " + globPt.Y);
-
-                    //WriteCoords(Point3.ToCSVString(globPt)); // mit Höhen
-
-                    //Rekonstruktion der Wandachsen:
-                    ptPair.Add(pt2D);
-
-                    //PointsToDXF(pt2D, "AxisPoints", DXFcolor.red);
+                        foreach(var coord in coords)
+                            ptPair.Add(CalculateAxisPt(new double[] { coord[0], coord[1] }));
+                    }
                 }
 
                 wallLine.segmentA = ptPair[0];
@@ -676,6 +705,17 @@ namespace IfcGeoRefChecker.Appl
             }
 
             return wallLine;
+        }
+
+        private Point2 CalculateAxisPt(double[] coord)
+        {
+            var globPt = Axis2Placement3D.ToReference(siteSystem, Point2.Create(coord[0], coord[1]));
+
+            //erzeuge 2D-Punkt und füge diesen einer 2D-Punktliste hinzu
+            var pt2D = Point2.Create(globPt.X, globPt.Y);
+
+            //Rekonstruktion der Wandachsen:
+            return pt2D;
         }
 
         public void GetFootprintGeometry(IIfcRepresentation rep)
@@ -697,7 +737,8 @@ namespace IfcGeoRefChecker.Appl
 
             //Console.WriteLine("Running...");
             var now = DateTime.Now;
-            var convexHull = ConvexHull.Create(vertices).Points.ToList();
+            this.convexHull = ConvexHull.Create(vertices).Points.ToList();
+
             var interval = DateTime.Now - now;
             //Console.WriteLine("Out of the {0} 2D vertices, there are {1} on the convex hull.", vertices.Length, convexHull.Count());
             //Console.WriteLine("time = " + interval);

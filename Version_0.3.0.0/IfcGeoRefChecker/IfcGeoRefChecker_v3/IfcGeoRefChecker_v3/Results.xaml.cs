@@ -14,7 +14,6 @@ namespace IfcGeoRefChecker
         private string ifcVersion;
 
         private string fileName;
-        private string direc;
         private string ifcPath;
 
         //private IO.JsonOutput json = new IO.JsonOutput();
@@ -27,7 +26,7 @@ namespace IfcGeoRefChecker
         private Appl.Level40 lev40proj;
         private Appl.Level50 lev50proj;
 
-        public Results(string direc, string ifcPath, string fileName, string jsonObj)
+        public Results(string ifcPath, string fileName, string jsonObj)
         {
             try
             {
@@ -36,7 +35,6 @@ namespace IfcGeoRefChecker
                 //json.PopulateJson(jsonObj);
                 this.ifcVersion = json.IFCSchema;
                 this.fileName = fileName;
-                this.direc = direc;
                 this.ifcPath = ifcPath;
 
                 this.lev10Bldg = (from l10Bldg in json.LoGeoRef10
@@ -226,7 +224,7 @@ namespace IfcGeoRefChecker
 
             var jsonUpdMan = JsonConvert.SerializeObject(json, Formatting.Indented);
 
-            var write = new IO.IfcWriter(direc + "\\IfcGeoRefChecker\\export\\", ifcPath, fileName, jsonUpdMan);
+            var write = new IO.IfcWriter(ifcPath, fileName, jsonUpdMan);
         }
 
         private void check_10_Checked(object sender, RoutedEventArgs e)

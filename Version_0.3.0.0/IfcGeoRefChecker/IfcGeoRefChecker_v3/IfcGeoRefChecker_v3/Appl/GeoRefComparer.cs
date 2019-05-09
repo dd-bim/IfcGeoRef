@@ -179,12 +179,9 @@ namespace IfcGeoRefChecker.Appl
 
         private void WriteCompareLog()
         {
-            var splits = refFile.Split('\\');
-            var name = splits[splits.Length - 1];
-
             Log.Information("GeoRefComparer: Write CompareLog file...");
 
-            using(var writeCompareLog = File.CreateText(this.direc + "\\IfcGeoRefChecker\\export\\" + name + "_compare.txt"))
+            using(var writeCompareLog = File.CreateText(this.direc + refFile + "_compare.txt"))
             {
                 try
                 {

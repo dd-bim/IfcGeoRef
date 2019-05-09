@@ -12,27 +12,28 @@ namespace IfcGeoRefChecker
     /// </summary>
     public partial class UpdateMan : Window
     {
-        //private IO.JsonOutput jsonMap;
         private Appl.GeoRefChecker jsonMap;
-
+        private string fileName;
         private string direc;
 
-        public UpdateMan(string direc)
+        public UpdateMan(Appl.GeoRefChecker jsonMap, string direc, string fileName)
         {
             this.direc = direc;
+            this.fileName = fileName;
+            this.jsonMap = jsonMap;
 
-            var path = direc + "check.json";
+            //var path = direc + "check.json";
 
-            var jsonObj = File.ReadAllText(path);
+            //var jsonObj = File.ReadAllText(path);
 
-            this.jsonMap = new Appl.GeoRefChecker(jsonObj);
+            //this.jsonMap = new Appl.GeoRefChecker(jsonObj);
 
             InitializeComponent();
 
-            GetCheckAttributes(this.jsonMap);
+            GetCheckAttributes();
         }
 
-        private void GetCheckAttributes(Appl.GeoRefChecker checkObk)
+        private void GetCheckAttributes()
         {
             try
             {
@@ -167,7 +168,8 @@ namespace IfcGeoRefChecker
                     lev50proj.RotationXY.Add(vector.Y);
                 }
 
-                var write = new IO.JsonOutput(this.jsonMap, this.direc + "update");
+                var write = new IO.JsonOutput();
+                write.JsonOutputDialog(this.jsonMap, this.direc, this.fileName + "update");
 
                 Log.Information("GeoRefUpdater: Write updates to update.json file was successful.");
             }

@@ -16,7 +16,7 @@ namespace IfcGeoRefChecker.IO
         /// <summary>
         /// Writes updated IFC-file (old file will be opened again)
         /// </summary>
-        public IfcWriter(string newDirec, string ifcPath, string fileName, string jsonObj)
+        public IfcWriter(string ifcPath, string fileName, string jsonObj)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace IfcGeoRefChecker.IO
                         {
                             foreach(var lev40 in json.LoGeoRef40)
                             {
-                                var project = GetRefObj(model, lev40.Instance_Object[2]);
+                                var project = GetRefObj(model, lev40.Reference_Object[2]);
                                 var creation = GetCreationDate(project);
 
                                 var contexts = (project as IIfcProject).RepresentationContexts;
@@ -342,21 +342,21 @@ namespace IfcGeoRefChecker.IO
 
                                     pSetMapConv.RelatedObjects.Add((Xbim.Ifc2x3.Kernel.IfcObject)project);
                                 }
-                                else //IFC4
+                                else //IFC4 --> keine PropertySets
                                 {
                                     //Verzweigung
                                     IIfcMapConversion mapConv;
                                     IIfcProjectedCRS mapCRS;
 
-                                    if(lev50.Instance_Object == null)       //keine MapConversion bisher vorhanden
+                                    if(lev50.Instance_Object.Count == 0)       //keine MapConversion bisher vorhanden
                                     {
                                         mapConv = model.Instances.New<IfcMapConversion>(m =>
                                         {
                                             m.SourceCRS = (refCtx as IIfcGeometricRepresentationContext);
                                             m.TargetCRS = model.Instances.New<IfcProjectedCRS>();
-
-                                            mapCRS = (IfcProjectedCRS)m.TargetCRS;
                                         });
+
+                                        mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
                                     }
                                     else                                    //MapConversion vorhanden
                                     {
@@ -367,34 +367,32 @@ namespace IfcGeoRefChecker.IO
                                         if(mapCRS == null)
                                         {
                                             mapConv.TargetCRS = model.Instances.New<IfcProjectedCRS>();
-
-                                            mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
                                         }
-
-                                        var mapUnit = mapCRS.MapUnit;
-
-                                        mapConv.Eastings = (double)lev50.Translation_Eastings;
-                                        mapConv.Northings = (double)lev50.Translation_Northings;
-                                        mapConv.OrthogonalHeight = (double)lev50.Translation_Orth_Height;
-                                        mapConv.XAxisAbscissa = lev50.RotationXY[0];
-                                        mapConv.XAxisOrdinate = lev50.RotationXY[1];
-                                        mapConv.Scale = lev50.Scale;
-
-                                        mapCRS.Name = lev50.CRS_Name;
-                                        mapCRS.Description = lev50.CRS_Description;
-                                        mapCRS.GeodeticDatum = lev50.CRS_Geodetic_Datum;
-                                        mapCRS.VerticalDatum = lev50.CRS_Vertical_Datum;
-                                        mapCRS.MapProjection = lev50.CRS_Projection_Name;
-                                        mapCRS.MapZone = lev50.CRS_Projection_Zone;
-
-                                        var unit = model.Instances.New<IfcSIUnit>(u =>
-                                        {
-                                            u.UnitType = IfcUnitEnum.LENGTHUNIT;
-                                            u.Name = IfcSIUnitName.METRE;
-                                        });
-
-                                        mapCRS.MapUnit = unit;
+                                        mapCRS = (IfcProjectedCRS)mapConv.TargetCRS;
                                     }
+                                    //var mapUnit = mapCRS.MapUnit;
+
+                                    mapConv.Eastings = (double)lev50.Translation_Eastings;
+                                    mapConv.Northings = (double)lev50.Translation_Northings;
+                                    mapConv.OrthogonalHeight = (double)lev50.Translation_Orth_Height;
+                                    mapConv.XAxisAbscissa = lev50.RotationXY[0];
+                                    mapConv.XAxisOrdinate = lev50.RotationXY[1];
+                                    mapConv.Scale = lev50.Scale;
+
+                                    mapCRS.Name = lev50.CRS_Name;
+                                    mapCRS.Description = lev50.CRS_Description;
+                                    mapCRS.GeodeticDatum = lev50.CRS_Geodetic_Datum;
+                                    mapCRS.VerticalDatum = lev50.CRS_Vertical_Datum;
+                                    mapCRS.MapProjection = lev50.CRS_Projection_Name;
+                                    mapCRS.MapZone = lev50.CRS_Projection_Zone;
+
+                                    var unit = model.Instances.New<IfcSIUnit>(u =>
+                                    {
+                                        u.UnitType = IfcUnitEnum.LENGTHUNIT;
+                                        u.Name = IfcSIUnitName.METRE;
+                                    });
+
+                                    mapCRS.MapUnit = unit;
                                 }
 
                                 var proj = (IIfcObjectDefinition)project;
@@ -410,7 +408,21 @@ namespace IfcGeoRefChecker.IO
 
                         txn.Commit();
                     }
-                    model.SaveAs(newDirec + fileName + "_updated");
+
+                    var saveFileDialog1 = new Microsoft.Win32.SaveFileDialog();
+
+                    saveFileDialog1.InitialDirectory = ifcPath;        //Pfad, der zunächst angeboten wird
+                    saveFileDialog1.DefaultExt = "ifc";
+                    saveFileDialog1.Filter = "IFC-files (*.ifc)|*.ifc";
+                    saveFileDialog1.FilterIndex = 1;
+                    saveFileDialog1.Title = "Save updated IFC-file";
+                    saveFileDialog1.RestoreDirectory = true;
+                    saveFileDialog1.FileName = fileName + "_edit.ifc";
+                    saveFileDialog1.ShowDialog();
+
+                    var text = saveFileDialog1.FileName;
+
+                    model.SaveAs(text);
 
                     var str = "IFC Writer: Updating IFC-file was successful.";
                     Log.Information(str);
@@ -431,7 +443,7 @@ namespace IfcGeoRefChecker.IO
         /// </summary>
         private IIfcObjectDefinition GetRefObj(IfcStore model, string refId)
         {
-            var refObj = (IIfcObjectDefinition)model.Instances.Where(o => (o as IIfcObjectDefinition).GlobalId == refId);
+            var refObj = model.Instances.OfType<IIfcObjectDefinition>().Where(o => (o as IIfcObjectDefinition).GlobalId.Value.ToString().Equals(refId)).SingleOrDefault();
 
             return refObj;
         }
