@@ -209,6 +209,7 @@ namespace IfcGeoRefChecker
 
                     var addCheckObjs = addedObj.CheckObjs;
                     var addGroundWalls = addedObj.GroundWallObjects;
+                    var addedPath = addedObj.NamePathDict;
 
                     try
                     {
@@ -220,6 +221,11 @@ namespace IfcGeoRefChecker
                         foreach(var kp in addGroundWalls)
                         {
                             this.GroundWallObjects.Add(kp.Key, kp.Value);
+                        }
+
+                        foreach(var kp in addedPath)
+                        {
+                            this.NamePathDict.Add(kp.Key, kp.Value);
                         }
                     }
                     catch(ArgumentException aex)
@@ -252,7 +258,7 @@ namespace IfcGeoRefChecker
 
                 foreach(var checkObj in this.CheckObjList)
                 {
-                    var path = direc + "\\IfcGeoRefChecker\\export\\" + checkObj.Key;
+                    var path = direc + checkObj.Key;
 
                     if(check_log.IsChecked == true)
                     {
