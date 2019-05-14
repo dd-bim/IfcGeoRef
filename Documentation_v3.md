@@ -494,13 +494,13 @@ Comparison to Haus_1_TGA.ifc:
 - Possible reason: no standard program for .txt and/or .json files is set in your system
 - Proposed solution: set a standard program for opening of .txt and/or .json files, e. g. editor
 
-##Built with
+## Built with
 
 - [xBIM Toolkit](http://docs.xbim.net/) - Main functionality used to read IFC-files
 - [Json.NET](https://www.newtonsoft.com/json) - Functionality for exporting JSON-files
 - [Pixabay](https://pixabay.com/) - Graphics used to design LoGeoRef-Icons
 
-##Contributors
+## Contributors
 
 The concept together with the tool was developed within the scope of the following sponsorship projects:
 
@@ -508,7 +508,7 @@ The concept together with the tool was developed within the scope of the followi
 |--------|--------|
 |   <img src="pic/BMWi_4C_Gef_en.jpg" align=center style="width: 200px;"/>    |   Supported by: <br> <img src="pic/DD-BIM-LOGO.png" style="width: 250px;"/> <br> Landeshauptstadt Dresden <br>Amt für Wirtschaftsförderung |
 
-##Contact
+## Contact
 
  <img src="pic/logo_htwdd.jpg" align=center style="width: 300px;"/>  
 
@@ -529,7 +529,7 @@ Project staff:
 
 
 
-##License
+## License
 
 This project is licensed under the MIT License:
 
