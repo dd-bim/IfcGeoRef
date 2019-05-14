@@ -352,21 +352,28 @@ Via click on "Save and Close" the input will be saved internally for the later I
 
 #### Second option: edit via map
 
-This option requires an web browser on your system and a Internet connection as well.
-Via click on "...via browser map" your local setted browser will be opened. Internally the building perimeter of the in the IFC file stored building will be calculated and should be shown in the map in your browser window.
+The process will be started vie click on "...via browser map" button.
 
-You are now able to translate and rotate the building in the browser window. In addition you could determine the postal address at the chosen position automatically or via text input.
+At first IfcGeorefChecker will calculate the building perimeter out of the wall geometry of your IFC model. Please note that storing of geometry in IFC has a wide range of possibilities. Therefore it could be possible that the calculation will be failed. Please contact us if this will happen!
 
-Please note that the calculation of the building perimeter out of the IFC file is a complex process. For this reason the calculation could last a while and may be incorrect. Please contact us in this case.
+After calculation the building perimeter will be written to a json file which you should store at a known location in yout file system.
 
-If your are happy with the position of the building in the map just export the new position. 
-After that you can close the browser window and continue with the application.
+The next step will take place externally in your local setted browser. The browser application "Building Locator" will be loaded automatically. Please make sure that you are connected to the Internet.
 
+![Building Locator](pic/GeoRefChecker_Locator.png)
+
+The Building Locator allows us to change the georef of your building. You are now able to translate and rotate the building in the browser window. In addition you could determine the postal address at the chosen position automatically or via text input.
+Please follow the steps which are displayed.
+
+As result there will be a new json file with the updated georeferencing attributes. This file is the base for the next step in the IfcGeoRefChecker.
 
 ### Export changes to IFC
 
 After updating georeferencing attributes via map or manually you need to export this to a new IFC file.
-Because of the various understanding of georeferencing and also the different IFC schema versions it is indispensable to choose some export settings for your export.
+
+Via click on "Export Updates to IFC" you need to import the updated georef json file which you have stored in the step before.
+
+After that a window will be opened with some options for IFC export. Because of the various understanding of georeferencing and also the different IFC schema versions it is indispensable to choose some export settings for your export.
 
 The export window looks like this:
 
@@ -392,8 +399,6 @@ If finished you can export the data to IFC via "Export to IFC" button.
 
 
 #### Further remarks
-
-- The resulting IFC-file will not replace the old one. Instead there will be a new file with the old file name plus suffix "_edit"
 
 - In the resulting IFC old instance entites will not be deleted but their reference will be set to the new instance. The reason for that is that it cannot be ruled out if, e.g. an CartesianPoint, is referenced by another entity with no georeferencing pupose, e.g. for geometry entities.
 
@@ -483,10 +488,6 @@ Comparison to Haus_1_TGA.ifc:
 - Possible reason: IFC-file does not contain reference objects -> if it occurs syntax is not valid against IFC schema 
 - Proposed solution: ignore or new export in originating software (nevertheless Comparison-file will be written)
 
-**While Writing / Exporting files:**
-
-- Possible reason: no permission to write in the directory of the imported IFC-file 
-- Proposed solution: copy IFC-file to a local directory and try again
 
 **While Opening Log and/or JSON files:**
 
