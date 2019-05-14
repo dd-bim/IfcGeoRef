@@ -1,6 +1,6 @@
-# ![Icon LoGeoRef](pic/icon_img.png) IFCGeoRefChecker
+ ![Icon LoGeoRef](pic/icon_img.png)   <img src="pic/DD-BIM-LOGO.png" align="right" style="width:400px;"/>
 
-# Quick Guide
+# IfcGeoRefChecker- Quick Guide
 
 [TOC]
 
