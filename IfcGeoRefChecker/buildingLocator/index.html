@@ -8,15 +8,15 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" type="text/css">
+    <!--<link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css" type="text/css">-->
     <style>
     </style>
-    <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <!--<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">-->
   </head>
   <body class="h-100">
     <div class="containter-fluid h-100">
       
-      <div class="row h-100">
+      <div class="row h-100" id="singleRow">
         <div class="col-md-6" id="map">
           <div class="bl-toolbar">
             <div class="btn-group btn-group-toggle">
@@ -30,8 +30,9 @@
             <div class="btn btn-secondary" id="delete">delete</div>
             <div class="btn btn-secondary" id="zoomToFeature">Zoom to Feature</div>
           </div>
-          <div id="myPosition"></div>
+          <!--<div id="myPosition"></div>-->
         </div>
+        <div id="myPosition"></div>
         <div class="col-md-6" id="controls">
           <h1>HTW Dresden Building Locator</h1>
           <div id="accordion">
@@ -48,7 +49,7 @@
 
               <div id="ca-file" class="collapse show" aria-labelledby="ca-file-header" data-parent="#accordion">
                 <div class="card-body">
-                  
+                  <p class="alert alert-warning" role="alert">Please open the exported JSON-File from GeoRefChecker! </p>
                   <div class="custom-file">
                     <input type="file" id="files" class="custom-file-input">
                     <label class="custom-file-label" for="files">Choose File</label>
@@ -89,19 +90,36 @@
                     </ul>
                     <div class="tab-content" id="myTabContent">
                       <div class="tab-pane fade show active" id="lv10" role="tabpanel" aria-labelledby="lv10-tab">
-                        <h5>Level 10</h5>
+                        <div class="form-group row">
+                          <div id="lvl10">
+                          </div>
+                        </div>
                       </div>
                       <div class="tab-pane fade" id="lv20" role="tabpanel" aria-labelledby="lv20-tab">
-                        <h5>Level 20</h5>
+                        <div class="form-group row">
+                          <label for="level20Status" readonly class="col-sm-2 col-form-label">Level 20 Status</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="level20Status">
+                          </div>
+                          <label for="lat20" readonly class="col-sm-2 col-form-label">Latitude</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="lat20">
+                          </div>
+                          <label for="lon20" readonly class="col-sm-2 col-form-label">Longitude</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="lon20">
+                          </div>
+                          <label for="elev20" readonly class="col-sm-2 col-form-label">Elevation</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control-plaintext" id="elev20">
+                          </div>
+                        </div>
                       </div>
                       <div class="tab-pane fade" id="lv30" role="tabpanel" aria-labelledby="lv30-tab">
-                        <h5>Level 30</h5>
                       </div>
                       <div class="tab-pane fade" id="lv40" role="tabpanel" aria-labelledby="lv40-tab">
-                        <h5>Level 40</h5>
                       </div>
                       <div class="tab-pane fade" id="lv50" role="tabpanel" aria-labelledby="lv50-tab">
-                        <h5>Level 50</h5>
                         <div class="form-group row">
                           <label for="level50Status" readonly class="col-sm-2 col-form-label">Level 50 Status</label>
                           <div class="col-sm-10">
@@ -152,7 +170,50 @@
                         <option value="25832">EPSG: 25832 (UTM Zone 32N)</option>
                         <option value="4326">EPSG: 4326 (WGS84 LatLon)</option>
                         <option value="3857">EPSG: 3857 (Web-Mercator)</option>
+                        <!--<option value="31467">EPSG: 31467 (GK-Zone3)</option>-->
                       </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="customWMSCheck">
+                        <label class="form-check-label" for="customWMSCheck">Use Custom WMS</label>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                          <fieldset id="wmsFS" disabled>
+                            <div class="form-row">
+                              <div class="form-group col-md-6">
+                                <label for="wmsUrl">WMS-URL</label>
+                                <input type="text" class="form-control" id="wmsUrl" value="http://www.geoproxy.geoportal-th.de/geoproxy/services/DOP?">
+                              </div>
+                              <div class="form-group col-md-6">
+                                <label for="wmsLayer">Layer</label>
+                                <!--<input type="text" class="form-control" id="wmsLayer" value="nw_dop_cir">-->
+                                <select class="custom-select" id="layerSelect">
+                                  <option selected value="none">Select Layer</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                  <label for="epsgCode">CRS</label>
+                                  <!--<input type="text" class="form-control" id="epsgCode" value="31467">-->
+                                  <select class="custom-select" id="CRSSelect">
+                                      <option selected value="none">Select CRS</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                  <label for="projDef">Proj4 Definition String</label>
+                                  <input type="text" class="form-control" id="projDef" value="+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs ">
+                                </div>
+                              </div>
+                          </fieldset>       
+                        </form>
+                        <div class="row">
+                            <div class="col-sm-10">
+                              <button  class="btn btn-primary" id="addWMS" disabled="true">Save Custom WMS Settings</button>
+                              <button  class="btn btn-primary" id="queryCap" disabled="true">Query Capabilities</button>
+                            </div>
+                        </div>
                       </div>
                   </div>
                 </div>
@@ -198,6 +259,7 @@
               </div>
               <div id="ca-adr" class="collapse" aria-labelledby="ca-adr-header" data-parent="#accordion">
                 <div class="card-body">
+                  <p class="alert alert-warning" role="alert">The building address refers to the orange marked dot of the building footprint </p>
                   <form>
                     <div class="form-row">
                       <div class="form-group col-md-6">
@@ -251,7 +313,10 @@
               </div>
               <div id="ca-save" class="collapse" aria-labelledby="ca-save-header" data-parent="#accordion">
                 <div class="card-body">
-                  <button type="button" class="btn btn-primary" id="savePosition">Save Settings to File</button>
+                  <p class="alert alert-warning" role="alert"> If you have specified all settings correctly and placed the building appropriate save your settings first.
+                      Then download the JSON-File and import it in the GeoRefChecker application for updating the corresponding IFC-File
+                  </p>
+                  <button type="button" class="btn btn-primary" id="savePosition">Save Settings</button>
                   <button type="button" class="btn btn-warning" id="saveFile">Download JSON-File</button>
                 </div>
               </div>
@@ -271,74 +336,11 @@
                 </div>
               </div>
             </div>-->
-
+          </div>
           
-          
-          
-          
-          <!--<textarea id="input">POLYGON((0 0, 300 0, 300 90, 240 90, 240 45, 0 45, 0 0))</textarea>
-          <button id="drawWKT">WKT zeichnen</button>
-          <button id="savePosition">save Position</button>
-          <textarea id="output">result</textarea>
-          <div id="basePointWGS84">ProjektBasisPunkt in WGS 84: </div>
-
-          <fieldset>
-            <button id="getAddress">Adresse ermitteln</button>
-            <button id="saveFile">JSON-Datei herunterladen</button>
-            <div id="status"></div>
-            
-          </fieldset>
-          
-          <table>
-            <tr>
-              <td>Land</td>
-              <td>
-                <textarea id="country"></textarea>
-              </td>
-              <td>Level50 Status</td>
-              <td id="level50Status"></td>
-            </tr>
-            <tr>
-              <td>Region</td>
-              <td>
-                <textarea id="region"></textarea>
-              </td>
-              <td>Eastings</td>
-              <td id="eastings"></td>
-            </tr>
-            <tr>
-              <td>Stadt</td>
-              <td>
-                <textarea id="city"></textarea>
-              </td>
-              <td>Northings</td>
-              <td id="northings"></td>
-            </tr>
-            <tr>
-              <td>PLZ</td>
-              <td>
-                <textarea id="postCode"></textarea>
-              </td>
-              <td>RotationXY</td>
-              <td id="rotation50"></td>
-            </tr>
-            <tr>
-              <td>Straße</td>
-              <td>
-                <textarea id="road"></textarea>
-              </td>
-            </tr>
-            <tr>
-              <td>Hausnummer</td>
-              <td>
-                <textarea	id="houseNumber"></textarea>
-              </td>
-            </tr>
-          </table> -->
         </div>
       </div>
     </div>
-
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
