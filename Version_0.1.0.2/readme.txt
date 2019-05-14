@@ -1,4 +1,0 @@
-- finale Version des GeoRefCheckers (20.04.2018) Version 0.1.0.2
-- ausgeliefert wurde x64-Release-Version ohne Publish als setup 
-- dennoch Setup vorhanden, falls später gewünscht
-- published on dd-bim.org
