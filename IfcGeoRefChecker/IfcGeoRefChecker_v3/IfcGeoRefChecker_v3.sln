@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeoRefChecker_v3", "IfcGeoRefChecker_v3\IfcGeoRefChecker_v3.csproj", "{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BimGisCad", "..\..\..\..\drafts\bimgiscadlib-20181217\bimgiscadlib-master\BimGisCad\BimGisCad.csproj", "{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,14 +21,6 @@ Global
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|x64.ActiveCfg = Release|Any CPU
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|x64.Build.0 = Release|Any CPU
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Debug|x64.ActiveCfg = Debug|x64
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Debug|x64.Build.0 = Debug|x64
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Release|x64.ActiveCfg = Release|x64
-		{FBF7C2A3-EBAC-42A2-A322-584DFFF941B2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

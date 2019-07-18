@@ -12,14 +12,15 @@ namespace IfcGeoRefChecker
             InitializeComponent();
 
             block_info.Text =
-                "IFCGeoRefChecker Version 0.3.1.0 (08.05.2019)" +
+                "IfcGeoRefChecker Version 0.3.2.0 (18.07.2019)" +
                 "\r\n" +
                 "\r\nThe IFCGeoRefChecker is a tool for checking, comparing and updating IFC files regarding their georeferencing attributes." +
                 "\r\n" +
                 "\r\nThe tool was developed at HTW Dresden, University of Applied Sciences, Faculty of Spatial Information." +
                 "\r\n(contact: christian.clemen@htw - dresden.de)" +
                 "\r\n" +
-                 "\r\nThe application was developed based on the xBIM Toolkit. It also uses Newtonsoft.Json for Json-Output and Serilog for Logging.";
+                 "\r\nThe application was developed based on the xBIM Toolkit. It also uses Newtonsoft.Json for Json-Output, Serilog for Logging, " +
+                 "\r\nand also from HTW Dresden: BimGisCadLib, BuildngLocator and IfcBuildingContourCalculator. ";
 
             block_terms.Text =
                 "IFCGeoRefChecker is licensed under the MIT License. \r\n \r\nFor details check the attached documentation." +

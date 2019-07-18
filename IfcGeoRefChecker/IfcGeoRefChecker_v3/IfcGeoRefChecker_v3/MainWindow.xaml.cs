@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Serilog;
 using Xbim.Ifc4.Interfaces;
 
@@ -443,7 +444,7 @@ namespace IfcGeoRefChecker
             try
             {
                 System.Diagnostics.Process.Start(@"Documentation.html");
-                
+
                 Log.Information("Documentation HTML opened.");
             }
             catch(Exception ex)
@@ -538,13 +539,21 @@ namespace IfcGeoRefChecker
 
                     var unit = checkObj.LengthUnit;
 
-                    var wkt = new Appl.BldgFootprintExtraxtor().CalcBuildingFootprint(groundWalls, unit);
+                    Mouse.OverrideCursor = Cursors.Wait;
+
+                    try
+                    {
+                        var wkt = new Appl.BldgContourCalculator().GetBldgContour(groundWalls, unit);
+                        checkObj.WKTRep = wkt;
+                    }
+                    finally
+                    {
+                        Mouse.OverrideCursor = null;
+                    }
 
                     Log.Information("Calculation finished.");
 
                     Log.Information("Write JSON-check file with WKTZ-string for perimeter to local 'buildingLocator\\json' directory...");
-
-                    checkObj.WKTRep = wkt;
 
                     var jsonWkt = new IO.JsonOutput();
                     jsonWkt.JsonOutputDialog(checkObj, this.direc, importFiles.SelectedItem.ToString());
@@ -568,7 +577,9 @@ namespace IfcGeoRefChecker
                 {
                     Log.Information("Opening of HTML-Site for updating via map...");
 
-                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
+                    //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
+
+                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\win-unpacked\\test.exe");
 
                     Log.Information("Done.");
                 }

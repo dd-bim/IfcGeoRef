@@ -9,9 +9,9 @@
     <Grid>
         <StackPanel HorizontalAlignment="Left" Height="349" Margin="15,0,0,0" VerticalAlignment="Top" Width="560">
             <Label Content="Info" FontWeight="Bold" FontSize="14" />
-            <TextBox  Name="block_info" TextWrapping="Wrap" Text="TextBlock"/>
+            <TextBox  Name="block_info" TextWrapping="Wrap" Text="TextBlock" />
             <Label Content="Terms of Use" FontWeight="Bold" FontSize="14" />
-            <TextBox Name="block_terms" Height="150" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" Text="TextBox"/>
+            <TextBox Name="block_terms" Height="150" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" Text="TextBox" />
         </StackPanel>
     </Grid>
 </Window>

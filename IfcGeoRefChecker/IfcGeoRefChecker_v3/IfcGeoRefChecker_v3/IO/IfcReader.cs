@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using Xbim.Ifc;
@@ -22,7 +21,7 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Returns the first IfcProject entity. 
+        /// Returns the first IfcProject entity.
         /// Valid files should only contain one IfcProject.
         /// </summary>
         public IIfcProject ProjReader()
@@ -41,7 +40,7 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Returns the first IfcSite entity. 
+        /// Returns the first IfcSite entity.
         /// Files according IFC implementers agreements should contain only one IfcSite.
         /// </summary>
         public IIfcSite SiteReader()
@@ -60,7 +59,7 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Returns the first IfcBuilding entity. 
+        /// Returns the first IfcBuilding entity.
         /// More than one IfcBuilding in one file is not in scope yet.
         /// </summary>
         public IIfcBuilding BldgReader()
@@ -79,8 +78,8 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Returns a list of IfcGeometricRepresentationContext entities. 
-        /// Valid IFC-files should contain at least one context for model view. 
+        /// Returns a list of IfcGeometricRepresentationContext entities.
+        /// Valid IFC-files should contain at least one context for model view.
         /// Optionally there could be another context for plan view.
         /// </summary>
         public List<IIfcGeometricRepresentationContext> ContextReader(IIfcProject proj)
@@ -100,9 +99,8 @@ namespace IfcGeoRefChecker.IO
             return noSubCtx;
         }
 
-
         /// <summary>
-        /// Returns the first IfcMapConversion entity which is connected to the project`s context. 
+        /// Returns the first IfcMapConversion entity which is connected to the project`s context.
         /// Valid IFC-files reference only one such IfcMapConversion.
         /// </summary>
         public IIfcMapConversion MapReader(IIfcGeometricRepresentationContext ctx)
@@ -119,7 +117,7 @@ namespace IfcGeoRefChecker.IO
 
         /// <summary>
         /// Returns the first IfcPropertySet with "ProjectedCRS" in its name.
-        /// If applied, there should be only one such entity. 
+        /// If applied, there should be only one such entity.
         /// </summary>
         public IIfcPropertySet PSetReaderCRS()
         {
@@ -136,7 +134,7 @@ namespace IfcGeoRefChecker.IO
 
         /// <summary>
         /// Returns the first IfcPropertySet with "MapConversion" in its name.
-        /// If applied, there should be only one such entity. 
+        /// If applied, there should be only one such entity.
         /// </summary>
         public IIfcPropertySet PSetReaderMap()
         {
@@ -173,9 +171,9 @@ namespace IfcGeoRefChecker.IO
         }
 
         /// <summary>
-        /// Returns a list of from IfcProduct inherited entities with global placement. 
-        /// Valid IFC-files should contain at least one, the IfcSite entity. 
-         /// </summary>
+        /// Returns a list of from IfcProduct inherited entities with global placement.
+        /// Valid IFC-files should contain at least one, the IfcSite entity.
+        /// </summary>
         public List<IIfcProduct> UpperPlcmProdReader()
         {
             var res = model.Instances.Where<IIfcLocalPlacement>(e => e.PlacementRelTo == null)
@@ -189,42 +187,42 @@ namespace IfcGeoRefChecker.IO
             return res;
         }
 
-        /// <summary>
-        /// Reads walls and calculates ground floor walls out of building and building storey height attributes
-        /// </summary>
-        public IEnumerable<IIfcBuildingElement> GroundFloorWallReader(IIfcBuilding bldg)
-        {
-            Log.Information("IFC reader: Ground floor wall detecting...");
+        ///// <summary>
+        ///// Reads walls and calculates ground floor walls out of building and building storey height attributes
+        ///// </summary>
+        //public IEnumerable<IIfcBuildingElement> GroundFloorWallReader(IIfcBuilding bldg)
+        //{
+        //    Log.Information("IFC reader: Ground floor wall detecting...");
 
-            var bldgRefHeight = (bldg.ElevationOfRefHeight != null) ? (double)bldg.ElevationOfRefHeight : 0.0;      //Selektion BuildingRefHeight (wenn NULL -> 0.0)
+        //    var bldgRefHeight = (bldg.ElevationOfRefHeight != null) ? (double)bldg.ElevationOfRefHeight : 0.0;      //Selektion BuildingRefHeight (wenn NULL -> 0.0)
 
-            Log.Information("IFC reader: Building Ref Height = " + bldgRefHeight);
+        //    Log.Information("IFC reader: Building Ref Height = " + bldgRefHeight);
 
-            var storeys = bldg.BuildingStoreys;                                                                     //alle Stockwerke
+        //    var storeys = bldg.BuildingStoreys;                                                                     //alle Stockwerke
 
-            Log.Information("IFC reader: Number of Building storeys = " + storeys.Count());
+        //    Log.Information("IFC reader: Number of Building storeys = " + storeys.Count());
 
-            var dictStorey = new Dictionary<IIfcBuildingStorey, double>();
+        //    var dictStorey = new Dictionary<IIfcBuildingStorey, double>();
 
-            foreach(var storey in storeys)
-            {
-                var delta = Math.Abs(bldgRefHeight - (double)storey.Elevation);
+        //    foreach(var storey in storeys)
+        //    {
+        //        var delta = Math.Abs(bldgRefHeight - (double)storey.Elevation);
 
-                dictStorey.Add(storey, delta);                         //für jedes Stockwerk Differenz zur BuildingrefHeight ermitteln
+        //        dictStorey.Add(storey, delta);                         //für jedes Stockwerk Differenz zur BuildingrefHeight ermitteln
 
-                Log.Information("IFC reader: Height difference between storey and Building Ref Height = " + delta);
-            }
+        //        Log.Information("IFC reader: Height difference between storey and Building Ref Height = " + delta);
+        //    }
 
-            var minVal = dictStorey.Values.Min();
-            var groundStorey = dictStorey.Where(s => s.Value == minVal).Select(s => s.Key).FirstOrDefault();        //Auswahl Stockwerk, wo Differenz minimal ist (mutmaßlich Erdgeschoss)
+        //    var minVal = dictStorey.Values.Min();
+        //    var groundStorey = dictStorey.Where(s => s.Value == minVal).Select(s => s.Key).FirstOrDefault();        //Auswahl Stockwerk, wo Differenz minimal ist (mutmaßlich Erdgeschoss)
 
-            var walls = model.Instances.OfType<IIfcBuildingElement>()                                               //Selektion aller IfcWalls im Erdgeschoss
-                .Where(s => s is IIfcWall /*|| s is IIfcCurtainWall*/)                                                  //TO DO: IfcCurtainWall berücksichtigen (besteht im Bsp Burogebäude aus IfcPlate....)
-                .Where(b => b.IsContainedIn == groundStorey);                                                           //evtl. TO DO: IfcWall-Objekte im Außenbereich ausschließen?
+        //    var walls = model.Instances.OfType<IIfcBuildingElement>()                                               //Selektion aller IfcWalls im Erdgeschoss
+        //        .Where(s => s is IIfcWall /*|| s is IIfcCurtainWall*/)                                                  //TO DO: IfcCurtainWall berücksichtigen (besteht im Bsp Burogebäude aus IfcPlate....)
+        //        .Where(b => b.IsContainedIn == groundStorey);                                                           //evtl. TO DO: IfcWall-Objekte im Außenbereich ausschließen?
 
-            Log.Information("IFC reader: Ground floor walls found = " + walls.Count());
+        //    Log.Information("IFC reader: Ground floor walls found = " + walls.Count());
 
-            return walls;
-        }
+        //    return walls;
+        //}
     }
 }

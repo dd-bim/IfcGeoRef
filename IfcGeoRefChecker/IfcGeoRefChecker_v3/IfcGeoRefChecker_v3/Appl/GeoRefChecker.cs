@@ -8,8 +8,6 @@ using Serilog;
 using Xbim.Common;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
-using Xbim.Ifc4.MeasureResource;
-using Xbim.Ifc4.PropertyResource;
 
 namespace IfcGeoRefChecker.Appl
 {
@@ -466,8 +464,6 @@ namespace IfcGeoRefChecker.Appl
 
                 l50.Instance_Object = GetInfo(psetMap);
 
-                
-
                 var prop = (psetMap.HasProperties.Where(p => p.Name == "Eastings").SingleOrDefault() as IIfcPropertySingleValue);
                 var propVal = prop.NominalValue;
                 var vall = propVal.Value;
@@ -491,7 +487,6 @@ namespace IfcGeoRefChecker.Appl
                 l50.CRS_Vertical_Datum = GetPropertyValueStr(psetCrs, "VerticalDatum");
                 l50.CRS_Projection_Name = GetPropertyValueStr(psetCrs, "MapProjection");
                 l50.CRS_Projection_Zone = GetPropertyValueStr(psetCrs, "MapZone");
-
 
                 Log.Information("GeoRefChecker: Reading Level 50 attributes successful.");
             }

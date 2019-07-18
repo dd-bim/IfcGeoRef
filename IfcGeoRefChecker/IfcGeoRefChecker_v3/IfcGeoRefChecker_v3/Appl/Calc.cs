@@ -118,7 +118,7 @@ namespace IfcGeoRefChecker.Appl
 
         public double DMStoDD(string angleDMS)
         {
-            string[] separators = { "°", "'", "''", " ",",",";","/","|" };
+            string[] separators = { "°", "'", "''", " ", ",", ";", "/", "|" };
             string[] values = angleDMS.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             double[] ddval = new double[3];
@@ -180,7 +180,6 @@ namespace IfcGeoRefChecker.Appl
                 xyz_xAxis.X = Math.Abs(xyz_xAxis.X);
                 xyz_xAxis.Y = -Math.Abs(xyz_xAxis.Y);
             }
-
 
             if(angleX > 90 && angleX < 180)
             {
