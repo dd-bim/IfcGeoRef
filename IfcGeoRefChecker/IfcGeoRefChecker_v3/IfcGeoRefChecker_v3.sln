@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BimGisCad", "..\..\..\bimgi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeometryExtractor", "..\..\..\ifcbuildingcontourcalculator\IfcGeometryExtractor\IfcGeometryExtractor.csproj", "{0A96458F-E9C8-4305-8701-F9242836BA6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeoRefChecker_GUI", "IfcGeoRefChecker_GUI\IfcGeoRefChecker_GUI.csproj", "{114476CA-FE7E-4628-AB85-7074B8F08392}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeoRefChecker_GUI", "IfcGeoRefChecker_GUI\IfcGeoRefChecker_GUI.csproj", "{460E9B43-BCA7-431C-8350-1BCCF46288DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,14 +43,14 @@ Global
 		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|x64.ActiveCfg = Release|Any CPU
 		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|x64.Build.0 = Release|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|x64.Build.0 = Debug|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|Any CPU.Build.0 = Release|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|x64.ActiveCfg = Release|Any CPU
-		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|x64.Build.0 = Release|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{460E9B43-BCA7-431C-8350-1BCCF46288DC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
