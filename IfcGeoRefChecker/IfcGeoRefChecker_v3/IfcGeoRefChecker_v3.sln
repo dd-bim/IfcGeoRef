@@ -5,6 +5,12 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeoRefChecker_v3", "IfcGeoRefChecker_v3\IfcGeoRefChecker_v3.csproj", "{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BimGisCad", "..\..\..\bimgiscadlib\BimGisCad\BimGisCad.csproj", "{E21B3392-49D9-4215-A5FB-937B744EC061}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeometryExtractor", "..\..\..\ifcbuildingcontourcalculator\IfcGeometryExtractor\IfcGeometryExtractor.csproj", "{0A96458F-E9C8-4305-8701-F9242836BA6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IfcGeoRefChecker_GUI", "IfcGeoRefChecker_GUI\IfcGeoRefChecker_GUI.csproj", "{114476CA-FE7E-4628-AB85-7074B8F08392}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +27,30 @@ Global
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|x64.ActiveCfg = Release|Any CPU
 		{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}.Release|x64.Build.0 = Release|Any CPU
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Debug|x64.ActiveCfg = Debug|x64
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Debug|x64.Build.0 = Debug|x64
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Release|x64.ActiveCfg = Release|x64
+		{E21B3392-49D9-4215-A5FB-937B744EC061}.Release|x64.Build.0 = Release|x64
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Debug|x64.Build.0 = Debug|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|x64.ActiveCfg = Release|Any CPU
+		{0A96458F-E9C8-4305-8701-F9242836BA6E}.Release|x64.Build.0 = Release|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Debug|x64.Build.0 = Debug|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|Any CPU.Build.0 = Release|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|x64.ActiveCfg = Release|Any CPU
+		{114476CA-FE7E-4628-AB85-7074B8F08392}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

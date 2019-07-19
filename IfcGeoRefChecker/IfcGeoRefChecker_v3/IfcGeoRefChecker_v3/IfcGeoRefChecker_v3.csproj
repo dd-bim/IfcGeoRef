@@ -40,16 +40,8 @@
     <ApplicationIcon>icon_ico.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BimGisCad, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\libraries\bimgiscadlib-master_06_19\bimgiscadlib-master\BimGisCad\bin\Release\netstandard2.0\BimGisCad.dll</HintPath>
-    </Reference>
     <Reference Include="Esent.Interop, Version=1.9.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedEsent.1.9.4\lib\net40\Esent.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="IfcGeometryExtractor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\libraries\IfcGeometryExtractor.dll</HintPath>
     </Reference>
     <Reference Include="MIConvexHull, Version=1.0.17.1019, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MIConvexHull.1.1.18.1016\lib\netstandard1.0\MIConvexHull.dll</HintPath>
@@ -243,6 +235,16 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="icon_ico.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\bimgiscadlib\BimGisCad\BimGisCad.csproj">
+      <Project>{e21b3392-49d9-4215-a5fb-937b744ec061}</Project>
+      <Name>BimGisCad</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\ifcbuildingcontourcalculator\IfcGeometryExtractor\IfcGeometryExtractor.csproj">
+      <Project>{0a96458f-e9c8-4305-8701-f9242836ba6e}</Project>
+      <Name>IfcGeometryExtractor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
