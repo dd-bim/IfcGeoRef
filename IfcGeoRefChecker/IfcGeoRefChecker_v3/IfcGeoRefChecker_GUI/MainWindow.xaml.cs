@@ -19,6 +19,7 @@ using System.Windows.Forms;
 using IfcGeoRefChecker.Appl;
 using IfcGeoRefChecker.IO;
 using Xbim.Ifc4.Interfaces;
+using Serilog;
 
 namespace IfcGeoRefChecker_GUI
 {
@@ -225,6 +226,268 @@ namespace IfcGeoRefChecker_GUI
             {
                 //Log.Error("Unknown error occured. Error: " + ex.Message);
                 System.Windows.MessageBox.Show("Unknown error occured. Error: " + ex.Message);
+            }
+        }
+
+        private void bt_log_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.CheckObjList.Count == 0)
+            {
+                Log.Information("Showing log not possible. No model imported.");
+                System.Windows.MessageBox.Show("Please import at least 1 Ifc-file.");
+            }
+            else if (importFiles.SelectedItem == null)
+            {
+                Log.Information("Showing log not possible. No model selected.");
+                System.Windows.MessageBox.Show("Please select the ifc file, which should be updated, in the box above.");
+            }
+            else
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(this.direc + importFiles.SelectedItem.ToString() + ".txt");
+                    Log.Information("Checking log opened.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Not able to open log-file. Error: " + ex);
+                    System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef log file." + ex);
+                }
+            }
+        }
+
+        private void bt_json_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.CheckObjList.Count == 0)
+            {
+                Log.Information("Showing JSON not possible. No model imported.");
+                System.Windows.MessageBox.Show("Please import at least 1 Ifc-file.");
+            }
+            else if (importFiles.SelectedItem == null)
+            {
+                Log.Information("Showing JSON not possible. No model selected.");
+                System.Windows.MessageBox.Show("Please select the ifc file, which should be updated, in the box above.");
+            }
+            else
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(this.direc + importFiles.SelectedItem.ToString() + ".json");
+                    Log.Information("Checking json opened.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Not able to open JSON-file. Error: " + ex);
+                    System.Windows.MessageBox.Show("Error occured. Please check directory of your IFC-file for the corresponding GeoRef JSON-file." + ex.Message);
+                }
+            }
+        }
+
+        private void bt_guide_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(@"Quick_Guide.html");
+                Log.Information("Quick Guide HTML opened.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Not able to open Documentation. Error: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured. Please check directory for Quick_Guide HTML-file." + ex.Message);
+            }
+        }
+
+        private void bt_docu_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(@"Documentation.html");
+
+                Log.Information("Documentation HTML opened.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Not able to open Documentation. Error: " + ex.Message);
+                System.Windows.MessageBox.Show("Error occured. Please check directory for Documentation HTML-file." + ex.Message);
+            }
+        }
+
+        private void bt_quit_Click(object sender, RoutedEventArgs e)
+        {
+            Log.Information("Application terminated.");
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void bt_update_man_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.CheckObjList.Count == 0)
+            {
+                Log.Information("Starting Updating not possible. No model imported.");
+                System.Windows.MessageBox.Show("Please import at least 1 Ifc-file.");
+            }
+            else if (importFiles.SelectedItem == null)
+            {
+                Log.Information("Starting Updating not possible. No model selected.");
+                System.Windows.MessageBox.Show("Please select the ifc file, which should be updated, in the box above.");
+            }
+            else
+            {
+                try
+                {
+                    Log.Information("Manual updating started...");
+
+                    CheckObjList.TryGetValue(importFiles.SelectedItem.ToString(), out var checkObj);
+
+                    //Log.Information("Write JSON-check file to local 'buildingLocator\\json' directory...");
+
+                    //var jsonPath = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\check";
+                    //var jsonout = new IO.JsonOutput();
+                    //jsonout.JsonOutputFile(checkObj, jsonPath);
+
+                    //Log.Information("Done.");
+
+                    //var jsonFolder = direc + "\\IfcGeoRefChecker\\buildingLocator\\json\\";
+
+                    var manExp = new UpdateMan(checkObj, this.direc, importFiles.SelectedItem.ToString());
+                    manExp.Show();
+                }
+                catch (Exception ex)
+                {
+                    var str = "Not able to start manual update process. Maybe necessary JSON-Export to local directory failed. Please check local directory! Error: " + ex.Message;
+
+                    Log.Error(str);
+                    System.Windows.MessageBox.Show(str);
+                }
+            }
+        }
+
+        private void bt_update_map_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.CheckObjList.Count == 0)
+            {
+                Log.Information("Starting Updating not possible. No model imported.");
+                System.Windows.MessageBox.Show("Please import at least 1 Ifc-file.");
+            }
+            else if (importFiles.SelectedItem == null)
+            {
+                Log.Information("Starting Updating not possible. No model selected.");
+                System.Windows.MessageBox.Show("Please select the ifc file, which should be updated, in the box above.");
+            }
+            else
+            {
+                Log.Information("Updating via map started...");
+
+                try
+                {
+                    GroundWallObjects.TryGetValue(importFiles.SelectedItem.ToString(), out var groundWalls);
+                    CheckObjList.TryGetValue(importFiles.SelectedItem.ToString(), out var checkObj);
+
+                    System.Windows.MessageBox.Show("Start of calculating the BuildingFootprint and writing it into json file.\r\n \r\n" +
+                        "Please save the file and continue with the Building Locator in web browser.\r\n" +
+                        "You will need Internet connection to display the required web map service.\r\n \r\n" +
+                        "After changing the georef via map, please continue with step 2 \"Export Updates to IFC\" in this application. \r\n" +
+                        "You will then need to import the updated JSON file which was exported by the Building Locator web tool.", "Important Information");
+
+                    Log.Information("Calculate building perimeter...");
+
+                    var unit = checkObj.LengthUnit;
+
+                    Mouse.OverrideCursor = Cursors.Wait;
+
+                    try
+                    {
+                        var wkt = new BldgContourCalculator().GetBldgContour(groundWalls, unit);
+                        checkObj.WKTRep = wkt;
+                    }
+                    finally
+                    {
+                        Mouse.OverrideCursor = null;
+                    }
+
+                    Log.Information("Calculation finished.");
+
+                    Log.Information("Write JSON-check file with WKTZ-string for perimeter to local 'buildingLocator\\json' directory...");
+
+                    var jsonWkt = new JsonOutput();
+                    jsonWkt.JsonOutputDialog(checkObj, this.direc, importFiles.SelectedItem.ToString());
+
+                    Log.Information("Done.");
+                }
+                catch (Exception ex)
+                {
+                    if (GroundWallObjects == null)
+                    {
+                        System.Windows.MessageBox.Show("Error: Not able to select GroundWalls. Please make sure, " +
+                            "you checked the required file before and that your IFC file contains walls.");
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Error: Not able to calculate required building footprint. Message: " + ex.Message);
+                    }
+                }
+
+                try
+                {
+                    Log.Information("Opening of HTML-Site for updating via map...");
+
+                    //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
+
+                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\win-unpacked\\test.exe");
+
+                    Log.Information("Done.");
+                }
+                catch (Exception ex)
+                {
+                    var str = "No html-map file available. Please check local directory 'buildingLocator' for 'index.html'. Error: " + ex;
+
+                    Log.Error(str);
+                    System.Windows.MessageBox.Show(str);
+                }
+            }
+        }
+
+        private void bt_update_ifc_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Log.Information("Open export window...");
+
+                var ifcName = importFiles.SelectedItem.ToString();
+
+                this.NamePathDict.TryGetValue(ifcName, out string ifcPath);
+
+                var showExport2IFC = new Export2IFC(ifcPath, ifcName);
+                showExport2IFC.Show();
+            }
+            catch (Exception ex)
+            {
+                var str = "Not able to open Export window. Error: " + ex;
+
+                Log.Error(str);
+                System.Windows.MessageBox.Show(str);
+            }
+        }
+
+        private void bt_comparer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (this.CheckObjList != null && this.CheckObjList.Count > 1)
+                {
+                    var comp = new Compare(this.direc, this.CheckObjList);
+                    comp.Show();
+
+                    Log.Information("GeoRefComparer started.");
+                }
+                else
+                {
+                    Log.Information("Starting GeoRefComparer not possible. Not enough models imported.");
+                    System.Windows.MessageBox.Show("Please import at least 2 Ifc-files for comparison.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Starting GeoRefComparer failed. Error: " + ex.Message);
             }
         }
     }

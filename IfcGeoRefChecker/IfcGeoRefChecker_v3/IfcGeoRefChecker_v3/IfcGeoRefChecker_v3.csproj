@@ -228,9 +228,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="img\DD-BIM-LOGO.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="MIConvexHull.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -245,6 +242,9 @@
       <Project>{0a96458f-e9c8-4305-8701-f9242836ba6e}</Project>
       <Name>IfcGeometryExtractor</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="img\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
