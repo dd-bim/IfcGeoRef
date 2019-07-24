@@ -392,7 +392,7 @@ namespace IfcGeoRefChecker_GUI
 
                     var unit = checkObj.LengthUnit;
 
-                    Mouse.OverrideCursor = Cursors.Wait;
+                    Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
 
                     try
                     {

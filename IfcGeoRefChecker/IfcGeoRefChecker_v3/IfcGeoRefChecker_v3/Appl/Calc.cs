@@ -6,7 +6,7 @@ namespace IfcGeoRefChecker.Appl
 {
     //class with methods for calculating between selectable units or for correct updating of IfcModels
 
-    internal class Calc
+    public class Calc
     {
         private const double DegToRad = Math.PI / 180;
 

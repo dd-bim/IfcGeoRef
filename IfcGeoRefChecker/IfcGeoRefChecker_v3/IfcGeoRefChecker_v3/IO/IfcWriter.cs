@@ -11,7 +11,7 @@ using Xbim.Ifc4.RepresentationResource;
 
 namespace IfcGeoRefChecker.IO
 {
-    internal class IfcWriter
+    public class IfcWriter
     {
         /// <summary>
         /// Writes updated IFC-file (old file will be opened again)
