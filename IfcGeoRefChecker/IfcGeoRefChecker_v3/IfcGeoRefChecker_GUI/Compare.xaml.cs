@@ -1,28 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using IfcGeoRefChecker.Appl;
 using Newtonsoft.Json;
 
-namespace IfcGeoRefChecker
+namespace IfcGeoRefChecker_GUI
 {
     /// <summary>
-    /// Interaction logic for Compare.xaml
+    /// Interaktionslogik für Compare.xaml
     /// </summary>
     public partial class Compare : Window
     {
-        //private Dictionary<string, IfcStore> modelList;
-        private Appl.GeoRefComparer comparison;
+        private GeoRefComparer comparison;
 
         private string direc;
 
         private Dictionary<string, string> jsonDict = new Dictionary<string, string>();
 
-        public Compare(string direc, Dictionary<string, Appl.GeoRefChecker> checkDict)
+        public Compare(string direc, Dictionary<string, GeoRefChecker> checkDict)
         {
             this.direc = direc;
 
             InitializeComponent();
 
-            foreach(var obj in checkDict)
+            foreach (var obj in checkDict)
             {
                 cb_compRef.Items.Add(obj.Key);
 
@@ -30,14 +41,13 @@ namespace IfcGeoRefChecker
 
                 this.jsonDict.Add(obj.Key, jsonObj);
             }
-
         }
 
-        private void cb_compRef_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void cb_compRef_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             list_compModels.Items.Clear();
 
-            foreach(string file in this.jsonDict.Keys)
+            foreach (string file in this.jsonDict.Keys)
             {
                 list_compModels.Items.Add(file);
             }
@@ -54,29 +64,17 @@ namespace IfcGeoRefChecker
 
             var compList = new Dictionary<string, string>();
 
-            foreach(var item in list_compModels.SelectedItems)
+            foreach (var item in list_compModels.SelectedItems)
             {
                 this.jsonDict.TryGetValue(item.ToString(), out var compModel);
 
                 compList.Add(item.ToString(), compModel);
             }
 
-            this.comparison = new Appl.GeoRefComparer(this.direc, refJson, compList);
+            this.comparison = new GeoRefComparer(this.direc, refJson, compList);
             comparison.CompareIFC();
 
             bt_compLog.IsEnabled = true;
-        }
-
-        private void checkAll_Checked(object sender, RoutedEventArgs e)
-        {
-            list_compModels.SelectAll();
-            uncheckAll.IsChecked = false;
-        }
-
-        private void uncheckAll_Checked(object sender, RoutedEventArgs e)
-        {
-            list_compModels.UnselectAll();
-            checkAll.IsChecked = false;
         }
 
         private void bt_compLog_Click(object sender, RoutedEventArgs e)
@@ -94,6 +92,18 @@ namespace IfcGeoRefChecker
         private void bt_close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void checkAll_Checked(object sender, RoutedEventArgs e)
+        {
+            list_compModels.SelectAll();
+            uncheckAll.IsChecked = false;
+        }
+
+        private void uncheckAll_Checked(object sender, RoutedEventArgs e)
+        {
+            list_compModels.UnselectAll();
+            checkAll.IsChecked = false;
         }
     }
 }

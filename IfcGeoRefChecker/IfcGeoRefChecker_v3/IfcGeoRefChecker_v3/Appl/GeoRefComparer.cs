@@ -7,7 +7,7 @@ using Serilog;
 
 namespace IfcGeoRefChecker.Appl
 {
-    internal class GeoRefComparer
+    public class GeoRefComparer
     {
         private Level10 siteAddress;  //adresses for Site
         private Level10 bldgAddress;    //adresses for Building

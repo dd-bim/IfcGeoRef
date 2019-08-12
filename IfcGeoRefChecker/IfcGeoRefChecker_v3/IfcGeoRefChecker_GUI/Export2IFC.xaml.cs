@@ -250,5 +250,11 @@ namespace IfcGeoRefChecker_GUI
             var ifcResults = new Results(this.filePath, this.fileName, jsonUpd);
             ifcResults.Show();
         }
+
+        private void check_height_Checked(object sender, RoutedEventArgs e)
+        {
+            tb_height.IsEnabled = true;
+            tb_height_datum.IsEnabled = true;
+        }
     }
 }

@@ -461,7 +461,41 @@ Comparison to Haus_1_TGA.ifc:
  The georeferencing of the files is exactly equal.
 
 ```
+### Checking IFC-files using command-line arguments
 
+As an alternative to the graphical user interface, it is possible to use the IFCGeoRefCheckerCommand.exe for checking the level of georeferencing of multiple IFC-files at once (and creating log- or json files that display the results).
+For that, a *.json file is required, that contains the filepath and -name of the IFC-files to be checked, an output path and information wether log and/or json result files shall be created.
+Such an input json file could look like this:
+
+```
+{
+  "InputObjects":
+  [
+    {
+      "fileName": "D:\\Data\\IFCfiles\\TestObject1.ifc"
+    },
+    {
+	  "fileName": "D:\\Data\\IFCfiles\\TestObject2.ifc"
+	},
+    {
+	  "fileName": "D:\\Data\\IFCfiles\\TestObject3.ifc"
+	}
+  ],
+  "outputDirectory": "D:\\Data\\Output",
+  "outLog": true,
+  "outJson": false
+}
+
+```
+- "InputObjects" is a list object, that can contain any number of "fileName" string-objects. They contain paths and filenames of the IFC-files to be checked.
+- "outputdirectory" is also a string-object, that contains the path where the log- and json-files shall be created.
+- "outLog" and "outJson" contain boolean values that determine wether a logfile (*.txt) and/or a json file shall be created.
+
+Once the input.json file is ready you can use the console (cmd) to run the IFCGeoRefCheckerCommand.exe with the filepath of the input.json as a command line argument. For example:
+```
+IFCGeoRefCheckerCommand.exe "D:\Data\input\Sample.json"
+
+```
 ### Errors that may occur
 
 **While File Import (1):**

@@ -37,17 +37,17 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                //Log.Logger = new LoggerConfiguration()
-                //    .WriteTo.File(this.direc, rollingInterval: RollingInterval.Day)
-                //    //.MinimumLevel.Debug()
-                //    .CreateLogger();
+                Log.Logger = new LoggerConfiguration()
+                    .WriteTo.File(this.direc, rollingInterval: RollingInterval.Day)
+                    //.MinimumLevel.Debug()
+                    .CreateLogger();
 
                 //Log.Logger = new LoggerConfiguration()
                 //    .WriteTo.File("C:\\Users\\goerne\\Desktop\\logtest\\log.txt", rollingInterval: RollingInterval.Day)
                 //    //.MinimumLevel.Debug()
                 //    .CreateLogger();
 
-                //Log.Information("Start of IfcGeoRefChecker");
+                Log.Information("Start of IfcGeoRefChecker");
 
                 Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
@@ -61,7 +61,7 @@ namespace IfcGeoRefChecker_GUI
 
             catch (Exception ex)
             {
-                //Log.Error("Start of IfcGeoRefChecker failed. Error message: " + ex);
+                Log.Error("Start of IfcGeoRefChecker failed. Error message: " + ex);
             }
         }
 
@@ -118,8 +118,8 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                //Log.Information("Start of Checking Georef...");
-                //Log.Debug("Files loaded: " + this.CheckObjList.Count);
+                Log.Information("Start of Checking Georef...");
+                Log.Debug("Files loaded: " + this.CheckObjList.Count);
 
                 if (this.CheckObjList.Count == 0)  //default at start of program
                 {
@@ -157,7 +157,7 @@ namespace IfcGeoRefChecker_GUI
                     catch (ArgumentException aex)
                     {
                         var exStr = "Ifc-file already imported.";
-                        //Log.Error(exStr + aex.Message);
+                        Log.Error(exStr + aex.Message);
                         System.Windows.MessageBox.Show(exStr);
                     }
                 }
@@ -184,22 +184,22 @@ namespace IfcGeoRefChecker_GUI
 
                 foreach (var checkObj in this.CheckObjList)
                 {
-                    var path = direc + checkObj.Key;
-
+                    string[] paths = { direc, checkObj.Key };
+                    var path = System.IO.Path.Combine(paths);
                     if (check_log.IsChecked == true)
                     {
                         try
                         {
-                            //Log.Information("Export checking-log...");
+                            Log.Information("Export checking-log...");
 
                             var log = new LogOutput(checkObj.Value, path, checkObj.Key);
                             bt_log.IsEnabled = true;
 
-                            //Log.Information("Export successful to: " + path);
+                            Log.Information("Export successful to: " + path);
                         }
                         catch (IOException exIO)
                         {
-                            //Log.Error("Not able to export log. Error: " + exIO);
+                            Log.Error("Not able to export log. Error: " + exIO);
                         }
                     }
 
@@ -207,27 +207,27 @@ namespace IfcGeoRefChecker_GUI
                     {
                         try
                         {
-                            //Log.Information("Export JSON-file...");
+                            Log.Information("Export JSON-file...");
 
                             var js = new JsonOutput();
                             js.JsonOutputFile(checkObj.Value, path);
                             bt_json.IsEnabled = true;
 
-                            //Log.Information("Export successful to: " + path);
+                            Log.Information("Export successful to: " + path);
                         }
                         catch (IOException exIO)
                         {
-                            //Log.Error("Not able to export json. Error: " + exIO);
+                            Log.Error("Not able to export json. Error: " + exIO);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                //Log.Error("Unknown error occured. Error: " + ex.Message);
+                Log.Error("Unknown error occured. Error: " + ex.Message);
                 System.Windows.MessageBox.Show("Unknown error occured. Error: " + ex.Message);
             }
-        }
+}
 
         private void bt_log_Click(object sender, RoutedEventArgs e)
         {
@@ -488,6 +488,46 @@ namespace IfcGeoRefChecker_GUI
             catch (Exception ex)
             {
                 Log.Error("Starting GeoRefComparer failed. Error: " + ex.Message);
+            }
+        }
+
+        private void ImportFiles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                CheckObjList.TryGetValue(importFiles.SelectedItem.ToString(), out var currentObj);
+
+                var ctL10 = (from l in currentObj.LoGeoRef10
+                             where l.GeoRef10
+                             select l).Count();
+
+                var ctL20 = (from l in currentObj.LoGeoRef20
+                             where l.GeoRef20
+                             select l).Count();
+
+                var ctL30 = (from l in currentObj.LoGeoRef30
+                             where l.GeoRef30
+                             select l).Count();
+
+                var ctL40 = (from l in currentObj.LoGeoRef40
+                             where l.GeoRef40
+                             select l).Count();
+
+                var ctL50 = (from l in currentObj.LoGeoRef50
+                             where l.GeoRef50
+                             select l).Count();
+
+                bool10.Content = (ctL10 > 0) ? true : false;
+                bool20.Content = (ctL20 > 0) ? true : false;
+                bool30.Content = (ctL30 > 0) ? true : false;
+                bool40.Content = (ctL40 > 0) ? true : false;
+                bool50.Content = (ctL50 > 0) ? true : false;
+
+                Log.Information("Selected model in GUI changed.");
+            }
+            catch
+            {
+                Log.Error("Not able to read short results for selected model.");
             }
         }
     }
