@@ -225,9 +225,9 @@ namespace IfcGeoRefChecker_GUI
             catch (Exception ex)
             {
                 Log.Error("Unknown error occured. Error: " + ex.Message);
-                System.Windows.MessageBox.Show("Unknown error occured. Error: " + ex.Message);
+                System.Windows.MessageBox.Show("Unknown error on main import occured. Error: " + ex.Message);
             }
-}
+        }
 
         private void bt_log_Click(object sender, RoutedEventArgs e)
         {

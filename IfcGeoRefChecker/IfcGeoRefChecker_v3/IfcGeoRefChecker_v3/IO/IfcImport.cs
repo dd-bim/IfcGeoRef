@@ -83,40 +83,47 @@ namespace IfcGeoRefChecker.IO
 
                     Log.Information("Start calculating of ground floor walls for " + filename);
 
-                    var reader = new IfcReader(model);
-                    var bldg = reader.BldgReader();
+                    //try
+                    //{
+                        var reader = new IfcReader(model);
+                        var bldg = reader.BldgReader();
 
-                    var ifc = new Extraction(model);
-                    var calc = new Calculation();
-                    var elems = new List<IIfcBuildingElement>();
+                        var ifc = new Extraction(model);
+                        var calc = new Calculation();
+                        var elems = new List<IIfcBuildingElement>();
 
-                    //Extrahiere alle Slabs, die im (vermutlich) Erdgeschoss liegen
-                    var slabs = ifc.GetSlabsOnGround();
+                        //Extrahiere alle Slabs, die im (vermutlich) Erdgeschoss liegen
+                        var slabs = ifc.GetSlabsOnGround();
 
-                    //-------------------------------------
-                    //Untersuchung der in IFC-Datei vorhandenen Geometrie-Repräsentationen für die slabs
-                    //wenn einer der GeometrieTypen je Slab unterstützt wird, werden slabs berechnet
-                    //wenn nicht, werden die Wände untersucht --> diese sollten je Wand mindestens eine unterstützte Axis-Geometrie enthalten
-                    //wenn weder Slabs noch Walls vorhanden sind, untersuche IFC auf Proxys
-
-                    if (slabs.Any() && calc.CompareSupportedRepTypes(slabs))
-                    {
-                        elems = slabs.ToList();
-                    }
-                    else
-                    {
-                        var walls = ifc.GetWallsOnGround();
-
-                        if (walls.Any() && calc.CompareSupportedRepTypes(walls))
+                        //-------------------------------------
+                        //Untersuchung der in IFC-Datei vorhandenen Geometrie-Repräsentationen für die slabs
+                        //wenn einer der GeometrieTypen je Slab unterstützt wird, werden slabs berechnet
+                        //wenn nicht, werden die Wände untersucht --> diese sollten je Wand mindestens eine unterstützte Axis-Geometrie enthalten
+                        //wenn weder Slabs noch Walls vorhanden sind, untersuche IFC auf Proxys
+                        if (slabs.Any() && calc.CompareSupportedRepTypes(slabs))
                         {
-                            elems = walls.ToList();
+                            elems = slabs.ToList();
                         }
                         else
                         {
-                            elems = ifc.GetProxysOnGround().ToList();
+                            var walls = ifc.GetWallsOnGround();
+
+                            if (walls.Any() && calc.CompareSupportedRepTypes(walls))
+                            {
+                                elems = walls.ToList();
+                            }
+                            else
+                            {
+                                elems = ifc.GetProxysOnGround().ToList();
+                            }
                         }
-                    }
-                    this.GroundWallObjects.Add(fileExtensionless, elems);
+                        this.GroundWallObjects.Add(fileExtensionless, elems);
+                    //}
+                    //catch(System.Exception ex)
+                    //{
+                    //    MessageBox.Show("No building elements found. Trying to proceed without. Problem:"+ ex);
+                    //}
+                    
                 }
             }
             catch (FileLoadException exL)
