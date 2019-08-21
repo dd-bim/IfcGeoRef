@@ -184,8 +184,12 @@ namespace IfcGeoRefChecker_GUI
 
                 foreach (var checkObj in this.CheckObjList)
                 {
-                    string[] paths = { direc, checkObj.Key };
+                    string[] lDirectory = { direc, "IfcGeoRefChecker\\CheckExport" };
+                    Directory.CreateDirectory(System.IO.Path.Combine(lDirectory));
+
+                    string[] paths = { direc, "IfcGeoRefChecker\\CheckExport", checkObj.Key };
                     var path = System.IO.Path.Combine(paths);
+
                     if (check_log.IsChecked == true)
                     {
                         try
@@ -245,7 +249,10 @@ namespace IfcGeoRefChecker_GUI
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(this.direc + importFiles.SelectedItem.ToString() + ".txt");
+                    string[] paths = { direc, "IfcGeoRefChecker\\CheckExport", importFiles.SelectedItem.ToString()};
+                    var path = System.IO.Path.Combine(paths);
+
+                    System.Diagnostics.Process.Start(path + ".txt");
                     Log.Information("Checking log opened.");
                 }
                 catch (Exception ex)
@@ -272,7 +279,9 @@ namespace IfcGeoRefChecker_GUI
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(this.direc + importFiles.SelectedItem.ToString() + ".json");
+                    string[] paths = { direc, "IfcGeoRefChecker\\CheckExport", importFiles.SelectedItem.ToString() };
+                    var path = System.IO.Path.Combine(paths);
+                    System.Diagnostics.Process.Start(path + ".json");
                     Log.Information("Checking json opened.");
                 }
                 catch (Exception ex)
@@ -287,12 +296,15 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                System.Diagnostics.Process.Start(@"Quick_Guide.html");
+                //System.Diagnostics.Process.Start(@"Quick_Guide.html");
+                string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                string guidePath = System.IO.Path.Combine(mainDirec, "Quick_Guide.html");
+                System.Diagnostics.Process.Start(guidePath);
                 Log.Information("Quick Guide HTML opened.");
             }
             catch (Exception ex)
             {
-                Log.Error("Not able to open Documentation. Error: " + ex.Message);
+                Log.Error("Not able to open the Quick Guide. Error: " + ex.Message);
                 System.Windows.MessageBox.Show("Error occured. Please check directory for Quick_Guide HTML-file." + ex.Message);
             }
         }
@@ -301,8 +313,10 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                System.Diagnostics.Process.Start(@"Documentation.html");
-
+                //System.Diagnostics.Process.Start(@"Documentation.html");
+                string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                string dokuPath = System.IO.Path.Combine(mainDirec, "Documentation_v3.html");
+                System.Diagnostics.Process.Start(dokuPath);
                 Log.Information("Documentation HTML opened.");
             }
             catch (Exception ex)

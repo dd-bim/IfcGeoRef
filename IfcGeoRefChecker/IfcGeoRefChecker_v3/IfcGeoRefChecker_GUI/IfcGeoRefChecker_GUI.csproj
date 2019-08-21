@@ -234,5 +234,11 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Quick_Guide.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Documentation_v3.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

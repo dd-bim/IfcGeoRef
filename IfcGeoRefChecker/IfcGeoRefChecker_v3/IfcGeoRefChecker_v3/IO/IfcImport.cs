@@ -83,8 +83,8 @@ namespace IfcGeoRefChecker.IO
 
                     Log.Information("Start calculating of ground floor walls for " + filename);
 
-                    //try
-                    //{
+                    try
+                    {
                         var reader = new IfcReader(model);
                         var bldg = reader.BldgReader();
 
@@ -118,12 +118,12 @@ namespace IfcGeoRefChecker.IO
                             }
                         }
                         this.GroundWallObjects.Add(fileExtensionless, elems);
-                    //}
-                    //catch(System.Exception ex)
-                    //{
-                    //    MessageBox.Show("No building elements found. Trying to proceed without. Problem:"+ ex);
-                    //}
-                    
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show("No building elements found. Trying to proceed without. Problem:" + ex);
+                    }
+
                 }
             }
             catch (FileLoadException exL)
