@@ -207,10 +207,17 @@
 </ul>
 </li>
 <li><span class="title">
-<a href="#errors-that-may-occur" title="Errors that may occur">Errors that may occur</a>
+<a href="#checking-ifc-files-using-command-line-arguments" title="Checking IFC-files using command-line arguments">Checking IFC-files using command-line arguments</a>
 </span>
 <!--span class="number">
 26
+</span-->
+</li>
+<li><span class="title">
+<a href="#errors-that-may-occur" title="Errors that may occur">Errors that may occur</a>
+</span>
+<!--span class="number">
+27
 </span-->
 </li>
 </ul>
@@ -219,28 +226,28 @@
 <a href="#built-with" title="Built with">Built with</a>
 </span>
 <!--span class="number">
-27
+28
 </span-->
 </li>
 <li><span class="title">
 <a href="#contributors" title="Contributors">Contributors</a>
 </span>
 <!--span class="number">
-28
+29
 </span-->
 </li>
 <li><span class="title">
 <a href="#contact" title="Contact">Contact</a>
 </span>
 <!--span class="number">
-29
+30
 </span-->
 </li>
 <li><span class="title">
 <a href="#license" title="License">License</a>
 </span>
 <!--span class="number">
-30
+31
 </span-->
 </li>
 </ul>
@@ -486,6 +493,43 @@ Comparison to SampleHouse.ifc_edit.ifc:
 
 Comparison to Haus_1_TGA.ifc:
  The georeferencing of the files is exactly equal.
+</code></pre><h3 id="checking-ifc-files-using-command-line-arguments"><a name="checking-ifc-files-using-command-line-arguments" href="#checking-ifc-files-using-command-line-arguments"></a>Checking IFC-files using command-line arguments</h3><p>As an alternative to the graphical user interface, it is possible to use the IFCGeoRefCheckerCommand.exe for checking the level of georeferencing of multiple IFC-files at once (and creating log- or json files that display the results).<br>For that, a *.json file is required, that contains the filepath and -name of the IFC-files to be checked, an output path and information wether log and/or json result files shall be created.<br>Such an input json file could look like this:</p><pre><code data-origin="<pre><code>{
+  &quot;InputObjects&quot;:
+  [
+    {
+      &quot;fileName&quot;: &quot;D:\\Data\\IFCfiles\\TestObject1.ifc&quot;
+    },
+    {
+      &quot;fileName&quot;: &quot;D:\\Data\\IFCfiles\\TestObject2.ifc&quot;
+    },
+    {
+      &quot;fileName&quot;: &quot;D:\\Data\\IFCfiles\\TestObject3.ifc&quot;
+    }
+  ],
+  &quot;outputDirectory&quot;: &quot;D:\\Data\\Output&quot;,
+  &quot;outLog&quot;: true,
+  &quot;outJson&quot;: false
+}
+</code></pre>">{
+  "InputObjects":
+  [
+    {
+      "fileName": "D:\\Data\\IFCfiles\\TestObject1.ifc"
+    },
+    {
+      "fileName": "D:\\Data\\IFCfiles\\TestObject2.ifc"
+    },
+    {
+      "fileName": "D:\\Data\\IFCfiles\\TestObject3.ifc"
+    }
+  ],
+  "outputDirectory": "D:\\Data\\Output",
+  "outLog": true,
+  "outJson": false
+}
+</code></pre><ul>
+<li>“InputObjects” is a list object, that can contain any number of “fileName” string-objects. They contain paths and filenames of the IFC-files to be checked.</li><li>“outputdirectory” is also a string-object, that contains the path where the log- and json-files shall be created.</li><li>“outLog” and “outJson” contain boolean values that determine wether a logfile (*.txt) and/or a json file shall be created.</li></ul><p>Once the input.json file is ready you can use the console (cmd) to run the IFCGeoRefCheckerCommand.exe with the filepath of the input.json as a command line argument. For example:</p><pre><code data-origin="<pre><code>IFCGeoRefCheckerCommand.exe &quot;D:\Data\input\Sample.json&quot;
+</code></pre>">IFCGeoRefCheckerCommand.exe "D:\Data\input\Sample.json"
 </code></pre><h3 id="errors-that-may-occur"><a name="errors-that-may-occur" href="#errors-that-may-occur"></a>Errors that may occur</h3><p><strong>While File Import (1):</strong></p><ul>
 <li>Possible reason: bad syntax errors in IFC-file </li><li>Proposed solution: check IFC-file for valid syntax with an appropriate tool (e.g. FZKViewer from KIT)</li></ul><p><strong>While File Import (2):</strong></p><ul>
 <li>Possible reason: IfcSchemaVersion outside XBIM functionality (not IFC2X3, IFC4 or IFC4x1)</li><li>Proposed solution: not in scope, but maybe dirty hack in IFC-file helps: change FILE SCHEMA in Header Section to IFC2X3, IFC4 or IFC4X1</li></ul><p><strong>While GeoRef Check:</strong></p><ul>
