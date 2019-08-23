@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker_GUI"
         mc:Ignorable="d"
-        Title="Update georeferencing by text input" Height="600" Width="750">
+        Title="Update georeferencing by text input" Height="600" Width="750" Icon="img/icon_img.png">
     <Grid Margin="0,0,0,213" >
         <Button Content="Save and Close" Name="bt_updateJsonMan" HorizontalAlignment="Left" Margin="604,28,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_updateJsonMan_Click" RenderTransformOrigin="0.575,-4.233" />
         <Button Content="Close without Saving" Name="bt_quit" HorizontalAlignment="Left" Margin="604,82,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_quit_Click" RenderTransformOrigin="0.475,1.167"/>

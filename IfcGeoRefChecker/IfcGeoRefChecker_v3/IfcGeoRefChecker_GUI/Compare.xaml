@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker_GUI"
         mc:Ignorable="d"
-        Title="IfcGeoRefComparer" Height="403" Width="506">
+        Title="IfcGeoRefComparer" Height="403" Width="506" Icon="img/icon_img.png">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350" />

@@ -39,8 +39,12 @@ namespace IFCGeoRefCheckerCommand
 
             foreach (var checkObj in CheckObjList)
             {
-                string[] paths = { inputGroup.outputDirectory, checkObj.Key };
-                string path = Path.Combine(paths);
+                string[] lDirectory = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport" };
+                Directory.CreateDirectory(System.IO.Path.Combine(lDirectory));
+
+                string[] paths = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport", checkObj.Key };
+                var path = System.IO.Path.Combine(paths);
+                
                 if (inputGroup.outLog)
                 {
                     try

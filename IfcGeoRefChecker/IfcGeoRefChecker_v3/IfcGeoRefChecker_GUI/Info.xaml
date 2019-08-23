@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker_GUI"
         mc:Ignorable="d"
-        Title="Info" Height="400" Width="600">
+        Title="Info" Height="400" Width="600" Icon="img/icon_img.png">
     <Grid>
         <StackPanel HorizontalAlignment="Left" Height="349" Margin="15,0,0,0" VerticalAlignment="Top" Width="560">
             <Label Content="Info" FontWeight="Bold" FontSize="14" />

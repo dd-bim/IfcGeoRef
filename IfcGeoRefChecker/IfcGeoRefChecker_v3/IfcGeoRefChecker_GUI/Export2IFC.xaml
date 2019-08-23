@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker_GUI"
         mc:Ignorable="d"
-        Title="Export to IFC" Height="461" Width="549">
+        Title="Export to IFC" Height="461" Width="549" Icon="img/icon_img.png">
     <Grid Margin="0,10,2,3">
         <GroupBox Header="Export settings" HorizontalAlignment="Left" Height="289" Margin="10,118,0,0" VerticalAlignment="Top" Width="521">
             <Grid HorizontalAlignment="Left" Height="260" Margin="10,10,-8,0" VerticalAlignment="Top" Width="507">

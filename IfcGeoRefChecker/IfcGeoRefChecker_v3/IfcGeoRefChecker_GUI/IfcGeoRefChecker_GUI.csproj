@@ -240,5 +240,8 @@
   <ItemGroup>
     <None Include="Resources\Documentation_v3.html" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img\icon_img.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
