@@ -25,59 +25,67 @@ namespace IFCGeoRefCheckerCommand
 
             //string testpath = @"C:\Users\possner\Desktop\BeispieldatenGeoRefChecker\Input\InputTest.json";
             //string jPath = testpath;
-
-            string jPath = args[0];
-            string jText = System.IO.File.ReadAllText(jPath);
-
-            InputGroup inputGroup = JsonConvert.DeserializeObject<InputGroup>(jText);
-            
-            var importObj = new IfcImport(inputGroup);
-
-            NamePathDict = importObj.NamePathDict;
-            CheckObjList = importObj.CheckObjs;
-            GroundWallObjects = importObj.GroundWallObjects;
-
-            foreach (var checkObj in CheckObjList)
+            try
             {
-                string[] lDirectory = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport" };
-                Directory.CreateDirectory(System.IO.Path.Combine(lDirectory));
+                string jPath = args[0];
+                string jText = System.IO.File.ReadAllText(jPath);
 
-                string[] paths = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport", checkObj.Key };
-                var path = System.IO.Path.Combine(paths);
-                
-                if (inputGroup.outLog)
+                InputGroup inputGroup = JsonConvert.DeserializeObject<InputGroup>(jText);
+
+                var importObj = new IfcImport(inputGroup);
+
+                NamePathDict = importObj.NamePathDict;
+                CheckObjList = importObj.CheckObjs;
+                GroundWallObjects = importObj.GroundWallObjects;
+
+                foreach (var checkObj in CheckObjList)
                 {
-                    try
+                    string[] lDirectory = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport" };
+                    Directory.CreateDirectory(System.IO.Path.Combine(lDirectory));
+
+                    string[] paths = { inputGroup.outputDirectory, "IfcGeoRefChecker\\CheckExport", checkObj.Key };
+                    var path = System.IO.Path.Combine(paths);
+
+                    if (inputGroup.outLog)
                     {
-                        //Log.Information("Export checking-log...");
+                        try
+                        {
+                            //Log.Information("Export checking-log...");
 
-                        var log = new LogOutput(checkObj.Value, path, checkObj.Key);
+                            var log = new LogOutput(checkObj.Value, path, checkObj.Key);
 
-                        //Log.Information("Export successful to: " + path);
+                            //Log.Information("Export successful to: " + path);
+                        }
+                        catch (Exception exIO)
+                        {
+                            //Log.Error("Not able to export log. Error: " + exIO);
+                        }
                     }
-                    catch (Exception exIO)
+
+                    if (inputGroup.outJson)
                     {
-                        //Log.Error("Not able to export log. Error: " + exIO);
+                        try
+                        {
+                            //Log.Information("Export JSON-file...");
+
+                            var js = new JsonOutput();
+                            js.JsonOutputFile(checkObj.Value, path);
+
+                            //Log.Information("Export successful to: " + path);
+                        }
+                        catch (Exception exIO)
+                        {
+                            //Log.Error("Not able to export json. Error: " + exIO);
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Unable to check Georeferencing. Please enter a path to an existing *.json configuration file as the first commandline argument. See the documentation for more Information. Error: " + ex);
+            }
 
-                if (inputGroup.outJson)
-                {
-                    try
-                    {
-                        //Log.Information("Export JSON-file...");
 
-                        var js = new JsonOutput();
-                        js.JsonOutputFile(checkObj.Value, path);
-
-                        //Log.Information("Export successful to: " + path);
-                    }
-                    catch (Exception exIO)
-                    {
-                        //Log.Error("Not able to export json. Error: " + exIO);
-                    }
-                }
-            } 
         }
     }
 }

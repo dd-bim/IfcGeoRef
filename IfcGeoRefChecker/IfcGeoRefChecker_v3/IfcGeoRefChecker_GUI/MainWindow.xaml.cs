@@ -296,10 +296,10 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                //System.Diagnostics.Process.Start(@"Quick_Guide.html");
-                string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
-                string guidePath = System.IO.Path.Combine(mainDirec, "Quick_Guide.html");
-                System.Diagnostics.Process.Start(guidePath);
+                System.Diagnostics.Process.Start(@"Quick_Guide.html");
+                //string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                //string guidePath = System.IO.Path.Combine(mainDirec, "Quick_Guide.html");
+                //System.Diagnostics.Process.Start(guidePath);
                 Log.Information("Quick Guide HTML opened.");
             }
             catch (Exception ex)
@@ -313,10 +313,10 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                //System.Diagnostics.Process.Start(@"Documentation.html");
-                string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
-                string dokuPath = System.IO.Path.Combine(mainDirec, "Documentation_v3.html");
-                System.Diagnostics.Process.Start(dokuPath);
+                System.Diagnostics.Process.Start(@"Documentation_v3.html");
+                //string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                //string dokuPath = System.IO.Path.Combine(mainDirec, "Documentation_v3.html");
+                //System.Diagnostics.Process.Start(dokuPath);
                 Log.Information("Documentation HTML opened.");
             }
             catch (Exception ex)
@@ -445,10 +445,10 @@ namespace IfcGeoRefChecker_GUI
                     Log.Information("Opening of HTML-Site for updating via map...");
 
                     //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
-                    string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
-                    string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
-                    System.Diagnostics.Process.Start(buildingLocatorPath);
-                    //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
+                    //string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                    //string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
+                    //System.Diagnostics.Process.Start(buildingLocatorPath);
+                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
 
                     Log.Information("Done.");
                 }
