@@ -13,6 +13,7 @@ namespace IFCGeoRefCheckerCommand
 {
     static class Program
     {
+
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
         /// </summary>

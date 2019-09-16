@@ -143,25 +143,54 @@ namespace IfcGeoRefChecker_GUI
                                  where l20site.Reference_Object[1].Equals("IfcSite")
                                  select l20site).Single();
 
-                lev20site.Latitude = convHelper.ParseDouble(tb_lat.Text);
-                lev20site.Longitude = convHelper.ParseDouble(tb_lon.Text);
-                lev20site.Elevation = convHelper.ParseDouble(tb_elev.Text);
+                //lev20site.Latitude = convHelper.ParseDouble(tb_lat.Text);
+                //lev20site.Longitude = convHelper.ParseDouble(tb_lon.Text);
+                //lev20site.Elevation = convHelper.ParseDouble(tb_elev.Text);
+                lev20site.Latitude = Double.Parse(tb_lat.Text);
+                lev20site.Longitude = Double.Parse(tb_lon.Text);
+                lev20site.Elevation = Double.Parse(tb_OrthoHeight.Text);
 
+                //------------------------------------------
+
+                var lev40proj = (from l40 in jsonMap.LoGeoRef40
+                                 where l40.Reference_Object[1].Equals("IfcProject")
+                                 select l40).Single();
+
+                if (!tb_TrueNorth.Text.Equals(""))
+                {
+                    //var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
+                    var rot40 = Double.Parse(tb_TrueNorth.Text);
+                    var vector = convHelper.GetVector3DForXAxis(rot40);
+                    
+                    lev40proj.TrueNorthXY = new List<double>();
+
+                    lev40proj.TrueNorthXY = new List<double>();
+
+                    lev40proj.TrueNorthXY.Add(vector.X);
+                    lev40proj.TrueNorthXY.Add(vector.Y);
+                }
+                
                 //------------------------------------------
                 var lev50proj = (from l50 in jsonMap.LoGeoRef50
                                  where l50.Reference_Object[1].Equals("IfcProject")
                                  select l50).Single();
 
-                lev50proj.Translation_Eastings = convHelper.ParseDouble(tb_eastings50.Text);
-                lev50proj.Translation_Northings = convHelper.ParseDouble(tb_northings50.Text);
-                lev50proj.Translation_Orth_Height = convHelper.ParseDouble(tb_height50.Text);
-                lev50proj.Scale = convHelper.ParseDouble(tb_scale50.Text);
+                //lev50proj.Translation_Eastings = convHelper.ParseDouble(tb_eastings50.Text);
+                //lev50proj.Translation_Northings = convHelper.ParseDouble(tb_northings50.Text);
+                //lev50proj.Translation_Orth_Height = convHelper.ParseDouble(tb_height50.Text);
+                //lev50proj.Scale = convHelper.ParseDouble(tb_scale50.Text);
+
+                lev50proj.Translation_Eastings = Double.Parse(tb_eastings50.Text);
+                lev50proj.Translation_Northings = Double.Parse(tb_northings50.Text);
+                lev50proj.Translation_Orth_Height = Double.Parse(tb_OrthoHeight.Text);
+                lev50proj.Scale = Double.Parse(tb_scale50.Text);
 
                 lev50proj.CRS_Name = tb_CRSname50.Text;
 
                 if (!tb_rotation50.Text.Equals(""))
                 {
-                    var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
+                    //var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
+                    var rot50 = Double.Parse(tb_rotation50.Text);
                     var vector = convHelper.GetVector3DForXAxis(rot50);
 
                     lev50proj.RotationXY = new List<double>();
@@ -176,19 +205,119 @@ namespace IfcGeoRefChecker_GUI
                 write.JsonOutputDialog(this.jsonMap, this.direc, this.fileName + "update");
 
                 Log.Information("GeoRefUpdater: Write updates to update.json file was successful.");
+                this.Close();
             }
             catch (Exception ex)
             {
+                MessageBox.Show("Please enter valid numbers in textboxes that require numbers (like Elevation, Latidude, Longitude ...)");
                 Log.Error("GeoRefUpdater: Error occured while writing updates to update.json. Error: " + ex.Message);
             }
-
-            this.Close();
+            
         }
 
         private void bt_quit_Click(object sender, RoutedEventArgs e)
         {
             Log.Information("GeoRefUpdater: Closed without Saving.");
             this.Close();
+        }
+
+        private void Bt_Calculate_Click(object sender, RoutedEventArgs e)
+        {
+            bool isPosGeo = cb_PosGeo.IsChecked.Value;
+            double lat = double.NaN, lon = double.NaN;
+            double east = double.NaN, north = double.NaN;
+            int? zone = null;
+            //var isSouth = chkPosSouth.Checked;
+            bool isSouth = false;
+
+
+            if (isPosGeo)
+            {
+                lat = Calculations.StringToDeg(tb_lat.Text, false);
+                lon = Calculations.StringToDeg(tb_lon.Text, false);
+                //zone = chkPosForceZone.Checked ? Calculations.ParseInt(tbPosZone.Text) : (int?)null;
+                zone = (int?)null;
+            }
+            else
+            {
+                east = Calculations.ParseDouble(tb_eastings50.Text);
+                north = Calculations.ParseDouble(tb_northings50.Text);
+                zone = Calculations.ParseInt(tb_Zone.Text);
+            }
+
+            double orthoHeight = double.NaN;
+            orthoHeight = Calculations.ParseDouble(tb_OrthoHeight.Text);
+
+            bool isRotGeo = cb_RotGeo.IsChecked.Value;
+            double geoAzi = double.NaN, gridAzi = double.NaN;
+            if (isRotGeo)
+            {
+                geoAzi = Calculations.ParseDouble(tb_TrueNorth.Text);
+            }
+            else
+            {
+                gridAzi = Calculations.ParseDouble(tb_rotation50.Text);
+            }
+            Calculations.GetGeoRef(isPosGeo, ref lat, ref lon, ref zone, ref east, ref north, ref isSouth, orthoHeight, isRotGeo, ref geoAzi, ref gridAzi, out var combinedScale);
+
+            tb_lat.Text = Calculations.DegToString(lat, false);
+            tb_lon.Text = Calculations.DegToString(lon, false);
+            tb_Zone.Text = (zone ?? int.MaxValue).ToString();
+            tb_eastings50.Text = Calculations.DoubleToString(east, 4);
+            tb_northings50.Text = Calculations.DoubleToString(north, 4);
+            //chkPosSouth.Checked = isSouth;
+            tb_OrthoHeight.Text = Calculations.DoubleToString(orthoHeight, 4);
+            var loc = Calculations.AzimuthToLocalVector(geoAzi);
+            var grid = Calculations.AzimuthToVector(gridAzi);
+            tb_TrueNorth.Text = Calculations.DoubleToString(geoAzi, 9);
+            //tbRotGeoVecX.Text = Calculations.DoubleToString(loc[0], 9);
+            //tbRotGeoVecY.Text = Calculations.DoubleToString(loc[1], 9);
+            tb_rotation50.Text = Calculations.DoubleToString(gridAzi, 9);
+            //tbRotGridVecE.Text = Calculations.DoubleToString(grid[0], 9);
+            //tbRotGridVecN.Text = Calculations.DoubleToString(grid[1], 9);
+
+        }
+
+        private void Cb_PosGeo_Checked(object sender, RoutedEventArgs e)
+        {
+            tb_lat.IsEnabled = true;
+            tb_lon.IsEnabled = true;
+
+            tb_eastings50.IsEnabled = false;
+            tb_northings50.IsEnabled = false;
+            tb_Zone.IsEnabled = false;
+
+            cb_PosProj.IsChecked = false;
+        }
+
+        private void Cb_RotGeo_Checked(object sender, RoutedEventArgs e)
+        {
+            tb_TrueNorth.IsEnabled = true;
+
+            tb_rotation50.IsEnabled = false;
+
+            cb_RotProj.IsChecked = false;
+        }
+
+        private void Cb_PosProj_Checked(object sender, RoutedEventArgs e)
+        {
+            tb_lat.IsEnabled = false;
+            tb_lon.IsEnabled = false;
+
+            tb_eastings50.IsEnabled = true;
+            tb_northings50.IsEnabled = true;
+            tb_Zone.IsEnabled = true;
+
+            cb_PosGeo.IsChecked = false;
+        }
+
+        private void Cb_RotProj_Checked(object sender, RoutedEventArgs e)
+        {
+            tb_TrueNorth.IsEnabled = false;
+
+            tb_rotation50.IsEnabled = true;
+
+            cb_RotGeo.IsChecked = false;
         }
     }
 }

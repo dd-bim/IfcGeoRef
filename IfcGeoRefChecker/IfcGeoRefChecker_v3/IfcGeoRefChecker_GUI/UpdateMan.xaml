@@ -5,12 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IfcGeoRefChecker_GUI"
         mc:Ignorable="d"
-        Title="Update georeferencing by text input" Height="600" Width="750" Icon="img/icon_img.png">
+        Title="Update georeferencing by text input" Height="953" Width="774" Icon="img/icon_img.png">
     <Grid Margin="0,0,0,213" >
-        <Button Content="Save and Close" Name="bt_updateJsonMan" HorizontalAlignment="Left" Margin="604,28,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_updateJsonMan_Click" RenderTransformOrigin="0.575,-4.233" />
-        <Button Content="Close without Saving" Name="bt_quit" HorizontalAlignment="Left" Margin="604,82,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_quit_Click" RenderTransformOrigin="0.475,1.167"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="83*"/>
+            <ColumnDefinition Width="282*"/>
+            <ColumnDefinition Width="50*"/>
+            <ColumnDefinition Width="351*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Save and Close" Name="bt_updateJsonMan" HorizontalAlignment="Left" Margin="208,17,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_updateJsonMan_Click" RenderTransformOrigin="0.575,-4.233" Grid.Column="3" />
+        <Button Content="Close without Saving" Name="bt_quit" HorizontalAlignment="Left" Margin="208,84,0,0" VerticalAlignment="Top" Height="30" Width="120" Click="bt_quit_Click" RenderTransformOrigin="0.475,1.167" Grid.Column="3"/>
 
-        <GroupBox Name="group10" Header="Postal Address" HorizontalAlignment="Left" Height="207" Margin="10,17,0,0" VerticalAlignment="Top" Width="574">
+        <GroupBox Name="group10" Header="Postal Address" HorizontalAlignment="Left" Height="207" Margin="10,17,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="4">
             <Grid Name="grid_ct10" HorizontalAlignment="Left" Height="182" Margin="10,0,0,0" VerticalAlignment="Top" Width="544">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="90" />
@@ -39,8 +45,8 @@
                 <TextBox Name="tb_country" Grid.Column="3" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
             </Grid>
         </GroupBox>
-        <GroupBox Header="Geographic site coordinates" HorizontalAlignment="Left" Height="117" Margin="10,229,0,0" VerticalAlignment="Top" Width="574">
-            <Grid Name="grid_ct20" HorizontalAlignment="Left" Height="103" Margin="10,0,0,-22" VerticalAlignment="Top" Width="544">
+        <GroupBox Header="Geographic site coordinates" Height="176" Margin="10,229,182,0" Grid.ColumnSpan="4" VerticalAlignment="Top">
+            <Grid Name="grid_ct20" HorizontalAlignment="Left" Height="131" Margin="10,10,0,-12" VerticalAlignment="Top" Width="544">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="90" />
                     <ColumnDefinition Width="180" />
@@ -51,16 +57,49 @@
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
-                <Label Content="Latitude [°]:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <Label Content="Longitude [°]:" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <Label Content="Elevation [m]:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <TextBox Name="tb_lat" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="10" />
-                <TextBox Name="tb_lon" Grid.Column="3" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
-                <TextBox Name="tb_elev" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                <GroupBox Header="Position" Margin="10,0" Grid.ColumnSpan="4">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="180" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Name="cb_PosGeo" Margin="10,10,-10,-10" Checked="Cb_PosGeo_Checked"/>
+                        <Label Content="Latitude [°]:" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Margin="15,4,0,5" Height="35" Grid.Column="1" Grid.ColumnSpan="2" />
+                        <TextBox Name="tb_lat" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,10,16" RenderTransformOrigin="0.513,0.537" Grid.Column="2" Width="160" />
+                        <Label Content="Longitude [°]:" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="85" RenderTransformOrigin="0.456,-1.423" Margin="10,4,0,10" Height="30" Grid.Column="3" />
+                        <TextBox Name="tb_lon" HorizontalAlignment="Center" VerticalAlignment="Center" Width="97" Margin="10,10,73,16" Height="18" RenderTransformOrigin="0.5,0.5" Grid.Column="4" />
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Rotation" Grid.ColumnSpan="4" Margin="10,10,10,1" Grid.Row="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="61*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Name="cb_RotGeo" Margin="10,6,-10,-6" Grid.ColumnSpan="2" Checked="Cb_RotGeo_Checked"/>
+                        <Label Content="True North [°]:" HorizontalAlignment="Left" Margin="3,-1,0,-6" VerticalAlignment="Top" Width="100" Height="31" RenderTransformOrigin="0.5,0.5" Grid.Column="1"/>
+                        <TextBox x:Name="tb_TrueNorth" HorizontalAlignment="Left" Height="18" Margin="108,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="154" RenderTransformOrigin="-0.347,0.333" Grid.Column="1"/>
+                    </Grid>
+                </GroupBox>
+
+                <Label Content="Elevation [m]:" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Margin="297,477,-196,-380" RenderTransformOrigin="0.4,-0.615" Grid.Row="1" />
+                <TextBox Name="tb_elev" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="227,480,-196,-414" Grid.Column="3" Grid.Row="1" />
+
             </Grid>
         </GroupBox>
-        <GroupBox Header="Geodetic transformation" HorizontalAlignment="Left" Margin="10,360,0,-206" Width="574">
-            <Grid HorizontalAlignment="Left" Height="159" Margin="10,10,0,0" VerticalAlignment="Top" Width="544">
+        <GroupBox Header="Height Information" HorizontalAlignment="Left" Height="76" Margin="10,410,0,0" VerticalAlignment="Top" Width="574" Grid.ColumnSpan="4">
+            <Grid RenderTransformOrigin="0.619,0.493" Margin="0,0,0,13">
+                <Label Content="Orthometric height [m]:" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.395,-0.962"/>
+                <TextBox x:Name="tb_OrthoHeight" Margin="145,22,0,0" Width="150" Height="18" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Label Content="Height system:" Margin="301,18,0,-3" VerticalAlignment="Top" Height="26" HorizontalAlignment="Left" Width="96"/>
+                <TextBox x:Name="tb_HeightSys" HorizontalAlignment="Left" Height="18" Margin="397,22,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="150"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Projected transformation" HorizontalAlignment="Left" Margin="10,529,0,-188" Width="574" Grid.ColumnSpan="4">
+            <Grid HorizontalAlignment="Left" Height="225" Margin="10,10,0,0" VerticalAlignment="Top" Width="544">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="90" />
                     <ColumnDefinition Width="180" />
@@ -73,19 +112,51 @@
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
-                <Label Content="Eastings [m]:" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <Label Content="Northings [m]:" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="91" />
-                <Label Content="Height [m]:" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <Label Content="Rotation [°]:" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
-                <Label Content="Scale:" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" />
+                <GroupBox Header="Position" Grid.ColumnSpan="4" Margin="0,0,10,10" Grid.RowSpan="2">
+                    <Grid Margin="0,0,0,1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="25*"/>
+                            <ColumnDefinition Width="54*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox x:Name="cb_PosProj" Grid.ColumnSpan="2" Margin="10,19,347,-19" Checked="Cb_PosProj_Checked"></CheckBox>
+                        <Label Content="Eastings [m]:" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Margin="31,10,0,43" RenderTransformOrigin="0.738,0.538" />
+                        <Label Content="Northings [m]:" HorizontalAlignment="Left" VerticalAlignment="Center" Width="91" RenderTransformOrigin="0.714,1.385" Margin="25,40,0,13" />
+                        <TextBox Name="tb_eastings50" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="116,10,256,51" Grid.ColumnSpan="2" IsEnabled="False" />
+                        <TextBox Name="tb_northings50" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="116,48,256,14" Grid.ColumnSpan="2" IsEnabled="False" />
+                        <Label Content="Zone:" Grid.Column="1" HorizontalAlignment="Left" Height="26" Margin="115,40,0,0" VerticalAlignment="Top" RenderTransformOrigin="-4.039,0.423"/>
+                        <TextBox x:Name="tb_Zone" Grid.Column="1" HorizontalAlignment="Left" Height="18" Margin="160,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="40" RenderTransformOrigin="0.975,-9.333" IsEnabled="False"/>
+
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Rotation" Grid.ColumnSpan="4" Margin="0,51,20,47" Grid.Row="1" Grid.RowSpan="3">
+                    <Grid>
+                        <CheckBox x:Name="cb_RotProj" Margin="10,19,-10,-19" Checked="Cb_RotProj_Checked"></CheckBox>
+                        <Label Content="Grid North [°]:" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="84" Margin="51,10,0,13" Height="26" RenderTransformOrigin="0.333,0.462" />
+                        <TextBox Name="tb_rotation50" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="166,10,196,21" Height="18" IsEnabled="False" />
+                    </Grid>
+
+                </GroupBox>
+                <Label Content="Height [m]:" Grid.Column="3" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Margin="249,90,-148,-59" RenderTransformOrigin="0.7,-1.846" />
+                <Label Content="Scale:" Grid.Column="2" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Margin="39,19,0,12" Grid.ColumnSpan="2" />
                 <Label Content="EPSG-Code (CRS):" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="120" />
-                <TextBox Name="tb_eastings50" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
-                <TextBox Name="tb_northings50" Grid.Column="3" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
-                <TextBox Name="tb_height50" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
-                <TextBox Name="tb_rotation50" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
-                <TextBox Name="tb_scale50" Text="1.0"  Grid.Column="3" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" />
+                <TextBox Name="tb_height50" Grid.Column="3" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Margin="207,156,-176,-117" />
+                <TextBox Name="tb_scale50" Text="1.0"  Grid.Column="3" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" IsEnabled="False" Margin="0,24,31,15" />
                 <TextBox Name="tb_CRSname50" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Width="200" Grid.ColumnSpan="2" Margin="15,10,0,11" />
             </Grid>
         </GroupBox>
+        <Button x:Name="bt_Calculate" Content="Calculate" Grid.Column="3" HorizontalAlignment="Left" Margin="191,264,0,0" VerticalAlignment="Top" Width="120" Height="30" RenderTransformOrigin="0.5,0.5" Click="Bt_Calculate_Click">
+            <Button.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-0.286"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Button.RenderTransform>
+        </Button>
+
+
+
+
     </Grid>
 </Window>

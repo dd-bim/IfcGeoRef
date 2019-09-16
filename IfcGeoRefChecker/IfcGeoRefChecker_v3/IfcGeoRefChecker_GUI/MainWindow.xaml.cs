@@ -35,6 +35,7 @@ namespace IfcGeoRefChecker_GUI
 
         public MainWindow()
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             try
             {
                 Log.Logger = new LoggerConfiguration()
@@ -48,9 +49,7 @@ namespace IfcGeoRefChecker_GUI
                 //    .CreateLogger();
 
                 Log.Information("Start of IfcGeoRefChecker");
-
-                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-
+                
                 InitializeComponent();
 
                 tb_direc.Text = this.direc;
@@ -118,6 +117,7 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
+                Dictionary<string, IfcGeoRefChecker.Appl.GeoRefChecker> newObjectList = new Dictionary<string, IfcGeoRefChecker.Appl.GeoRefChecker>();
                 Log.Information("Start of Checking Georef...");
                 Log.Debug("Files loaded: " + this.CheckObjList.Count);
 
@@ -128,6 +128,7 @@ namespace IfcGeoRefChecker_GUI
                     this.NamePathDict = importObj.NamePathDict;
                     this.CheckObjList = importObj.CheckObjs;
                     this.GroundWallObjects = importObj.GroundWallObjects;
+                    newObjectList = this.CheckObjList;
                 }
                 else
                 {
@@ -142,6 +143,7 @@ namespace IfcGeoRefChecker_GUI
                         foreach (var kp in addCheckObjs)
                         {
                             this.CheckObjList.Add(kp.Key, kp.Value);
+                            newObjectList.Add(kp.Key, kp.Value);
                         }
 
                         foreach (var kp in addGroundWalls)
@@ -181,8 +183,8 @@ namespace IfcGeoRefChecker_GUI
                 lb_checkMsg.Content = this.CheckObjList.Count + " file(s) checked";
 
                 lb_importMsg.Content = this.CheckObjList.Count + " file(s) loaded";
-
-                foreach (var checkObj in this.CheckObjList)
+                //foreach (var checkObj in this.CheckObjList)
+                foreach (var checkObj in newObjectList)
                 {
                     string[] lDirectory = { direc, "IfcGeoRefChecker\\CheckExport" };
                     Directory.CreateDirectory(System.IO.Path.Combine(lDirectory));
@@ -445,10 +447,10 @@ namespace IfcGeoRefChecker_GUI
                     Log.Information("Opening of HTML-Site for updating via map...");
 
                     //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
-                    //string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
-                    //string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
-                    //System.Diagnostics.Process.Start(buildingLocatorPath);
-                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
+                    string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                    string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
+                    System.Diagnostics.Process.Start(buildingLocatorPath);
+                    //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
 
                     Log.Information("Done.");
                 }
@@ -464,24 +466,38 @@ namespace IfcGeoRefChecker_GUI
 
         private void bt_update_ifc_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (this.CheckObjList.Count == 0)
             {
-                Log.Information("Open export window...");
-
-                var ifcName = importFiles.SelectedItem.ToString();
-
-                this.NamePathDict.TryGetValue(ifcName, out string ifcPath);
-
-                var showExport2IFC = new Export2IFC(ifcPath, ifcName);
-                showExport2IFC.Show();
+                Log.Information("Updating not possible. No model imported.");
+                System.Windows.MessageBox.Show("Please import at least 1 Ifc-file.");
             }
-            catch (Exception ex)
+            else if (importFiles.SelectedItem == null)
             {
-                var str = "Not able to open Export window. Error: " + ex;
-
-                Log.Error(str);
-                System.Windows.MessageBox.Show(str);
+                Log.Information("Updating not possible. No model selected.");
+                System.Windows.MessageBox.Show("Please select the ifc file, which should be updated, in the box above.");
             }
+            else
+            {
+                try
+                {
+                    Log.Information("Open export window...");
+
+                    var ifcName = importFiles.SelectedItem.ToString();
+
+                    this.NamePathDict.TryGetValue(ifcName, out string ifcPath);
+
+                    var showExport2IFC = new Export2IFC(ifcPath, ifcName);
+                    showExport2IFC.Show();
+                }
+                catch (Exception ex)
+                {
+                    var str = "Not able to open Export window. Error: " + ex;
+
+                    Log.Error(str);
+                    System.Windows.MessageBox.Show(str);
+                }
+            }
+            
         }
 
         private void bt_comparer_Click(object sender, RoutedEventArgs e)

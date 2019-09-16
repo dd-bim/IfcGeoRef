@@ -56,25 +56,37 @@ namespace IfcGeoRefChecker_GUI
 
         private void bt_compare_Click(object sender, RoutedEventArgs e)
         {
-            var refName = cb_compRef.SelectedItem.ToString();
-
-            this.jsonDict.TryGetValue(refName, out var refModel);
-
-            var refJson = new KeyValuePair<string, string>(refName, refModel);
-
-            var compList = new Dictionary<string, string>();
-
-            foreach (var item in list_compModels.SelectedItems)
+            if(cb_compRef.SelectedItem == null)
             {
-                this.jsonDict.TryGetValue(item.ToString(), out var compModel);
-
-                compList.Add(item.ToString(), compModel);
+                //Log.Information("Comparing IFC Files not possible. No Reference selected.");
+                System.Windows.MessageBox.Show("Please select an IFC file for reference.");
             }
+            else if(list_compModels.SelectedItems.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Please select at least 1 IFC file to compare to your reference.");
+            }
+            else
+            {
+                var refName = cb_compRef.SelectedItem.ToString();
 
-            this.comparison = new GeoRefComparer(this.direc, refJson, compList);
-            comparison.CompareIFC();
+                this.jsonDict.TryGetValue(refName, out var refModel);
 
-            bt_compLog.IsEnabled = true;
+                var refJson = new KeyValuePair<string, string>(refName, refModel);
+
+                var compList = new Dictionary<string, string>();
+
+                foreach (var item in list_compModels.SelectedItems)
+                {
+                    this.jsonDict.TryGetValue(item.ToString(), out var compModel);
+
+                    compList.Add(item.ToString(), compModel);
+                }
+
+                this.comparison = new GeoRefComparer(this.direc, refJson, compList);
+                comparison.CompareIFC();
+
+                bt_compLog.IsEnabled = true;
+            }
         }
 
         private void bt_compLog_Click(object sender, RoutedEventArgs e)
