@@ -447,10 +447,10 @@ namespace IfcGeoRefChecker_GUI
                     Log.Information("Opening of HTML-Site for updating via map...");
 
                     //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\buildingLocator\\index.html");
-                    string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
-                    string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
-                    System.Diagnostics.Process.Start(buildingLocatorPath);
-                    //System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
+                    //string mainDirec = Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)).FullName).FullName).FullName).FullName).FullName;
+                    //string buildingLocatorPath = System.IO.Path.Combine(mainDirec, "BuildingLocator\\BuildingLocator.exe");
+                    //System.Diagnostics.Process.Start(buildingLocatorPath);
+                    System.Diagnostics.Process.Start(Environment.CurrentDirectory + "\\BuildingLocator\\BuildingLocator.exe");
 
                     Log.Information("Done.");
                 }

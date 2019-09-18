@@ -81,7 +81,7 @@ namespace IfcGeoRefChecker_GUI
 
                 tb_lon.Text = lev20site.Longitude.ToString();
 
-                tb_elev.Text = lev20site.Elevation.ToString();
+                //tb_elev.Text = lev20site.Elevation.ToString();
 
                 //------------------
 
@@ -91,7 +91,7 @@ namespace IfcGeoRefChecker_GUI
 
                 tb_eastings50.Text = lev50proj.Translation_Eastings.ToString();
                 tb_northings50.Text = lev50proj.Translation_Northings.ToString();
-                tb_height50.Text = lev50proj.Translation_Orth_Height.ToString();
+                //tb_height50.Text = lev50proj.Translation_Orth_Height.ToString();
 
                 tb_scale50.Text = lev50proj.Scale.ToString();
 
@@ -179,8 +179,7 @@ namespace IfcGeoRefChecker_GUI
                 //lev50proj.Translation_Northings = convHelper.ParseDouble(tb_northings50.Text);
                 //lev50proj.Translation_Orth_Height = convHelper.ParseDouble(tb_height50.Text);
                 //lev50proj.Scale = convHelper.ParseDouble(tb_scale50.Text);
-
-                lev50proj.Translation_Eastings = Double.Parse(tb_eastings50.Text);
+                lev50proj.Translation_Eastings = Double.Parse(tb_Zone.Text + tb_eastings50.Text);
                 lev50proj.Translation_Northings = Double.Parse(tb_northings50.Text);
                 lev50proj.Translation_Orth_Height = Double.Parse(tb_OrthoHeight.Text);
                 lev50proj.Scale = Double.Parse(tb_scale50.Text);
@@ -227,54 +226,62 @@ namespace IfcGeoRefChecker_GUI
             double lat = double.NaN, lon = double.NaN;
             double east = double.NaN, north = double.NaN;
             int? zone = null;
-            //var isSouth = chkPosSouth.Checked;
-            bool isSouth = false;
+            var isSouth = cb_isSouth.IsChecked.Value;
 
-
-            if (isPosGeo)
+            try
             {
-                lat = Calculations.StringToDeg(tb_lat.Text, false);
-                lon = Calculations.StringToDeg(tb_lon.Text, false);
-                //zone = chkPosForceZone.Checked ? Calculations.ParseInt(tbPosZone.Text) : (int?)null;
-                zone = (int?)null;
+                if (isPosGeo)
+                {
+                    lat = Calculations.StringToDeg(tb_lat.Text, false);
+                    lon = Calculations.StringToDeg(tb_lon.Text, false);
+                    //zone = chkPosForceZone.Checked ? Calculations.ParseInt(tbPosZone.Text) : (int?)null;
+                    zone = (int?)null;
+                }
+                else
+                {
+                    east = Calculations.ParseDouble(tb_eastings50.Text);
+                    north = Calculations.ParseDouble(tb_northings50.Text);
+                    zone = Calculations.ParseInt(tb_Zone.Text);
+                }
+
+                double orthoHeight = double.NaN;
+                orthoHeight = Calculations.ParseDouble(tb_OrthoHeight.Text);
+
+                bool isRotGeo = cb_RotGeo.IsChecked.Value;
+                double geoAzi = double.NaN, gridAzi = double.NaN;
+                if (isRotGeo)
+                {
+                    geoAzi = Calculations.ParseDouble(tb_TrueNorth.Text);
+                }
+                else
+                {
+                    gridAzi = Calculations.ParseDouble(tb_rotation50.Text);
+                }
+                Calculations.GetGeoRef(isPosGeo, ref lat, ref lon, ref zone, ref east, ref north, ref isSouth, orthoHeight, isRotGeo, ref geoAzi, ref gridAzi, out var combinedScale);
+
+                tb_lat.Text = Calculations.DegToString(lat, false);
+                tb_lon.Text = Calculations.DegToString(lon, false);
+                tb_Zone.Text = (zone ?? int.MaxValue).ToString();
+                tb_eastings50.Text = Calculations.DoubleToString(east, 4);
+                tb_northings50.Text = Calculations.DoubleToString(north, 4);
+                cb_isSouth.IsChecked = isSouth;
+                tb_OrthoHeight.Text = Calculations.DoubleToString(orthoHeight, 4);
+                var loc = Calculations.AzimuthToLocalVector(geoAzi);
+                var grid = Calculations.AzimuthToVector(gridAzi);
+                tb_scale50.Text = Calculations.DoubleToString(combinedScale, 9);
+                tb_TrueNorth.Text = Calculations.DoubleToString(geoAzi, 9);
+                //tbRotGeoVecX.Text = Calculations.DoubleToString(loc[0], 9);
+                //tbRotGeoVecY.Text = Calculations.DoubleToString(loc[1], 9);
+                tb_rotation50.Text = Calculations.DoubleToString(gridAzi, 9);
+                //tbRotGridVecE.Text = Calculations.DoubleToString(grid[0], 9);
+                //tbRotGridVecN.Text = Calculations.DoubleToString(grid[1], 9);
             }
-            else
+            catch
             {
-                east = Calculations.ParseDouble(tb_eastings50.Text);
-                north = Calculations.ParseDouble(tb_northings50.Text);
-                zone = Calculations.ParseInt(tb_Zone.Text);
+
             }
 
-            double orthoHeight = double.NaN;
-            orthoHeight = Calculations.ParseDouble(tb_OrthoHeight.Text);
-
-            bool isRotGeo = cb_RotGeo.IsChecked.Value;
-            double geoAzi = double.NaN, gridAzi = double.NaN;
-            if (isRotGeo)
-            {
-                geoAzi = Calculations.ParseDouble(tb_TrueNorth.Text);
-            }
-            else
-            {
-                gridAzi = Calculations.ParseDouble(tb_rotation50.Text);
-            }
-            Calculations.GetGeoRef(isPosGeo, ref lat, ref lon, ref zone, ref east, ref north, ref isSouth, orthoHeight, isRotGeo, ref geoAzi, ref gridAzi, out var combinedScale);
-
-            tb_lat.Text = Calculations.DegToString(lat, false);
-            tb_lon.Text = Calculations.DegToString(lon, false);
-            tb_Zone.Text = (zone ?? int.MaxValue).ToString();
-            tb_eastings50.Text = Calculations.DoubleToString(east, 4);
-            tb_northings50.Text = Calculations.DoubleToString(north, 4);
-            //chkPosSouth.Checked = isSouth;
-            tb_OrthoHeight.Text = Calculations.DoubleToString(orthoHeight, 4);
-            var loc = Calculations.AzimuthToLocalVector(geoAzi);
-            var grid = Calculations.AzimuthToVector(gridAzi);
-            tb_TrueNorth.Text = Calculations.DoubleToString(geoAzi, 9);
-            //tbRotGeoVecX.Text = Calculations.DoubleToString(loc[0], 9);
-            //tbRotGeoVecY.Text = Calculations.DoubleToString(loc[1], 9);
-            tb_rotation50.Text = Calculations.DoubleToString(gridAzi, 9);
-            //tbRotGridVecE.Text = Calculations.DoubleToString(grid[0], 9);
-            //tbRotGridVecN.Text = Calculations.DoubleToString(grid[1], 9);
+            
 
         }
 
