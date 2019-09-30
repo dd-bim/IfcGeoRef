@@ -41,36 +41,65 @@ namespace IfcGeoRefChecker_GUI
         {
             try
             {
-                var lev10Bldg = (from l10Bldg in jsonMap.LoGeoRef10
-                                 where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
-                                 select l10Bldg).Single();
+                //var lev10Bldg = (from l10Bldg in jsonMap.LoGeoRef10
+                //                 where l10Bldg.Reference_Object[1].Equals("IfcBuilding")
+                //                 select l10Bldg).Single();
+                
+                //if (lev10Bldg.AddressLines != null)
+                //{
+                //    var k = lev10Bldg.AddressLines.Count;
 
-                if (lev10Bldg.AddressLines != null)
+                //    switch (k)
+                //    {
+                //        case 1:
+                //            tb_adr0.Text = lev10Bldg.AddressLines[0];
+                //            break;
+
+                //        case 2:
+                //            tb_adr1.Text = lev10Bldg.AddressLines[1];
+                //            goto case 1;
+
+                //        case 3:
+                //            tb_adr2.Text = lev10Bldg.AddressLines[2];
+                //            goto case 2;
+                //    }
+                //}
+
+                //tb_plz.Text = lev10Bldg.Postalcode;
+                //tb_town.Text = lev10Bldg.Town;
+                //tb_region.Text = lev10Bldg.Region;
+                //tb_country.Text = lev10Bldg.Country;
+
+                //added for test purpose
+                var lev10Site = (from l10Site in jsonMap.LoGeoRef10
+                                 where l10Site.Reference_Object[1].Equals("IfcSite")
+                                 select l10Site).Single();
+                if (lev10Site.AddressLines != null)
                 {
-                    var k = lev10Bldg.AddressLines.Count;
+                    var k = lev10Site.AddressLines.Count;
 
                     switch (k)
                     {
                         case 1:
-                            tb_adr0.Text = lev10Bldg.AddressLines[0];
+                            tb_adr0.Text = lev10Site.AddressLines[0];
                             break;
 
                         case 2:
-                            tb_adr1.Text = lev10Bldg.AddressLines[1];
+                            tb_adr1.Text = lev10Site.AddressLines[1];
                             goto case 1;
 
                         case 3:
-                            tb_adr2.Text = lev10Bldg.AddressLines[2];
+                            tb_adr2.Text = lev10Site.AddressLines[2];
                             goto case 2;
                     }
                 }
 
-                tb_plz.Text = lev10Bldg.Postalcode;
-                tb_town.Text = lev10Bldg.Town;
-                tb_region.Text = lev10Bldg.Region;
-                tb_country.Text = lev10Bldg.Country;
+                tb_plz.Text = lev10Site.Postalcode;
+                tb_town.Text = lev10Site.Town;
+                tb_region.Text = lev10Site.Region;
+                tb_country.Text = lev10Site.Country;
 
-
+                var convHelper = new Calc();
                 //-------------
 
                 var lev20site = (from l20site in jsonMap.LoGeoRef20
@@ -81,24 +110,33 @@ namespace IfcGeoRefChecker_GUI
 
                 tb_lon.Text = lev20site.Longitude.ToString();
 
+                var lev40proj = (from l40 in jsonMap.LoGeoRef40
+                                 where l40.Reference_Object[1].Equals("IfcProject")
+                                 select l40).Single();
+
+                var angleNorth = convHelper.GetAngleBetweenForXAxis(new System.Windows.Media.Media3D.Vector3D(lev40proj.TrueNorthXY[0], lev40proj.TrueNorthXY[1], 0));
+                tb_TrueNorth.Text = angleNorth.ToString();
                 //tb_elev.Text = lev20site.Elevation.ToString();
 
+                //------------------
+                tb_OrthoHeight.Text = lev20site.Elevation.ToString();
                 //------------------
 
                 var lev50proj = (from l50 in jsonMap.LoGeoRef50
                                  where l50.Reference_Object[1].Equals("IfcProject")
                                  select l50).Single();
 
-                tb_eastings50.Text = lev50proj.Translation_Eastings.ToString();
+                string eastingComplete = lev50proj.Translation_Eastings.ToString();
+                tb_Zone.Text = eastingComplete.Substring(0, 2);
+                tb_eastings50.Text = eastingComplete.Substring(2);
+                //tb_eastings50.Text = lev50proj.Translation_Eastings.ToString();
                 tb_northings50.Text = lev50proj.Translation_Northings.ToString();
                 //tb_height50.Text = lev50proj.Translation_Orth_Height.ToString();
 
                 tb_scale50.Text = lev50proj.Scale.ToString();
 
                 tb_CRSname50.Text = lev50proj.CRS_Name;
-
-                var convHelper = new Calc();
-
+                
                 var angle = convHelper.GetAngleBetweenForXAxis(new System.Windows.Media.Media3D.Vector3D(lev50proj.RotationXY[0], lev50proj.RotationXY[1], 0));
 
                 tb_rotation50.Text = angle.ToString();
@@ -113,8 +151,8 @@ namespace IfcGeoRefChecker_GUI
 
         private void bt_updateJsonMan_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
+            //try
+            //{
                 var convHelper = new Calc();
 
                 var lev10Bldg = (from l10Bldg in jsonMap.LoGeoRef10
@@ -205,12 +243,12 @@ namespace IfcGeoRefChecker_GUI
 
                 Log.Information("GeoRefUpdater: Write updates to update.json file was successful.");
                 this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Please enter valid numbers in textboxes that require numbers (like Elevation, Latidude, Longitude ...)");
-                Log.Error("GeoRefUpdater: Error occured while writing updates to update.json. Error: " + ex.Message);
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("Please enter valid numbers in textboxes that require numbers (like Elevation, Latidude, Longitude ...)");
+            //    Log.Error("GeoRefUpdater: Error occured while writing updates to update.json. Error: " + ex.Message);
+            //}
             
         }
 

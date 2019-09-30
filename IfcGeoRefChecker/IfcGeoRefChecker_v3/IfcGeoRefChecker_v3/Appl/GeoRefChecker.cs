@@ -124,7 +124,11 @@ namespace IfcGeoRefChecker.Appl
                 this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
                 this.LengthUnit = obj.LengthUnitReader();
 
-                this.LoGeoRef10.Add(GetLevel10(bldg));
+                if(bldg != null)
+                {
+                    this.LoGeoRef10.Add(GetLevel10(bldg));
+                }
+                //this.LoGeoRef10.Add(GetLevel10(bldg));
                 this.LoGeoRef10.Add(GetLevel10(site));
 
                 this.LoGeoRef20.Add(GetLevel20(site));

@@ -83,15 +83,14 @@ namespace IfcGeoRefChecker.IO
 
                     Log.Information("Start calculating of ground floor walls for " + filename);
 
+                    var reader = new IfcReader(model);
+                    var bldg = reader.BldgReader();
+
+                    var calc = new Calculation();
+                    var elems = new List<IIfcBuildingElement>();
                     try
                     {
-                        var reader = new IfcReader(model);
-                        var bldg = reader.BldgReader();
-
                         var ifc = new Extraction(model);
-                        var calc = new Calculation();
-                        var elems = new List<IIfcBuildingElement>();
-
                         //Extrahiere alle Slabs, die im (vermutlich) Erdgeschoss liegen
                         var slabs = ifc.GetSlabsOnGround();
 

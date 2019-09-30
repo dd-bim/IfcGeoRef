@@ -23,13 +23,13 @@ namespace IfcGeoRefChecker.IO
                     writeLog.WriteLine(headline);
                     writeLog.WriteLine("IfcVersion: " + checkObj.IFCSchema);
                     writeLog.WriteLine("LengthUnit: " + checkObj.LengthUnit);
-
-                    foreach(var lev in checkObj.LoGeoRef10)
+                    
+                    foreach (var lev in checkObj.LoGeoRef10)
                     {
                         writeLog.WriteLine(LogLevel10(lev));
                     }
 
-                    foreach(var lev in checkObj.LoGeoRef20)
+                    foreach (var lev in checkObj.LoGeoRef20)
                     {
                         writeLog.WriteLine(LogLevel20(lev));
                     }
@@ -73,7 +73,8 @@ namespace IfcGeoRefChecker.IO
             if(lev.Instance_Object.Count == 0)
 
             {
-                logLevel10 += "\r\n " + lev.Reference_Object[0] + "=" + lev.Reference_Object[1] + " references no address.";
+                //logLevel10 += "\r\n " + lev.Reference_Object[0] + "=" + lev.Reference_Object[1] + " references no address.";
+                logLevel10 += "\r\n " + " references no address.";
             }
             else
             {
