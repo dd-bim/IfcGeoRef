@@ -101,8 +101,8 @@ namespace IfcGeoRefChecker_GUI
                     l40.ProjectLocation[0] = ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);    //Umwandlung zu Projektlängeneinheit, wenn nötig
                     l40.ProjectLocation[1] = ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
 
-                    l40.TrueNorthXY[0] = lev50map.RotationXY[1];
-                    l40.TrueNorthXY[1] = lev50map.RotationXY[0];
+                    //l40.TrueNorthXY[0] = lev50map.RotationXY[1];      //Rotation on projected CRS is not equal to True North
+                    //l40.TrueNorthXY[1] = lev50map.RotationXY[0];
                 }
 
                 lev50map.GeoRef50 = false;
@@ -111,43 +111,44 @@ namespace IfcGeoRefChecker_GUI
                 lev50map.RotationXY[0] = 0;
                 lev50map.RotationXY[1] = 0;
             }
-            else if (radio_30.IsChecked == true)                         //Option GeoRef baustellenbezogen speichern
-            {
-                foreach (var l30 in jsonMap.LoGeoRef30)
-                {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit); //Addition zur eventuellen vorhandenen Projektkoordinate,
-                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit); //damit keine projektinterne Verschiebung stattfindet
 
-                    l30.ObjectRotationX[0] = lev50map.RotationXY[0];
-                    l30.ObjectRotationX[1] = lev50map.RotationXY[1];
-                }
+            //else if (radio_30.IsChecked == true)                         //Option GeoRef baustellenbezogen speichern    // Exportoption für LoGeoRef30 entfernt
+            //{
+            //    foreach (var l30 in jsonMap.LoGeoRef30)
+            //    {
+            //        l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit); //Addition zur eventuellen vorhandenen Projektkoordinate,
+            //        l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit); //damit keine projektinterne Verschiebung stattfindet
 
-                lev50map.GeoRef50 = false;
-                lev50map.Translation_Eastings = 0;
-                lev50map.Translation_Northings = 0;
-                lev50map.RotationXY[0] = 0;
-                lev50map.RotationXY[1] = 0;
-            }
-            else if (radio_mix.IsChecked == true)                    //Option GeoRef-Location baustellenbezogen und Rotation projektbezogen speichern (Revit-konform)
-            {
-                foreach (var l30 in jsonMap.LoGeoRef30)
-                {
-                    l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
-                    l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
-                }
+            //        l30.ObjectRotationX[0] = lev50map.RotationXY[0];
+            //        l30.ObjectRotationX[1] = lev50map.RotationXY[1];
+            //    }
 
-                foreach (var l40 in jsonMap.LoGeoRef40)
-                {
-                    l40.TrueNorthXY[0] = lev50map.RotationXY[1];
-                    l40.TrueNorthXY[1] = lev50map.RotationXY[0];
-                }
+            //    lev50map.GeoRef50 = false;
+            //    lev50map.Translation_Eastings = 0;
+            //    lev50map.Translation_Northings = 0;
+            //    lev50map.RotationXY[0] = 0;
+            //    lev50map.RotationXY[1] = 0;
+            //}
+            //else if (radio_mix.IsChecked == true)                    //Option GeoRef-Location baustellenbezogen und Rotation projektbezogen speichern (Revit-konform)
+            //{
+            //    foreach (var l30 in jsonMap.LoGeoRef30)
+            //    {
+            //        l30.ObjectLocationXYZ[0] += ConvertUnit((double)lev50map.Translation_Eastings, jsonMap.LengthUnit);
+            //        l30.ObjectLocationXYZ[1] += ConvertUnit((double)lev50map.Translation_Northings, jsonMap.LengthUnit);
+            //    }
 
-                lev50map.GeoRef50 = false;
-                lev50map.Translation_Eastings = 0;
-                lev50map.Translation_Northings = 0;
-                lev50map.RotationXY[0] = 0;
-                lev50map.RotationXY[1] = 0;
-            }
+            //    foreach (var l40 in jsonMap.LoGeoRef40)
+            //    {
+            //        l40.TrueNorthXY[0] = lev50map.RotationXY[1];
+            //        l40.TrueNorthXY[1] = lev50map.RotationXY[0];
+            //    }
+
+            //    lev50map.GeoRef50 = false;
+            //    lev50map.Translation_Eastings = 0;
+            //    lev50map.Translation_Northings = 0;
+            //    lev50map.RotationXY[0] = 0;
+            //    lev50map.RotationXY[1] = 0;
+            //}
 
             if (check_height.IsChecked == true)
             {
@@ -232,9 +233,10 @@ namespace IfcGeoRefChecker_GUI
                              where l10Site.Reference_Object[1].Equals("IfcSite")
                              select l10Site).Single();
 
-            lev10Site.AddressLines[0] = null;
-            lev10Site.AddressLines[1] = null;
-            lev10Site.AddressLines[2] = null;
+            lev10Site.AddressLines.Clear();
+            //lev10Site.AddressLines[0] = null;
+            //lev10Site.AddressLines[1] = null;
+            //lev10Site.AddressLines[2] = null;
             lev10Site.Postalcode = null;
             lev10Site.Town = null;
             lev10Site.Region = null;

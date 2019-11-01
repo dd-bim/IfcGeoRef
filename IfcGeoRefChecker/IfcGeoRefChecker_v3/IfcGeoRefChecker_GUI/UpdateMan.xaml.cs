@@ -181,12 +181,12 @@ namespace IfcGeoRefChecker_GUI
                                  where l20site.Reference_Object[1].Equals("IfcSite")
                                  select l20site).Single();
 
-                //lev20site.Latitude = convHelper.ParseDouble(tb_lat.Text);
-                //lev20site.Longitude = convHelper.ParseDouble(tb_lon.Text);
-                //lev20site.Elevation = convHelper.ParseDouble(tb_elev.Text);
-                lev20site.Latitude = Double.Parse(tb_lat.Text);
-                lev20site.Longitude = Double.Parse(tb_lon.Text);
-                lev20site.Elevation = Double.Parse(tb_OrthoHeight.Text);
+                lev20site.Latitude = convHelper.ParseDouble(tb_lat.Text);
+                lev20site.Longitude = convHelper.ParseDouble(tb_lon.Text);
+                lev20site.Elevation = convHelper.ParseDouble(tb_OrthoHeight.Text);
+                //lev20site.Latitude = Double.Parse(tb_lat.Text);
+                //    lev20site.Longitude = Double.Parse(tb_lon.Text);
+                //    lev20site.Elevation = Double.Parse(tb_OrthoHeight.Text);
 
                 //------------------------------------------
 
@@ -197,7 +197,8 @@ namespace IfcGeoRefChecker_GUI
                 if (!tb_TrueNorth.Text.Equals(""))
                 {
                     //var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
-                    var rot40 = Double.Parse(tb_TrueNorth.Text);
+                    //var rot40 = Double.Parse(tb_TrueNorth.Text);
+                    var rot40 = convHelper.ParseDouble(tb_TrueNorth.Text);
                     var vector = convHelper.GetVector3DForXAxis(rot40);
                     
                     lev40proj.TrueNorthXY = new List<double>();
@@ -213,23 +214,24 @@ namespace IfcGeoRefChecker_GUI
                                  where l50.Reference_Object[1].Equals("IfcProject")
                                  select l50).Single();
 
-                //lev50proj.Translation_Eastings = convHelper.ParseDouble(tb_eastings50.Text);
-                //lev50proj.Translation_Northings = convHelper.ParseDouble(tb_northings50.Text);
-                //lev50proj.Translation_Orth_Height = convHelper.ParseDouble(tb_height50.Text);
-                //lev50proj.Scale = convHelper.ParseDouble(tb_scale50.Text);
-                lev50proj.Translation_Eastings = Double.Parse(tb_Zone.Text + tb_eastings50.Text);
-                lev50proj.Translation_Northings = Double.Parse(tb_northings50.Text);
-                lev50proj.Translation_Orth_Height = Double.Parse(tb_OrthoHeight.Text);
-                lev50proj.Scale = Double.Parse(tb_scale50.Text);
+                lev50proj.Translation_Eastings = convHelper.ParseDouble(tb_Zone.Text + tb_eastings50.Text);
+                lev50proj.Translation_Northings = convHelper.ParseDouble(tb_northings50.Text);
+                lev50proj.Translation_Orth_Height = convHelper.ParseDouble(tb_OrthoHeight.Text);
+                lev50proj.Scale = convHelper.ParseDouble(tb_scale50.Text);
+
+                //lev50proj.Translation_Eastings = Double.Parse(tb_Zone.Text + tb_eastings50.Text);
+                //    lev50proj.Translation_Northings = Double.Parse(tb_northings50.Text);
+                //    lev50proj.Translation_Orth_Height = Double.Parse(tb_OrthoHeight.Text);
+                //    lev50proj.Scale = Double.Parse(tb_scale50.Text);
 
                 lev50proj.CRS_Name = tb_CRSname50.Text;
 
                 if (!tb_rotation50.Text.Equals(""))
                 {
-                    //var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
-                    var rot50 = Double.Parse(tb_rotation50.Text);
+                    var rot50 = convHelper.ParseDouble(tb_rotation50.Text);
+                    //var rot50 = Double.Parse(tb_rotation50.Text);
                     var vector = convHelper.GetVector3DForXAxis(rot50);
-
+                
                     lev50proj.RotationXY = new List<double>();
 
                     lev50proj.RotationXY = new List<double>();
@@ -313,6 +315,8 @@ namespace IfcGeoRefChecker_GUI
                 tb_rotation50.Text = Calculations.DoubleToString(gridAzi, 9);
                 //tbRotGridVecE.Text = Calculations.DoubleToString(grid[0], 9);
                 //tbRotGridVecN.Text = Calculations.DoubleToString(grid[1], 9);
+
+                MessageBox.Show("Keep in mind: The calculation only transforms between geographical coordinates (latitude, longitude, orthogonal height) and UTM Projection on CRS ETRS89.");
             }
             catch
             {

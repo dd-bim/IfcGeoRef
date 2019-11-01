@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Media.Media3D;
 
 namespace IfcGeoRefChecker.Appl
@@ -275,9 +276,13 @@ namespace IfcGeoRefChecker.Appl
             {
                 return figure;
             }
+            else if(text == "")
+            {
+                return 0;
+            }
             else
             {
-                //MessageBox.Show("Not able to parse " + text + " as double. Please change input to double.");
+                MessageBox.Show("Not able to parse " + text + " as double. Please change input to double.");
                 return 0;
             }
         }
