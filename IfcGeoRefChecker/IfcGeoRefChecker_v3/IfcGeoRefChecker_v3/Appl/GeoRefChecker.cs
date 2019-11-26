@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using Newtonsoft.Json;
@@ -123,7 +124,11 @@ namespace IfcGeoRefChecker.Appl
                 this.TimeCheck = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture);      //UTC timestamp
                 this.LengthUnit = obj.LengthUnitReader();
 
-                this.LoGeoRef10.Add(GetLevel10(bldg));
+                if(bldg != null)
+                {
+                    this.LoGeoRef10.Add(GetLevel10(bldg));
+                }
+                //this.LoGeoRef10.Add(GetLevel10(bldg));
                 this.LoGeoRef10.Add(GetLevel10(site));
 
                 this.LoGeoRef20.Add(GetLevel20(site));
@@ -506,7 +511,8 @@ namespace IfcGeoRefChecker.Appl
             var prop = (pset.HasProperties.Where(p => p.Name == propName).SingleOrDefault() as IIfcPropertySingleValue);
             var propVal = prop.NominalValue.ToString();
 
-            var val = double.TryParse(propVal, out double doubleVal);
+            var val = double.TryParse(propVal, System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out double doubleVal);
+            //var val = double.TryParse(propVal, out double doubleVal);
 
             return doubleVal;
         }

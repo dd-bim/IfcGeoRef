@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{64BE62A1-29C5-4D21-9CF7-1F0F80219EC6}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>IfcGeoRefChecker_v3</RootNamespace>
     <AssemblyName>IfcGeoRefChecker_v3</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
@@ -39,17 +39,36 @@
   <PropertyGroup>
     <ApplicationIcon>icon_ico.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BimGisCad, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\libraries\bimgiscadlib-master_06_19\bimgiscadlib-master\BimGisCad\bin\Release\netstandard2.0\BimGisCad.dll</HintPath>
+    <Reference Include="BimGisCad, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\BimGisCad.1.0.0\lib\netstandard2.0\BimGisCad.dll</HintPath>
     </Reference>
     <Reference Include="Esent.Interop, Version=1.9.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedEsent.1.9.4\lib\net40\Esent.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="IfcGeometryExtractor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\libraries\IfcGeometryExtractor.dll</HintPath>
+    <Reference Include="IfcGeometryExtractor">
+      <HintPath>..\..\..\..\ifcbuildingcontourcalculator\IfcGeometryExtractor\bin\x64\Release\IfcGeometryExtractor.dll</HintPath>
     </Reference>
     <Reference Include="MIConvexHull, Version=1.0.17.1019, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MIConvexHull.1.1.18.1016\lib\netstandard1.0\MIConvexHull.dll</HintPath>
@@ -80,6 +99,10 @@
     </Reference>
     <Reference Include="netDxf, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\netDXF.2.2.0.1\lib\net45\netDxf.dll</HintPath>
+    </Reference>
+    <Reference Include="NETGeographic, Version=1.33.6487.10199, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\NETGeographic.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -148,16 +171,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
+    <None Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </ApplicationDefinition>
+    </None>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Appl\BldgContourCalculator.cs" />
     <Compile Include="Appl\Calc.cs" />
+    <Compile Include="Appl\Calculations.cs" />
     <Compile Include="Appl\GeoRefChecker.cs" />
     <Compile Include="Appl\GeoRefComparer.cs" />
     <Compile Include="Appl\Level10.cs" />
@@ -166,23 +190,15 @@
     <Compile Include="Appl\Level40.cs" />
     <Compile Include="Appl\Level50.cs" />
     <Compile Include="Appl\PlacementXYZ.cs" />
-    <Compile Include="Compare.xaml.cs" />
-    <Compile Include="Info.xaml.cs" />
     <Compile Include="IO\IfcImport.cs" />
     <Compile Include="IO\IfcReader.cs" />
     <Compile Include="IO\IfcWriter.cs" />
+    <Compile Include="IO\InputGroup.cs" />
+    <Compile Include="IO\JsonInput.cs" />
     <Compile Include="IO\JsonOutput.cs" />
     <Compile Include="IO\LogOutput.cs" />
-    <Compile Include="Results.xaml.cs" />
-    <Compile Include="Export to IFC.xaml.cs">
-      <DependentUpon>Export to IFC.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UpdateMan.xaml.cs">
-      <DependentUpon>UpdateMan.xaml</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainWindow.xaml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -200,6 +216,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="egm2008.egm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="egm2008.egm.cof">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -210,39 +232,21 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Compare.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Info.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Results.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Export to IFC.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UpdateMan.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="img\DD-BIM-LOGO.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="MIConvexHull.xml" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="icon_ico.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="img\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Geographic.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="NETGeographic.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

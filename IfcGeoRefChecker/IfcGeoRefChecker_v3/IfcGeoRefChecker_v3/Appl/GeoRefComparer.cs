@@ -7,7 +7,7 @@ using Serilog;
 
 namespace IfcGeoRefChecker.Appl
 {
-    internal class GeoRefComparer
+    public class GeoRefComparer
     {
         private Level10 siteAddress;  //adresses for Site
         private Level10 bldgAddress;    //adresses for Building
@@ -181,7 +181,12 @@ namespace IfcGeoRefChecker.Appl
         {
             Log.Information("GeoRefComparer: Write CompareLog file...");
 
-            using(var writeCompareLog = File.CreateText(this.direc + refFile + "_compare.txt"))
+            string[] lDirectory = { direc, "IfcGeoRefChecker\\CompareExport" };
+            Directory.CreateDirectory(Path.Combine(lDirectory));
+            string[] paths = { direc, "IfcGeoRefChecker\\CompareExport", refFile };
+            var path = System.IO.Path.Combine(paths);
+
+            using (var writeCompareLog = File.CreateText(path + "_compare.txt"))
             {
                 try
                 {
@@ -208,11 +213,12 @@ namespace IfcGeoRefChecker.Appl
             {
                 Log.Information("GeoRefComparer: Show Compare file...");
 
-                var splits = refFile.Split('\\');
-                var name = splits[splits.Length - 1];
-
-                var path = this.direc + "\\IfcGeoRefChecker\\export\\" + name + "_compare.txt";
-
+                //var splits = refFile.Split('\\');
+                //var name = splits[splits.Length - 1];
+                string[] paths = { direc, "IfcGeoRefChecker\\CompareExport", refFile };
+                var path = System.IO.Path.Combine(paths);
+                //path = this.direc + "\\IfcGeoRefChecker\\export\\" + name + "_compare.txt";
+                path = path + "_compare.txt";
                 System.Diagnostics.Process.Start(path);
             }
             catch(Exception ex)

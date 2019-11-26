@@ -340,15 +340,16 @@ There are two main ways to update georeferencing for your IFC file. You can reac
 
 #### First option: edit manually
 
-You can update your file manually. That means to set the required attributes via textbox input. 
+You can update your file manually. That means to set the required attributes via textbox input.
 Via click on "..via manual setup" a window for the input data wil appear:
 
-![GeoRefUpdater](pic/GeoRefUpdater_GUI1_v3.png)
+![GeoRefUpdater](pic/manualUpdate_1.png)
 
-There is no IFC knowledge required. You have the options to update simply the "Postal address", to set a rough georeferencing via "Geograpic site coordinates" or to define a "Geodetic transformation" with translation and rotation as well as defining the CRS via EPSG-Code.
+There is no IFC knowledge required. You have the options to update simply the "Postal address", to set a rough georeferencing via "Geograpic site coordinates" or to define a "Projected transformation" with translation and rotation as well as defining the CRS via EPSG-Code.
 Depending on the export settings later on the transformation parameters will normally define the transformation between your local BIM/CAD coordinate system and the geodetic (or engineering) CRS at the project base point.
 
 Via click on "Save and Close" the input will be saved internally for the later IFC export.
+Clicking on "Calculate" will calculate the "Projected transformation", if the position and rotation in "Geographic site coordinates" is given and checked, or vice versa. Keep in mind that this automated calculation only supports UTM projection in its projected transformation.
 
 #### Second option: edit via map
 
@@ -377,7 +378,7 @@ After that a window will be opened with some options for IFC export. Because of 
 
 The export window looks like this:
 
-![GeoRefUpdater](pic/GeoRefUpdater_GUI3_v3.png)
+![GeoRefUpdater](pic/exportUpdate.png)
 
 Using the default settings, the application exports georeferencing attributes such as the latest IFC standard it requests. Unfortunetaly not all BIM software is able to read this attributes from the IFC file. 
 We recommend to test the different options and import the resulting files in your BIM environment to find out which option suits your needs as best. 
@@ -415,7 +416,15 @@ Nevertheless, here are some hints:
 2. Check georeferencing of the resulting IFC-file with IfcGeoRefChecker. Now you can see which GeoRef attributes will be used by your exporting software.
 3. For future projects you should fill or update only those attributes if you will use the certain IFC model in your BIM-software.
 
-This could be also helpful if you get an IFC-file which is exported by an other BIM-software which then again uses other georeferencing attributes. The IfcGeoRefUpdater helps you to change the attributes for your software. 
+This could be also helpful if you get an IFC-file which is exported by an other BIM-software which then again uses other georeferencing attributes. The IfcGeoRefUpdater helps you to change the attributes for your software.
+
+Some remarks on different software:
+
+##### Revit:
+If you want to use the ifc data with correct coordinates in Revit it is important to place the "project base point" at the desired location (same as LoGeoRef30 position of IfcSite) before importing the generated Ifc file in Revit. Revit currently doesn't interpret the IfcMapConversion property (LoGeoRef50).
+
+##### Solibri:
+Free Solibri software solutions (Solibri Model Viewer / Solibri Anywhere) generally import almost all IFC information according to LoGeoRef 10 to LoGeoRef30 correctly in it's site information.
 
 ### GeoRefComparer
 
@@ -461,7 +470,41 @@ Comparison to Haus_1_TGA.ifc:
  The georeferencing of the files is exactly equal.
 
 ```
+### Checking IFC-files using command-line arguments
 
+As an alternative to the graphical user interface, it is possible to use the IFCGeoRefCheckerCommand.exe for checking the level of georeferencing of multiple IFC-files at once (and creating log- or json files that display the results).
+For that, a *.json file is required, that contains the filepath and -name of the IFC-files to be checked, an output path and information wether log and/or json result files shall be created.
+Such an input json file could look like this:
+
+```
+{
+  "InputObjects":
+  [
+    {
+      "fileName": "D:\\Data\\IFCfiles\\TestObject1.ifc"
+    },
+    {
+	  "fileName": "D:\\Data\\IFCfiles\\TestObject2.ifc"
+	},
+    {
+	  "fileName": "D:\\Data\\IFCfiles\\TestObject3.ifc"
+	}
+  ],
+  "outputDirectory": "D:\\Data\\Output",
+  "outLog": true,
+  "outJson": false
+}
+
+```
+- "InputObjects" is a list object, that can contain any number of "fileName" string-objects. They contain paths and filenames of the IFC-files to be checked.
+- "outputdirectory" is also a string-object, that contains the path where the log- and json-files shall be created.
+- "outLog" and "outJson" contain boolean values that determine wether a logfile (*.txt) and/or a json file shall be created.
+
+Once the input.json file is ready you can use the console (cmd) to run the IFCGeoRefCheckerCommand.exe with the filepath of the input.json as a command line argument. For example:
+```
+IFCGeoRefCheckerCommand.exe "D:\Data\input\Sample.json"
+
+```
 ### Errors that may occur
 
 **While File Import (1):**
