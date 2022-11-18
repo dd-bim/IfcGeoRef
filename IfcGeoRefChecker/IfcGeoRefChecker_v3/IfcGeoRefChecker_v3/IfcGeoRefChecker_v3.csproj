@@ -61,14 +61,14 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BimGisCad, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\BimGisCad.1.0.0\lib\netstandard2.0\BimGisCad.dll</HintPath>
+    <Reference Include="BimGisCad">
+      <HintPath>.\BimGisCad.dll</HintPath>
     </Reference>
     <Reference Include="Esent.Interop, Version=1.9.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedEsent.1.9.4\lib\net40\Esent.Interop.dll</HintPath>
     </Reference>
     <Reference Include="IfcGeometryExtractor">
-      <HintPath>..\..\..\..\ifcbuildingcontourcalculator\IfcGeometryExtractor\bin\x64\Release\IfcGeometryExtractor.dll</HintPath>
+      <HintPath>.\IfcGeometryExtractor.dll</HintPath>
     </Reference>
     <Reference Include="MIConvexHull, Version=1.0.17.1019, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MIConvexHull.1.1.18.1016\lib\netstandard1.0\MIConvexHull.dll</HintPath>
